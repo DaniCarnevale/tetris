@@ -2,6 +2,7 @@ import { BLOCK_SIZE, BOARD_WIDTH, BOARD_HEIGHT } from "./config/config.js";
 import { randomPiece, checkColission } from "./utils/utils.js";
 import { movePiece, rotatePiece, solidifyPiece } from "./managers/pieceManager.js";
 import { removeRows } from "./managers/boardManager.js";
+import audioSrc from '../assets/audio/tetris.mp3';
 import "../styles/style.css";
 
 // Inicializar el canvas
@@ -28,9 +29,10 @@ let dropCounter = 0;
 let lastTime = 0;
 
 // Iniciar audio
-const audio = new Audio('../assets/audio/tetris.mp3');
+const audio = new Audio(audioSrc);
 audio.loop = true;
 audio.volume = 0.2;
+//audio.volume = 0;
 
 window.addEventListener('focus', () => {
   audio.play();
