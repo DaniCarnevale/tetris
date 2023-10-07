@@ -17,81 +17,26 @@ canvas.height = BLOCK_SIZE * BOARD_HEIGHT;
 context.scale(BLOCK_SIZE, BLOCK_SIZE); 
 
 // 3 . Board
-const  board = [
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0],
-  [1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 0 , 1 , 1 , 1 , 1],
-]
-
-// 4 . Piece
-const piece = {
-  position: { x: 5, y: 5},
-  shape: [
-    [ 1 , 1 ],
-    [ 1 , 1 ]
-  ]
-}
+const board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null));
 
 // Random Pieces
-
 const PIECES = [
-  [
-    [1 , 1 ],
-    [1 , 1 ]
-  ],
-  [
-    [ 1 , 1 , 1 , 1]
-  ],
-  [
-    [ 0 , 1 , 0 ],
-    [ 1 , 1 , 1 ] 
-  ],
-  [
-    [ 1 , 1 , 0 ],
-    [ 0 , 1 , 1 ]
-  ],
-  [
-    [ 0 , 1 , 1 ],
-    [ 1 , 1 , 0 ]
-  ],
-  [
-    [ 1 , 1 ],
-    [ 0 , 1 ],
-    [ 0 , 1 ]
-  ],
-  [
-    [ 1 , 1 ],
-    [ 1 , 0 ],
-    [ 1 , 0 ]
-  ]
-]
+  { shape: [[1, 1], [1, 1]], color: 'blue' },
+  { shape: [[1, 1, 1, 1]], color: 'red' },
+  { shape: [[0, 1, 0], [1, 1, 1]], color: 'yellow' },
+  { shape: [[1, 1, 0], [0, 1, 1]], color: 'green' },
+  { shape: [[0, 1, 1], [1, 1, 0]], color: 'purple' },
+  { shape: [[1, 1], [0, 1], [0, 1]], color: 'cyan' },
+  { shape: [[1, 1], [1, 0], [1, 0]], color: 'orange' }
+];
+
+// 4 . Piece
+const randomPiece = PIECES[Math.floor(Math.random() * PIECES.length)];
+const piece = {
+  position: { x: 5, y: 5 },
+  shape: randomPiece.shape,
+  color: randomPiece.color
+};
 
 let dropCounter = 0;
 let lastTime = 0;
@@ -111,33 +56,31 @@ function update(time = 0){
       removeRows();
     }
   }
-
   draw(); 
   window.requestAnimationFrame(update);
-   
 }
 
 function draw(){
   context.fillStyle = '#000';
   context.fillRect(0, 0, canvas.width, canvas.height );
 
-  board.forEach(( row , y ) => {
-    row.forEach(( value , x) => {
-      if (value === 1){
-        context.fillStyle = 'grey';
-        context.fillRect(x , y , 1 , 1);
+  board.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value !== null){
+        context.fillStyle = value;
+        context.fillRect(x, y, 1, 1);
       }
     })
-  })
+  });
 
   piece.shape.forEach((row, y) => {
     row.forEach((value, x) => {
-      if(value){
-        context.fillStyle = 'pink';
+      if (value) {
+        context.fillStyle = piece.color;
         context.fillRect(x + piece.position.x, y + piece.position.y, 1, 1);
       }
-    })
-  })
+    });
+  });
   $score.innerText = score;
 }
 
@@ -187,7 +130,7 @@ function checkColission(){
     for(let x = 0; x < piece.shape[y].length; x++) {
       if (
         piece.shape[y][x] !== 0 &&
-        (board[y + piece.position.y] && board[y + piece.position.y][x + piece.position.x]) !== 0
+        (board[y + piece.position.y] && board[y + piece.position.y][x + piece.position.x]) !== null
       ) {
         return true; // Hay una colisión
       }
@@ -200,19 +143,21 @@ function solidifyPiece(){
   piece.shape.forEach((row, y) => {
     row.forEach((value, x) => {
       if(value === 1){
-        board[y + piece.position.y][x + piece.position.x] = 1;
+        board[y + piece.position.y][x + piece.position.x] = piece.color;
       }
     })
-  })
+  });
   //reset piece
   piece.position.x = Math.floor(BOARD_WIDTH / 2 - 2);
   piece.position.y = 0;
   //get random piece
-  piece.shape = PIECES[Math.floor(Math.random() * PIECES.length) ]
+  const newRandomPiece = PIECES[Math.floor(Math.random() * PIECES.length)];
+  piece.shape = newRandomPiece.shape;
+  piece.color = newRandomPiece.color;
 
   if(checkColission()){
     window.alert("Game Over!");
-    board.forEach((row) => row.fill(0));
+    board.forEach((row) => row.fill(null));
   }
 }
 
@@ -220,19 +165,33 @@ function removeRows(){
   const rowsToRemove = [];
 
   board.forEach((row, y) => {
-    if (row.every(value => value === 1)){
+    if (row.every(value => value !== null)){
       rowsToRemove.push(y)
     }
   })
 
   rowsToRemove.forEach(y => {
     board.splice(y, 1);
-    const newRow = Array(BOARD_WIDTH).fill(0);
+    const newRow = Array(BOARD_WIDTH).fill(null);
     board.unshift(newRow);
-    score +=10;
-    console.log(score);
   })
+
+  switch(rowsToRemove.length) {
+    case 1:
+      score += 100;
+      break;
+    case 2:
+      score += 250;
+      break;
+    case 3:
+      score += 400;
+      break;
+    case 4:
+      score += 600;
+      break;
+    default:
+      break;
+  }
 }
 
 update();
-
