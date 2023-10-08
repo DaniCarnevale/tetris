@@ -14,6 +14,14 @@ canvas.width = BLOCK_SIZE * BOARD_WIDTH;
 canvas.height = BLOCK_SIZE * BOARD_HEIGHT;
 context.scale(BLOCK_SIZE, BLOCK_SIZE);
 
+// Inicializar el canvas del próximo bloque
+const canvasNext = document.querySelector("canvas.next");
+const contextNext = canvasNext.getContext("2d");
+
+canvasNext.width = BLOCK_SIZE * 4;
+canvasNext.height = BLOCK_SIZE * 4;
+contextNext.scale(BLOCK_SIZE, BLOCK_SIZE);
+
 const board = Array(BOARD_HEIGHT)
   .fill()
   .map(() => Array(BOARD_WIDTH).fill(null));
@@ -24,33 +32,34 @@ const piece = {
   position: { x: 5, y: 5 },
   ...randomPiece(),
 };
+let nextPiece = randomPiece();
 
 let dropCounter = 0;
 let lastTime = 0;
 
 // Iniciar audio
-const audio = new Audio(audioSrc);
-audio.loop = true;
-//audio.volume = 0.2;
-audio.volume = 0;
+// const audio = new Audio(audioSrc);
+// audio.loop = true;
+// audio.volume = 0.2;
+// audio.volume = 0;
 
-window.addEventListener('focus', () => {
-  audio.play();
-});
+// window.addEventListener('focus', () => {
+//   audio.play();
+// });
 
-window.addEventListener('blur', () => {
-  audio.pause();
-});
+// window.addEventListener('blur', () => {
+//   audio.pause();
+// });
 
-function playAudio() {
-  if (audio.paused) {
-    audio.play();
-  }
-}
+// function playAudio() {
+//   if (audio.paused) {
+//     audio.play();
+//   }
+// }
 
 function update(time = 0) {
-  playAudio();
-  
+  // playAudio();
+
   const deltaTime = time - lastTime;
   lastTime = time;
 
@@ -62,12 +71,15 @@ function update(time = 0) {
     if (checkColission(piece, board)) {
       piece.position.y--;
 
-      const gameOver = solidifyPiece(piece, board); // Esto devuelve true si el juego ha terminado
+      const gameOver = solidifyPiece(piece, board, nextPiece); // Esto devuelve true si el juego ha terminado
       if (gameOver) {
         resetGame();  // Si el juego ha terminado, reinícialo.
       } else {
         const points = removeRows(board);
         score += points;
+
+        nextPiece = randomPiece();
+        drawUpcomingPiece(nextPiece);
       }
     }
   }
@@ -76,6 +88,19 @@ function update(time = 0) {
   window.requestAnimationFrame(update);
 }
 
+export function drawUpcomingPiece(piece) {
+  contextNext.fillStyle = "#000";
+  contextNext.fillRect(0, 0, canvasNext.width, canvasNext.height);
+
+  piece.shape.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value) {
+        contextNext.fillStyle = piece.color;
+        contextNext.fillRect(x, y, 1, 1);
+      }
+    });
+  });
+}
 
 function draw() {
   context.fillStyle = "#000";
@@ -124,3 +149,4 @@ function resetGame() {
 }
 
 update();
+drawUpcomingPiece(nextPiece);
