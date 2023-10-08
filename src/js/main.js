@@ -1,4 +1,5 @@
 import { BLOCK_SIZE, BOARD_WIDTH, BOARD_HEIGHT } from "./config/config.js";
+import { getCurrentLevel } from "./managers/levelManager.js";
 import { randomPiece, checkColission } from "./utils/utils.js";
 import { movePiece, rotatePiece, solidifyPiece } from "./managers/pieceManager.js";
 import { removeRows } from "./managers/boardManager.js";
@@ -19,6 +20,7 @@ const board = Array(BOARD_HEIGHT)
   .map(() => Array(BOARD_WIDTH).fill(null));
 
 let score = 0;
+let level = document.getElementById('level');
 
 const piece = {
   position: { x: 5, y: 5 },
@@ -54,8 +56,10 @@ function update(time = 0) {
   const deltaTime = time - lastTime;
   lastTime = time;
 
+  const currentLevel = getCurrentLevel(score);
+
   dropCounter += deltaTime;
-  if (dropCounter > 500) {
+  if (dropCounter > currentLevel.speed) {
     piece.position.y++;
     dropCounter = 0;
 
@@ -99,7 +103,9 @@ function draw() {
     });
   });
 
+  const currentLevel = getCurrentLevel(score);
   $score.innerText = score;
+  level.innerText = currentLevel.level;
 }
 
 document.addEventListener("keydown", (event) => {
