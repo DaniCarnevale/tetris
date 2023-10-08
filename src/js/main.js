@@ -31,8 +31,8 @@ let lastTime = 0;
 // Iniciar audio
 const audio = new Audio(audioSrc);
 audio.loop = true;
-audio.volume = 0.2;
-//audio.volume = 0;
+//audio.volume = 0.2;
+audio.volume = 0;
 
 window.addEventListener('focus', () => {
   audio.play();
@@ -49,7 +49,7 @@ function playAudio() {
 }
 
 function update(time = 0) {
-  playAudio(); // Asegurarnos de que el audio esté reproduciendo
+  playAudio();
   
   const deltaTime = time - lastTime;
   lastTime = time;
@@ -61,16 +61,21 @@ function update(time = 0) {
 
     if (checkColission(piece, board)) {
       piece.position.y--;
-      solidifyPiece(piece, board, resetGame);
-      const points = removeRows(board);
-      console.log("Puntos obtenidos:", points);
-      score += points;
+
+      const gameOver = solidifyPiece(piece, board); // Esto devuelve true si el juego ha terminado
+      if (gameOver) {
+        resetGame();  // Si el juego ha terminado, reinícialo.
+      } else {
+        const points = removeRows(board);
+        score += points;
+      }
     }
   }
 
   draw();
   window.requestAnimationFrame(update);
 }
+
 
 function draw() {
   context.fillStyle = "#000";
@@ -105,7 +110,7 @@ document.addEventListener("keydown", (event) => {
     event.key === "ArrowUp"
   ) {
     const direction = event.key.replace("Arrow", "").toLowerCase();
-    score += movePiece(piece, direction, board); // Sumamos el valor retornado.
+    score += movePiece(piece, direction, board);
 
     if (direction === "up") {
       rotatePiece(piece, board);

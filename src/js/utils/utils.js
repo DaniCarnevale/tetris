@@ -14,7 +14,6 @@ export function checkColission(specificPiece, board) {
         specificPiece.shape[y][x] !== 0 &&
         (boardY >= 0 && board[boardY] && board[boardY][boardX]) !== null
       ) {
-        // Añade la comprobación boardY >= 0
         return true; // Hay una colisión
       }
     }

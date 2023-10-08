@@ -46,7 +46,7 @@ export function rotatePiece(piece, board) {
   }
 }
 
-export function solidifyPiece(piece, board, resetGame) {
+export function solidifyPiece(piece, board) {
   piece.shape.forEach((row, y) => {
     row.forEach((value, x) => {
       if (value === 1) {
@@ -55,19 +55,19 @@ export function solidifyPiece(piece, board, resetGame) {
     });
   });
 
-  //reset piece to the top
+  //resetea la pieza arriba
   piece.position.x = Math.floor(BOARD_WIDTH / 2 - 2);
   piece.position.y = 0;
 
-  //get random piece
+  //Genera una pieza random
   const newPiece = randomPiece();
   piece.shape = newPiece.shape;
   piece.color = newPiece.color;
 
-  // Check collision right after generating a new piece.
+  // Verificar colisión justo después de generar una nueva pieza
   if (checkColission(piece, board)) {
     window.alert("Game Over!");
-    board.forEach((row) => row.fill(null));
-    resetGame(); // Call resetGame when game ends
+    return true;  // Indica que el juego ha terminado
   }
+  return false;  // Indica que el juego no ha terminado
 }
