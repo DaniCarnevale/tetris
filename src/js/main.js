@@ -7,7 +7,7 @@ import audioSrc from '../assets/audio/tetris.mp3';
 import "../styles/style.css";
 
 // Inicializar el canvas
-const canvas = document.querySelector("canvas");
+const canvas = document.querySelector("canvas#board");
 const context = canvas.getContext("2d");
 const $score = document.querySelector("span");
 
@@ -23,6 +23,14 @@ canvasNext.width = BLOCK_SIZE * 4;
 canvasNext.height = BLOCK_SIZE * 4;
 contextNext.scale(BLOCK_SIZE, BLOCK_SIZE);
 
+// Inicializar el canvas del bloque guardado
+const canvasSaved = document.querySelector("canvas.saved");
+const contextSaved = canvasSaved.getContext("2d");
+
+canvasSaved.width = BLOCK_SIZE * 4;
+canvasSaved.height = BLOCK_SIZE * 4;
+contextSaved.scale(BLOCK_SIZE, BLOCK_SIZE);
+
 const board = Array(BOARD_HEIGHT)
   .fill()
   .map(() => Array(BOARD_WIDTH).fill(null));
@@ -31,9 +39,11 @@ let score = 0;
 let level = document.getElementById('level');
 
 const piece = {
-  position: { x: 5, y: 5 },
+  position: { x: Math.floor(BOARD_WIDTH / 2 - 2), y: 0 },
   ...randomPiece(),
 };
+
+let savedPiece = null;
 let nextPiece = randomPiece();
 
 let dropCounter = 0;
@@ -65,6 +75,26 @@ function update(time = 0) {
   if (latestInput !== null) {
     if (latestInput === "up") {
       rotatePiece(piece, board);
+    }
+    if (latestInput === "s") {
+      if (savedPiece && savedPiece.shape !== piece.shape && savedPiece.color !== piece.color) {
+        piece.position = { x: Math.floor(BOARD_WIDTH / 2 - 2), y: 0 };
+        piece.shape = savedPiece.shape;
+        piece.color = savedPiece.color;
+
+        savedPiece = null;
+      } else if (!savedPiece) {
+        savedPiece = { ...piece };
+        const transformedPiece = nextPiece;
+        piece.position = { x: Math.floor(BOARD_WIDTH / 2 - 2), y: 0 };
+        piece.shape = transformedPiece.shape;
+        piece.color = transformedPiece.color;
+        
+        nextPiece = randomPiece();
+        drawUpcomingPiece(nextPiece);
+      }
+
+      drawSavedPiece(savedPiece);
     }
 
     score += movePiece(piece, latestInput, board, nextPiece);
@@ -102,15 +132,33 @@ function update(time = 0) {
   window.requestAnimationFrame(update);
 }
 
-export function drawUpcomingPiece(piece) {
+function drawUpcomingPiece(piece) {
   contextNext.fillStyle = "#000";
   contextNext.fillRect(0, 0, canvasNext.width, canvasNext.height);
+
+  if (!piece) return;
 
   piece.shape.forEach((row, y) => {
     row.forEach((value, x) => {
       if (value) {
         contextNext.fillStyle = piece.color;
         contextNext.fillRect(x, y, 1, 1);
+      }
+    });
+  });
+}
+
+function drawSavedPiece(piece) {
+  contextSaved.fillStyle = "#000";
+  contextSaved.fillRect(0, 0, canvasSaved.width, canvasSaved.height);
+
+  if (!piece) return;
+
+  piece.shape.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value) {
+        contextSaved.fillStyle = piece.color;
+        contextSaved.fillRect(x, y, 1, 1);
       }
     });
   });
@@ -146,15 +194,8 @@ function draw() {
 let latestInput = null;
 
 document.addEventListener("keydown", (event) => {
-  if (
-    event.key === "ArrowLeft" ||
-    event.key === "ArrowRight" ||
-    event.key === "ArrowDown" ||
-    event.key === "ArrowUp"
-  ) {
-    const direction = event.key.replace("Arrow", "").toLowerCase();
-    latestInput = direction;
-  }
+  const direction = event.key.replace("Arrow", "").toLowerCase();
+  latestInput = direction;
 });
 
 function resetGame() {
@@ -164,3 +205,4 @@ function resetGame() {
 
 update();
 drawUpcomingPiece(nextPiece);
+drawSavedPiece();
