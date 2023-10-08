@@ -46,7 +46,7 @@ export function rotatePiece(piece, board) {
   }
 }
 
-export function solidifyPiece(piece, board) {
+export function solidifyPiece(piece, board, nextPiece) {
   piece.shape.forEach((row, y) => {
     row.forEach((value, x) => {
       if (value === 1) {
@@ -60,9 +60,8 @@ export function solidifyPiece(piece, board) {
   piece.position.y = 0;
 
   //Genera una pieza random
-  const newPiece = randomPiece();
-  piece.shape = newPiece.shape;
-  piece.color = newPiece.color;
+  piece.shape = nextPiece.shape;
+  piece.color = nextPiece.color;
 
   // Verificar colisión justo después de generar una nueva pieza
   if (checkColission(piece, board)) {
