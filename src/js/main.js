@@ -62,6 +62,14 @@ let lastTime = 0;
 function update(time = 0) {
   // playAudio();
 
+  if (latestInput !== null) {
+    if (latestInput === "up") {
+      rotatePiece(piece, board);
+    }
+
+    score += movePiece(piece, latestInput, board, nextPiece);
+  }
+
   const deltaTime = time - lastTime;
   lastTime = time;
 
@@ -87,6 +95,8 @@ function update(time = 0) {
       }
     }
   }
+
+  latestInput = null;
 
   draw();
   window.requestAnimationFrame(update);
@@ -133,6 +143,8 @@ function draw() {
   level.innerText = currentLevel.level;
 }
 
+let latestInput = null;
+
 document.addEventListener("keydown", (event) => {
   if (
     event.key === "ArrowLeft" ||
@@ -141,11 +153,7 @@ document.addEventListener("keydown", (event) => {
     event.key === "ArrowUp"
   ) {
     const direction = event.key.replace("Arrow", "").toLowerCase();
-    score += movePiece(piece, direction, board);
-
-    if (direction === "up") {
-      rotatePiece(piece, board);
-    }
+    latestInput = direction;
   }
 });
 

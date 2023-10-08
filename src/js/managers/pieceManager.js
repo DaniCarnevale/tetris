@@ -2,7 +2,7 @@ import { BOARD_WIDTH } from "../config/config";
 import { removeRows } from "./boardManager.js";
 import { checkColission, randomPiece } from "../utils/utils.js";
 
-export function movePiece(piece, direction, board) {
+export function movePiece(piece, direction, board, nextPiece) {
   switch (direction) {
     case "left":
       piece.position.x--;
@@ -20,7 +20,7 @@ export function movePiece(piece, direction, board) {
       piece.position.y++;
       if (checkColission(piece, board)) {
         piece.position.y--;
-        solidifyPiece(piece, board);
+        solidifyPiece(piece, board, nextPiece);
         return removeRows(board); // Retornamos el valor de los puntos.
       }
       break;
