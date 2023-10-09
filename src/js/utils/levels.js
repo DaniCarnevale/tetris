@@ -2,27 +2,27 @@ export const levels = [
     {
         level: 1,
         limit: 0,
-        speed: 500 
+        speed: 400 
     },
     {
         level: 2,
         limit: 1000,
-        speed: 400
+        speed: 300
     },
     {
         level: 3,
         limit: 2000,
-        speed: 300 
+        speed: 250 
     },
     {
         level: 4,
         limit: 3000,
-        speed: 250 
+        speed: 200 
     },
     {
         level: 5,
         limit: 4000,
-        speed: 200 
+        speed: 180 
     },
     {
         level: 6,
