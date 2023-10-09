@@ -97,7 +97,7 @@ function update(time = 0) {
       drawSavedPiece(savedPiece);
     }
 
-    score += movePiece(piece, latestInput, board, nextPiece);
+    score += movePiece(piece, latestInput, board, nextPiece, drawUpcomingPiece);
   }
 
   const deltaTime = time - lastTime;
@@ -113,9 +113,9 @@ function update(time = 0) {
     if (checkColission(piece, board)) {
       piece.position.y--;
 
-      const gameOver = solidifyPiece(piece, board, nextPiece); // Esto devuelve true si el juego ha terminado
+      const gameOver = solidifyPiece(piece, board, nextPiece);
       if (gameOver) {
-        resetGame();  // Si el juego ha terminado, reinícialo.
+        resetGame();
       } else {
         const points = removeRows(board);
         score += points;
