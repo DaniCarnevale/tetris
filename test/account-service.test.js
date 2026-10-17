@@ -58,28 +58,6 @@ test('links Google to the existing anonymous session instead of creating a new p
   })
 })
 
-test('signs into the existing Google account when linking to the guest is not possible', async () => {
-  const { client, calls } = createAccountClient({
-    linkIdentityError: { code: 'identity_already_exists', message: 'Identity is already linked to another user' },
-    oauthData: { url: 'https://accounts.google.test/sign-in' }
-  })
-  const service = createAccountService({
-    supabaseClient: client,
-    supabaseUrl: 'https://example.supabase.co',
-    supabaseKey: 'public-key',
-    redirectTo: 'http://127.0.0.1:5173/'
-  })
-
-  const result = await service.connectGoogle()
-
-  assert.equal(result.source, 'redirect')
-  assert.equal(result.url, 'https://accounts.google.test/sign-in')
-  assert.deepEqual(calls.signInWithOAuth, {
-    provider: 'google',
-    options: { redirectTo: 'http://127.0.0.1:5173/' }
-  })
-})
-
 test('exposes the signed-in Google account state', async () => {
   const { client } = createAccountClient({
     session: { user: { id: 'user-1', email: 'dani@example.com', is_anonymous: false } }
