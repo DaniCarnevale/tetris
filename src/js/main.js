@@ -12,6 +12,7 @@ import { getBackdropForLevel, getStage, STAGES } from './game/stages.js'
 import { createLineClearAnimation, getLineClearProgress, isLineClearAnimationActive } from './game/lineClearAnimation.js'
 import { getGameLayoutMode, getGameViewportState, getPieceStatsLayout } from './game/layout.js'
 import { getPieceStatsView } from './game/pieceStats.js'
+import { getLevelLedFeedback } from './game/levelLed.js'
 import { createSoundManager } from './audio/soundManager.js'
 import { createLeaderboardService } from './leaderboard/leaderboardService.js'
 import { createAvatarService, validateAvatarFile } from './leaderboard/avatarService.js'
@@ -155,6 +156,8 @@ const savedCanvas = document.querySelector('.saved')
 const scoreElement = document.querySelector('#score')
 const levelElement = document.querySelector('#level')
 const levelProgressElement = document.querySelector('#levelProgress')
+const statsCard = document.querySelector('.stats-card')
+const levelLedTargets = [boardCanvas, statsCard]
 const statusElement = document.querySelector('#status')
 const stateLabel = document.querySelector('#stateLabel')
 const stateDot = document.querySelector('#stateDot')
@@ -249,6 +252,7 @@ let profileEditingEnabled = false
 let currentAccount = { status: 'guest', isAnonymous: true }
 let persistedProfile = null
 let lastRenderedPieceStats = ''
+let levelLedTimer = null
 
 function syncGameViewport () {
   const viewport = window.visualViewport
@@ -598,6 +602,32 @@ function updateLevelProgress () {
   levelProgressElement.style.width = `${Math.max(0, Math.min(progress, 100))}%`
 }
 
+function clearLevelLedFeedback () {
+  if (levelLedTimer !== null) window.clearTimeout(levelLedTimer)
+  levelLedTimer = null
+
+  levelLedTargets.forEach((target) => {
+    target.classList.remove('is-level-led', 'is-level-led-accent', 'is-level-led-danger', 'is-level-led-pulse', 'is-level-led-steady')
+    target.style.removeProperty('--level-led-pulse-duration')
+  })
+}
+
+function updateLevelLedFeedback (level, { celebrate = false } = {}) {
+  clearLevelLedFeedback()
+  const feedback = getLevelLedFeedback(level)
+
+  if (!feedback.persistent && !celebrate) return
+
+  levelLedTargets.forEach((target) => {
+    target.classList.add('is-level-led', `is-level-led-${feedback.tone}`, `is-level-led-${feedback.mode}`)
+    if (feedback.pulseDurationMs) target.style.setProperty('--level-led-pulse-duration', `${feedback.pulseDurationMs}ms`)
+  })
+
+  if (!feedback.persistent) {
+    levelLedTimer = window.setTimeout(clearLevelLedFeedback, feedback.activeDurationMs)
+  }
+}
+
 function updateHud () {
   const currentLevel = getCurrentLevel(game.score, game.startLevel)
   const isPaused = game.paused && !game.gameOver
@@ -624,8 +654,10 @@ function updateHud () {
   renderPieceStats()
 
   if (lastRenderedLevel !== currentLevel.level) {
+    const celebrateLevelUp = lastRenderedLevel > 0
     lastRenderedLevel = currentLevel.level
     updateStageArt(currentLevel.level)
+    updateLevelLedFeedback(currentLevel.level, { celebrate: celebrateLevelUp })
   }
 }
 
@@ -1292,6 +1324,7 @@ function returnToStartScreen (keyCode) {
 
   hideGameOverOverlay()
   soundManager.stopMusic()
+  clearLevelLedFeedback()
   gameStarted = false
   gameScreen.hidden = true
   startScreen.hidden = false
@@ -1307,6 +1340,8 @@ function restartGame () {
   game = resetGame(game)
   gameStarted = true
   syncGameViewport()
+  lastRenderedLevel = 0
+  clearLevelLedFeedback()
   dropCounter = 0
   lastTime = performance.now()
   soundManager.unlock()
