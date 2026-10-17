@@ -35,7 +35,7 @@ function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous
   }
 }
 
-test('links Google to the existing anonymous session instead of creating a new player', async () => {
+test('starts Google sign-in from a guest session so existing identities can log in', async () => {
   const { client, calls } = createAccountClient()
   const service = createAccountService({
     supabaseClient: client,
@@ -48,7 +48,7 @@ test('links Google to the existing anonymous session instead of creating a new p
 
   assert.equal(result.source, 'redirect')
   assert.equal(result.url, 'https://accounts.google.test/authorize')
-  assert.deepEqual(calls.linkIdentity, {
+  assert.deepEqual(calls.signInWithOAuth, {
     provider: 'google',
     options: { redirectTo: 'http://127.0.0.1:5173/' }
   })
