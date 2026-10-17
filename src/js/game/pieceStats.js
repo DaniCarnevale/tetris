@@ -1,9 +1,10 @@
 import { PIECES } from '../config/config.js'
 
-export const PIECE_STATS_META = Object.freeze(PIECES.map(({ id, label, shortLabel, color }) => Object.freeze({
+export const PIECE_STATS_META = Object.freeze(PIECES.map(({ id, label, shortLabel, shape, color }) => Object.freeze({
   id,
   label,
   shortLabel,
+  shape: shape.map((row) => [...row]),
   color
 })))
 
