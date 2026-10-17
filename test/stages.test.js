@@ -63,6 +63,9 @@ test('line clear sound sequences become richer from one to four lines', () => {
 })
 
 test('music has an original loop that can be reused across every level', () => {
-  assert.ok(getMusicSequence(1).length > 0)
-  assert.deepEqual(getMusicSequence(1), getMusicSequence(10))
+  const sequence = getMusicSequence(1)
+  assert.ok(sequence.length >= 12)
+  assert.ok(sequence.every((note) => note.duration >= 0.24))
+  assert.ok(Math.max(...sequence.map((note) => note.frequency)) <= 880)
+  assert.deepEqual(sequence, getMusicSequence(10))
 })
