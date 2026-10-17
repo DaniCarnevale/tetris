@@ -1,11 +1,7 @@
-import { levels } from "../utils/levels";
+import { levels } from '../utils/levels.js'
 
-export function getCurrentLevel(score) {
-  let currentLevel = levels[0];
-  for (let level of levels) {
-    if (score >= level.limit) {
-      currentLevel = level;
-    }
-  }
-  return currentLevel;
+export function getCurrentLevel (score) {
+  return levels.reduce((currentLevel, level) => {
+    return score >= level.limit ? level : currentLevel
+  }, levels[0])
 }
