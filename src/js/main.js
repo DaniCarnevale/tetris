@@ -638,7 +638,7 @@ function renderAccountState (account) {
 
   setProfileEditingEnabled(editable)
   renderGameProfile(leaderboardService.getProfile(), isSignedIn ? 'Google conectado' : 'Invitado')
-  accountStatus.textContent = isSignedIn ? (account.email ?? 'Google conectado') : 'Guest'
+  accountStatus.textContent = isSignedIn ? 'Google conectado' : 'Guest'
   accountHint.textContent = isSignedIn
     ? 'Tu ranking, nickname y avatar están asociados a Google.'
     : 'Modo guest: iniciá sesión con Google para personalizar tu nickname y avatar.'
