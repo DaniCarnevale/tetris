@@ -40,6 +40,12 @@ body {
     var(--bg);
 }
 
+body.is-game-active {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .ambient-scene {
   position: fixed;
   z-index: 0;

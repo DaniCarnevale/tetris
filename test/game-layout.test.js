@@ -83,3 +83,7 @@ test('previews stay compact instead of stretching to the board height', () => {
 test('desktop board respects the viewport height to avoid page scrolling', () => {
   assert.match(stylesheet, /body\.is-game-active #board \{[\s\S]*height: min\(650px, calc\(100dvh - 240px\)\);/)
 })
+
+test('active games lock the document viewport while preserving panel scrolling', () => {
+  assert.match(stylesheet, /body\.is-game-active \{[\s\S]*height: 100dvh;[\s\S]*overflow: hidden;/)
+})
