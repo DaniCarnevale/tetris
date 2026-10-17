@@ -2412,11 +2412,15 @@ body.is-game-active .board-footer {
 
 body.is-game-active .piece-stats-card {
   display: grid;
-  min-height: 92px;
+  min-height: 96px;
   grid-template-columns: minmax(130px, 0.55fr) minmax(0, 1.45fr);
   align-items: center;
   gap: 16px;
   padding: 10px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(17, 23, 39, 0.86), rgba(7, 11, 21, 0.7));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 body.is-game-active .piece-stats-card .card-heading {
@@ -2426,19 +2430,20 @@ body.is-game-active .piece-stats-card .card-heading {
 body.is-game-active .piece-stats-list {
   display: grid;
   grid-template-columns: repeat(7, minmax(34px, 1fr));
-  gap: 6px;
+  gap: 7px;
 }
 
 body.is-game-active .piece-stat-row {
   display: grid;
-  height: 70px;
+  height: auto;
   min-width: 0;
-  grid-template-rows: auto 1fr;
-  gap: 5px;
-  padding: 7px 5px;
+  grid-template-rows: auto auto;
+  gap: 8px;
+  padding: 8px 7px;
   border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 10px;
-  background: linear-gradient(180deg, rgba(148, 163, 184, 0.08), rgba(5, 9, 18, 0.2));
+  border-radius: 12px;
+  background: rgba(5, 9, 18, 0.34);
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
 }
 
 body.is-game-active .piece-stat-heading {
@@ -2447,37 +2452,30 @@ body.is-game-active .piece-stat-heading {
 }
 
 body.is-game-active .piece-stat-label {
-  justify-content: center;
+  justify-content: flex-start;
   gap: 4px;
 }
 
 body.is-game-active .piece-stat-dot {
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
   margin-right: 0;
   border-radius: 6px;
-  box-shadow: 0 0 10px currentColor;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.28), 0 0 10px currentColor;
 }
 
 body.is-game-active .piece-stat-track {
-  display: flex;
-  height: auto;
-  min-height: 0;
-  align-items: end;
+  height: 6px;
   border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 6px;
-  background:
-    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
-    rgba(5, 9, 18, 0.32);
-  background-size: 100% 8px;
+  border-radius: 99px;
+  background: rgba(148, 163, 184, 0.1);
 }
 
 body.is-game-active .piece-stat-fill {
-  width: 100%;
-  min-height: 0;
-  border-radius: 4px;
+  height: 100%;
+  border-radius: inherit;
   box-shadow: 0 0 12px currentColor;
-  transition: height 260ms ease;
+  transition: width 260ms ease;
 }
 
 @media (max-width: 1060px) {
@@ -2765,6 +2763,6 @@ body.is-game-active .piece-stat-fill {
   }
 
   body.is-game-active .piece-stat-track {
-    background-size: 100% 6px;
+    height: 5px;
   }
 }

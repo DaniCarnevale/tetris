@@ -66,6 +66,9 @@ export function createSoundManager () {
   let musicVolume = 0.5
   let musicTimer = null
   let musicRunId = 0
+  let musicPosition = 0
+  let musicLoopStartTime = null
+  let musicLoopStartIndex = 0
   const musicNodes = new Set()
 
   function createContext () {
@@ -82,20 +85,43 @@ export function createSoundManager () {
     return createContext()
   }
 
-  function scheduleMusicLoop (runId) {
+  function getMusicPosition (currentTime) {
+    if (musicLoopStartTime === null) return musicPosition
+
+    const elapsed = Math.max(0, currentTime - musicLoopStartTime)
+    let offset = 0
+
+    for (let index = musicLoopStartIndex; index < MUSIC_SEQUENCE.length; index += 1) {
+      const note = MUSIC_SEQUENCE[index]
+      if (elapsed < offset + note.duration) return index
+      offset += note.duration
+    }
+
+    return 0
+  }
+
+  function scheduleMusicLoop (runId, startIndex = musicPosition) {
     musicTimer = null
     if (runId !== musicRunId || !musicEnabled || musicVolume <= 0) return
 
     const audioContext = createContext()
     if (!audioContext) return
 
+    const normalizedStartIndex = startIndex >= MUSIC_SEQUENCE.length ? 0 : startIndex
     const startTime = audioContext.currentTime + 0.03
+    musicPosition = normalizedStartIndex
+    musicLoopStartTime = startTime
+    musicLoopStartIndex = normalizedStartIndex
     let offset = 0
-    MUSIC_SEQUENCE.forEach((note) => {
+    MUSIC_SEQUENCE.slice(normalizedStartIndex).forEach((note) => {
       scheduleTone(audioContext, note.frequency, startTime + offset, note.duration, 'triangle', 0.025 * musicVolume, musicNodes)
       offset += note.duration
     })
-    musicTimer = window.setTimeout(() => scheduleMusicLoop(runId), (offset + 0.05) * 1000)
+    musicTimer = window.setTimeout(() => {
+      musicPosition = 0
+      musicLoopStartTime = null
+      scheduleMusicLoop(runId, 0)
+    }, (offset + 0.05) * 1000)
   }
 
   function startMusicLoop () {
@@ -105,7 +131,12 @@ export function createSoundManager () {
   }
 
   function stopMusicPlayback () {
+    if (context && musicLoopStartTime !== null) {
+      musicPosition = getMusicPosition(context.currentTime)
+    }
+
     musicRunId += 1
+    musicLoopStartTime = null
 
     if (musicTimer !== null) window.clearTimeout(musicTimer)
     musicTimer = null

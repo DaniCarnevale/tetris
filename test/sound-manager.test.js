@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { createSoundManager } from '../src/js/audio/soundManager.js'
+import { createSoundManager, getMusicSequence } from '../src/js/audio/soundManager.js'
 
 class FakeParam {
   constructor () {
@@ -114,4 +114,17 @@ test('muting music cancels the active loop immediately', () => {
 
   assert.ok(context.oscillators.every((oscillator) => oscillator.stops.length > 0))
   assert.equal(manager.isMusicEnabled(), false)
+})
+
+test('resuming music continues at the current note instead of restarting the loop', () => {
+  const manager = createManagerForTest()
+  manager.unlock()
+
+  const context = FakeAudioContext.instances[0]
+  context.currentTime = 10.5
+  manager.stopMusic()
+  manager.playMusic()
+
+  const resumedLoop = context.oscillators.slice(14)
+  assert.equal(resumedLoop[0].frequency.value, getMusicSequence()[1].frequency)
 })

@@ -1,11 +1,15 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 
 import {
   getGameLayoutMode,
   getGameViewportState,
   getPieceStatsLayout
 } from '../src/js/game/layout.js'
+
+const mainSource = await readFile(new URL('../src/js/main.js', import.meta.url), 'utf8')
+const stylesheet = await readFile(new URL('../src/styles/style.css', import.meta.url), 'utf8')
 
 test('game layout uses the mobile cockpit at narrow widths', () => {
   assert.equal(getGameLayoutMode({ width: 560, height: 800 }), 'mobile')
@@ -41,4 +45,10 @@ test('piece stats use a compact visual model in the game cockpit', () => {
     orientation: 'horizontal',
     showLongLabels: false
   })
+})
+
+test('piece stats use horizontal fills in the active cockpit', () => {
+  assert.match(mainSource, /fill\.style\.width = `\$\{row\.width\}%`/)
+  assert.doesNotMatch(mainSource, /fill\.style\.height = `\$\{row\.width\}%`/)
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-track \{[\s\S]*height: 6px;/)
 })
