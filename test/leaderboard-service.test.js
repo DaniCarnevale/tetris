@@ -68,6 +68,23 @@ test('submits the current avatar path with an online score', async () => {
   assert.equal(inserted[0].avatar_path, 'user-1/avatar.webp')
 })
 
+test('resolves avatar URLs for public leaderboard entries', () => {
+  const supabaseClient = {
+    storage: {
+      from: () => ({
+        getPublicUrl: (path) => ({ data: { publicUrl: `https://cdn.example/${path}` } })
+      })
+    }
+  }
+  const service = createLeaderboardService({
+    supabaseClient,
+    supabaseUrl: 'https://example.supabase.co',
+    supabaseKey: 'public-key'
+  })
+
+  assert.equal(service.getAvatarUrl('user-1/avatar.webp'), 'https://cdn.example/user-1/avatar.webp')
+})
+
 test('empty or broken local scores return a safe empty ranking', async () => {
   const storage = createStorage()
   storage.setItem('tetris.leaderboard.local', '{broken')
