@@ -35,10 +35,11 @@ La aplicación no contiene secretos privados trackeados. La publishable key de S
 - Se eliminó la función SQL antigua `can_upload_avatar()` que ya no era necesaria.
 - La tabla pública `scores` aplica privilegios por columna: no expone `player_id`, `id` ni `start_level`; `avatar_upload_limits` no es consultable por roles públicos.
 - Storage permite el `upsert` del avatar con una política `SELECT` adicional, limitada al propio archivo del usuario; esto corrige el error `new row violates row-level security policy` sin habilitar lectura de avatares ajenos mediante la API.
+- El trigger de rate limit convierte explícitamente `storage.objects.owner_id` (`text`) a `uuid` antes de guardarlo en `avatar_upload_limits`; esto corrige el `42804 datatype mismatch` detectado al subir.
 - La interfaz sólo muestra `Google conectado`; el email no se muestra en el ranking ni en la UI pública.
 - Netlify incorpora `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, HSTS y CSP en modo report-only mediante `netlify.toml`; se verificó directamente en producción.
 
-Migraciones: `supabase/migrations/005_security_hardening.sql`, `supabase/migrations/006_privacy_hardening.sql`, `supabase/migrations/007_fix_avatar_upsert_rls.sql`
+Migraciones: `supabase/migrations/005_security_hardening.sql`, `supabase/migrations/006_privacy_hardening.sql`, `supabase/migrations/007_fix_avatar_upsert_rls.sql`, `supabase/migrations/008_fix_avatar_rate_limit_types.sql`
 Aplicadas y verificadas en Supabase mediante `pg_policies`, `pg_proc`, privilegios de columnas y llamadas REST públicas.
 
 ## Riesgos residuales / decisiones de producto
