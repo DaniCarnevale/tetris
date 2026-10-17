@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Quebrada de Humahuaca</title>
+  <desc id="desc">Montañas geométricas en tonos coral y violeta bajo un cielo crepuscular.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#2b1b53"/>
+      <stop offset="0.58" stop-color="#6d336d"/>
+      <stop offset="1" stop-color="#e07a65"/>
+    </linearGradient>
+    <linearGradient id="valley" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#f2a060"/>
+      <stop offset="0.35" stop-color="#9e4d63"/>
+      <stop offset="0.7" stop-color="#4d315e"/>
+      <stop offset="1" stop-color="#201b35"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="1220" cy="250" r="94" fill="#ffe2a2" opacity="0.32"/>
+  <path d="M0 730 170 450l110 110 190-300 200 280 170-250 170 250 215-320 185 300 190-190v570H0z" fill="#2d214d" opacity="0.8"/>
+  <path d="m0 900 190-340 160 170 210-420 220 400 170-290 180 260 240-370 230 380v210z" fill="url(#valley)"/>
+  <path d="m195 560 155 170 210-420 220 400 170-290 180 260 238-370 50 84-255 210-179-240-174 270-218-350-191 340z" fill="#ffbc71" opacity="0.32"/>
+  <path d="M0 770c280-75 480-44 700 12s465 80 900-30v148H0z" fill="#10172a" opacity="0.88"/>
+  <path d="M0 788c290-72 520-40 740 10s468 70 860-26" fill="none" stroke="#9cf55b" stroke-opacity="0.22" stroke-width="4"/>
+  <g fill="#f7c75b" opacity="0.7"><circle cx="280" cy="170" r="3"/><circle cx="460" cy="260" r="3"/><circle cx="680" cy="130" r="2"/><circle cx="880" cy="220" r="3"/><circle cx="1040" cy="120" r="2"/></g>
+</svg>

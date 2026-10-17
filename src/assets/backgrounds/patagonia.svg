@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Patagonia nocturna</title>
+  <desc id="desc">Montañas nevadas con aurora verde sobre un lago oscuro.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#081b3d"/>
+      <stop offset="0.64" stop-color="#122b50"/>
+      <stop offset="1" stop-color="#09131f"/>
+    </linearGradient>
+    <linearGradient id="aurora" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#9cf55b" stop-opacity="0"/>
+      <stop offset="0.42" stop-color="#9cf55b" stop-opacity="0.42"/>
+      <stop offset="0.66" stop-color="#71b7ff" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#9cf55b" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <path d="M190 0c160 280 270 120 430 350 170 240 310-110 500 0 160 94 260-40 480-160v360H190z" fill="url(#aurora)" opacity="0.8"/>
+  <g fill="#050b17">
+    <path d="m0 680 245-230 180 125 260-355 245 350 245-252 205 230 220-130v482H0z"/>
+  </g>
+  <g fill="#d7f1ff" opacity="0.7">
+    <path d="m425 575 260-355 76 109-70-25-44 83-58-20-64 94z"/>
+    <path d="m930 560 245-252 58 96-77-25-53 69-69-17z"/>
+    <path d="m160 600 85-150 59 125-40-28-43 45z"/>
+  </g>
+  <path d="M0 695c300-58 540-35 790 25s490 60 810-20v200H0z" fill="#071421"/>
+  <path d="M0 742c310-46 530-22 790 32s494 45 810-18" fill="none" stroke="#71b7ff" stroke-opacity="0.36" stroke-width="3"/>
+  <g fill="#d7f1ff" opacity="0.62"><circle cx="170" cy="160" r="2"/><circle cx="350" cy="110" r="2"/><circle cx="520" cy="220" r="1.5"/><circle cx="920" cy="120" r="2"/><circle cx="1190" cy="190" r="2"/><circle cx="1380" cy="80" r="1.5"/></g>
+</svg>

@@ -8,14 +8,92 @@
     <title>Tetris — Neon Stack</title>
   </head>
   <body>
-    <main class="game-shell">
+    <div class="ambient-scene" aria-hidden="true">
+      <img id="stageArt" alt="" />
+      <div class="ambient-vignette"></div>
+      <div class="ambient-grain"></div>
+    </div>
+
+    <section class="screen start-screen" id="startScreen" aria-labelledby="startTitle">
+      <div class="start-layout">
+        <div class="start-hero">
+          <div class="brand-lockup hero-brand">
+            <div class="brand-mark" aria-hidden="true">✦</div>
+            <div>
+              <p class="eyebrow">ARCADE / ARGENTINA</p>
+              <h1>TETRIS</h1>
+            </div>
+          </div>
+          <div class="hero-copy">
+            <p class="hero-kicker">UNA NUEVA PARTIDA, A TU MANERA</p>
+            <h2 id="startTitle">Construí tu próxima historia.</h2>
+            <p>Elegí el ritmo, prepará el tablero y llevá cada línea un poco más alto.</p>
+          </div>
+          <div class="hero-scene-card">
+            <div class="hero-scene-label">
+              <span class="status-dot"></span>
+              <span id="startSceneLabel">Buenos Aires · Nivel 1</span>
+            </div>
+            <div class="hero-scene-line"></div>
+            <p id="startSceneDescription">La ciudad se enciende. El desafío recién comienza.</p>
+          </div>
+        </div>
+
+        <section class="start-panel" aria-label="Configuración de nueva partida">
+          <div class="start-panel-header">
+            <div>
+              <p class="card-kicker">PREPARÁ LA PARTIDA</p>
+              <h2>Nueva partida</h2>
+            </div>
+            <span class="start-panel-number">01</span>
+          </div>
+
+          <label class="field-label" for="startLevel">Comenzar desde el nivel</label>
+          <div class="select-wrap">
+            <select id="startLevel" aria-describedby="startLevelHint">
+              <option value="1">Nivel 1 · Calentamiento</option>
+              <option value="2">Nivel 2 · Ritmo</option>
+              <option value="3">Nivel 3 · Quebrada</option>
+              <option value="4">Nivel 4 · Intensidad</option>
+              <option value="5">Nivel 5 · Corriente</option>
+              <option value="6">Nivel 6 · Cataratas</option>
+              <option value="7">Nivel 7 · Vértigo</option>
+              <option value="8">Nivel 8 · Resistencia</option>
+              <option value="9">Nivel 9 · Patagonia</option>
+              <option value="10">Nivel 10 · Leyenda</option>
+            </select>
+          </div>
+          <p class="field-hint" id="startLevelHint">La velocidad y el paisaje se adaptan al nivel.</p>
+
+          <div class="field-label stage-label-row">
+            <span>Elegí tu stage</span>
+            <span class="field-hint">Podés empezar con una base</span>
+          </div>
+          <div class="stage-selector" id="stageSelector" role="list" aria-label="Stages disponibles"></div>
+
+          <div class="start-actions">
+            <button class="button button-primary" id="startGameButton" type="button">
+              <span>Empezar juego</span>
+              <span class="button-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="button button-secondary" id="startSettingsButton" type="button">
+              <span class="button-icon" aria-hidden="true">⚙</span>
+              <span>Configurar teclas y sonido</span>
+            </button>
+          </div>
+          <p class="start-hint" id="startHint">La partida comienza cuando estés listo.</p>
+        </section>
+      </div>
+    </section>
+
+    <main class="game-shell screen" id="gameScreen" hidden>
       <header class="game-header">
         <div class="brand-lockup">
           <div class="brand-mark" aria-hidden="true">✦</div>
           <div>
             <p class="eyebrow">ARCADE / CLÁSICO</p>
             <h1>TETRIS</h1>
-            <p class="brand-subtitle">Ordena el caos, una línea a la vez.</p>
+            <p class="brand-subtitle">Ordená el caos, una línea a la vez.</p>
           </div>
         </div>
 
@@ -24,6 +102,11 @@
             <span class="status-dot" id="stateDot" aria-hidden="true"></span>
             <span id="stateLabel">En partida</span>
           </div>
+          <button class="button button-secondary" id="pauseButton" type="button" aria-pressed="false">
+            <span class="button-icon" aria-hidden="true">Ⅱ</span>
+            <span id="pauseButtonLabel">Pausar</span>
+            <kbd class="key-chip key-chip-small" id="pauseKey">P</kbd>
+          </button>
           <button class="button button-secondary" id="settingsToggle" type="button" aria-controls="settingsPanel" aria-expanded="false">
             <span class="button-icon" aria-hidden="true">⚙</span>
             <span>Configuración</span>
@@ -85,10 +168,19 @@
           </div>
           <div class="board-stage">
             <canvas id="board" aria-label="Tablero de Tetris"></canvas>
+            <div class="pause-overlay" id="pauseOverlay" hidden>
+              <div class="pause-dialog">
+                <span class="pause-mark" aria-hidden="true">Ⅱ</span>
+                <p class="card-kicker">MOMENTO DE RESPIRAR</p>
+                <h2>Juego en pausa</h2>
+                <p>Tu tablero queda exactamente donde lo dejaste.</p>
+                <button class="button button-primary" id="resumeButton" type="button">Continuar partida</button>
+              </div>
+            </div>
           </div>
           <div class="board-footer">
             <span><span class="legend-dot" aria-hidden="true"></span> La pieza translúcida muestra dónde caerá.</span>
-            <span id="controlHint">↑ rotar · ↓ bajar</span>
+            <span id="controlHint">↑ rotar · ↓ bajar · P pausar</span>
           </div>
         </section>
 
@@ -120,6 +212,7 @@
               <div class="control-row"><span>Rotar</span><kbd class="key-chip key-chip-small control-key" data-control-label="rotate">↑</kbd></div>
               <div class="control-row"><span>Bajar rápido</span><kbd class="key-chip key-chip-small control-key" data-control-label="softDrop">↓</kbd></div>
               <div class="control-row"><span>Guardar</span><kbd class="key-chip key-chip-small control-key" data-control-label="hold">S</kbd></div>
+              <div class="control-row"><span>Pausa</span><kbd class="key-chip key-chip-small control-key" data-control-label="pause">P</kbd></div>
             </div>
           </section>
         </aside>
@@ -138,31 +231,21 @@
         </div>
         <p class="settings-intro">Elegí una acción y presioná la tecla que querés usar. Los cambios se guardan en este navegador.</p>
 
+        <div class="settings-section-label">Teclas</div>
         <div class="bindings-list">
-          <div class="binding-row">
-            <div><strong>Mover a la izquierda</strong><span>Desplazá la ficha</span></div>
-            <button class="binding-button" type="button" data-binding="moveLeft"><kbd class="control-key" data-control-label="moveLeft">←</kbd><span>Editar</span></button>
-          </div>
-          <div class="binding-row">
-            <div><strong>Mover a la derecha</strong><span>Desplazá la ficha</span></div>
-            <button class="binding-button" type="button" data-binding="moveRight"><kbd class="control-key" data-control-label="moveRight">→</kbd><span>Editar</span></button>
-          </div>
-          <div class="binding-row">
-            <div><strong>Bajar rápido</strong><span>Acelerá la caída</span></div>
-            <button class="binding-button" type="button" data-binding="softDrop"><kbd class="control-key" data-control-label="softDrop">↓</kbd><span>Editar</span></button>
-          </div>
-          <div class="binding-row">
-            <div><strong>Rotar ficha</strong><span>Girarla en sentido horario</span></div>
-            <button class="binding-button" type="button" data-binding="rotate"><kbd class="control-key" data-control-label="rotate">↑</kbd><span>Editar</span></button>
-          </div>
-          <div class="binding-row">
-            <div><strong>Guardar ficha</strong><span>Mandala a la reserva</span></div>
-            <button class="binding-button" type="button" data-binding="hold"><kbd class="control-key" data-control-label="hold">S</kbd><span>Editar</span></button>
-          </div>
-          <div class="binding-row">
-            <div><strong>Reiniciar partida</strong><span>Disponible al perder</span></div>
-            <button class="binding-button" type="button" data-binding="restart"><kbd class="control-key" data-control-label="restart">Enter</kbd><span>Editar</span></button>
-          </div>
+          <div class="binding-row"><div><strong>Mover a la izquierda</strong><span>Desplazá la ficha</span></div><button class="binding-button" type="button" data-binding="moveLeft"><kbd class="control-key" data-control-label="moveLeft">←</kbd><span>Editar</span></button></div>
+          <div class="binding-row"><div><strong>Mover a la derecha</strong><span>Desplazá la ficha</span></div><button class="binding-button" type="button" data-binding="moveRight"><kbd class="control-key" data-control-label="moveRight">→</kbd><span>Editar</span></button></div>
+          <div class="binding-row"><div><strong>Bajar rápido</strong><span>Acelerá la caída</span></div><button class="binding-button" type="button" data-binding="softDrop"><kbd class="control-key" data-control-label="softDrop">↓</kbd><span>Editar</span></button></div>
+          <div class="binding-row"><div><strong>Rotar ficha</strong><span>Girarla en sentido horario</span></div><button class="binding-button" type="button" data-binding="rotate"><kbd class="control-key" data-control-label="rotate">↑</kbd><span>Editar</span></button></div>
+          <div class="binding-row"><div><strong>Guardar ficha</strong><span>Mandala a la reserva</span></div><button class="binding-button" type="button" data-binding="hold"><kbd class="control-key" data-control-label="hold">S</kbd><span>Editar</span></button></div>
+          <div class="binding-row"><div><strong>Pausar partida</strong><span>Detené el ritmo sin perder el tablero</span></div><button class="binding-button" type="button" data-binding="pause"><kbd class="control-key" data-control-label="pause">P</kbd><span>Editar</span></button></div>
+          <div class="binding-row"><div><strong>Reiniciar partida</strong><span>Disponible al perder</span></div><button class="binding-button" type="button" data-binding="restart"><kbd class="control-key" data-control-label="restart">Enter</kbd><span>Editar</span></button></div>
+        </div>
+
+        <div class="settings-section-label sound-section-label">Sonido</div>
+        <div class="sound-setting">
+          <div><strong>Feedback de juego</strong><span>Líneas, niveles y fin de partida</span></div>
+          <button class="sound-toggle is-on" id="soundToggle" type="button" aria-pressed="true"><span class="sound-toggle-dot"></span><span id="soundToggleLabel">Activado</span></button>
         </div>
 
         <p class="settings-feedback" id="settingsFeedback" aria-live="polite">Podés usar Escape para cancelar.</p>

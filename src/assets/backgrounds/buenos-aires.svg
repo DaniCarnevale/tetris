@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Buenos Aires de noche</title>
+  <desc id="desc">Silueta urbana con el Obelisco bajo un cielo azul y verde.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#102c68"/>
+      <stop offset="0.58" stop-color="#171d4e"/>
+      <stop offset="1" stop-color="#101326"/>
+    </linearGradient>
+    <linearGradient id="horizon" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#58e0bc" stop-opacity="0.08"/>
+      <stop offset="0.5" stop-color="#71b7ff" stop-opacity="0.48"/>
+      <stop offset="1" stop-color="#cf83ff" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="street" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#0d1429"/>
+      <stop offset="1" stop-color="#050810"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="1300" cy="170" r="110" fill="#9cf55b" opacity="0.12"/>
+  <circle cx="1300" cy="170" r="180" fill="none" stroke="#9cf55b" stroke-opacity="0.1"/>
+  <path d="M0 610h1600v290H0z" fill="url(#street)"/>
+  <path d="M0 622h1600" stroke="url(#horizon)" stroke-width="8"/>
+  <g fill="#090d1b" opacity="0.94">
+    <path d="M0 620V450h75v170zm75 0V390h98v230zm98 0V470h70v150zm70 0V340h118v280zm118 0V430h78v190zm78 0V370h142v250zm142 0V465h86v155zm86 0V405h96v215zm96 0V455h70v165zm70 0V380h132v240zm132 0V438h92v182zm92 0V348h115v272zm115 0V420h105v200zm105 0V395h96v225zm96 0V455h127v165z"/>
+  </g>
+  <g fill="#9cf55b" opacity="0.38">
+    <rect x="40" y="502" width="8" height="10"/><rect x="110" y="430" width="8" height="12"/><rect x="140" y="490" width="8" height="10"/>
+    <rect x="300" y="390" width="8" height="13"/><rect x="345" y="438" width="8" height="9"/><rect x="450" y="415" width="8" height="12"/>
+    <rect x="580" y="450" width="8" height="10"/><rect x="646" y="425" width="8" height="13"/><rect x="790" y="430" width="8" height="10"/>
+    <rect x="960" y="410" width="8" height="11"/><rect x="1080" y="390" width="8" height="12"/><rect x="1265" y="395" width="8" height="10"/>
+  </g>
+  <path d="M800 620 700 900h200z" fill="#071020"/>
+  <path d="m795 620 5-225 5 225z" fill="#9cf55b" opacity="0.7"/>
+  <path d="M785 395h30l-15-55z" fill="#b5ff7d" opacity="0.8"/>
+  <path d="M800 900 760 620h80z" fill="#121c35"/>
+  <path d="M800 620 520 900h560z" fill="#0a1122" opacity="0.8"/>
+  <path d="M0 870h1600" stroke="#9cf55b" stroke-opacity="0.18" stroke-width="2"/>
+</svg>

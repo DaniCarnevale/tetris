@@ -1,11 +1,13 @@
 /* global document, localStorage, performance, window */
 
 import { BLOCK_SIZE, BOARD_HEIGHT, BOARD_WIDTH } from './config/config.js'
-import { levels } from './utils/levels.js'
 import { getCurrentLevel } from './managers/levelManager.js'
-import { createGame, holdActivePiece, moveActivePiece, resetGame, rotateActivePiece } from './game/engine.js'
+import { levels } from './utils/levels.js'
 import { hasCollision } from './game/board.js'
 import { clonePiece } from './game/pieces.js'
+import { createGame, holdActivePiece, moveActivePiece, resetGame, rotateActivePiece, togglePause } from './game/engine.js'
+import { getBackdropForLevel, getStage, STAGES } from './game/stages.js'
+import { createSoundManager } from './audio/soundManager.js'
 import {
   createControls,
   findActionByCode,
@@ -13,18 +15,58 @@ import {
   readStoredControls,
   updateControl
 } from './input/controls.js'
+import buenosAiresArt from '../assets/backgrounds/buenos-aires.svg'
+import humahuacaArt from '../assets/backgrounds/humahuaca.svg'
+import iguazuArt from '../assets/backgrounds/iguazu.svg'
+import patagoniaArt from '../assets/backgrounds/patagonia.svg'
 import '../styles/style.css'
 
 const CONTROLS_STORAGE_KEY = 'tetris.controls'
+const SOUND_STORAGE_KEY = 'tetris.sound.enabled'
 const ACTION_LABELS = {
   moveLeft: 'mover a la izquierda',
   moveRight: 'mover a la derecha',
   softDrop: 'bajar rápido',
   rotate: 'rotar',
   hold: 'guardar la ficha',
+  pause: 'pausar la partida',
   restart: 'reiniciar la partida'
 }
+const BACKGROUND_ART = {
+  'buenos-aires': buenosAiresArt,
+  humahuaca: humahuacaArt,
+  iguazu: iguazuArt,
+  patagonia: patagoniaArt
+}
+const SCENE_COPY = {
+  'buenos-aires': {
+    label: 'Buenos Aires',
+    description: 'La ciudad se enciende. El desafío recién comienza.'
+  },
+  humahuaca: {
+    label: 'Quebrada de Humahuaca',
+    description: 'El ritmo sube y la montaña empieza a marcar el pulso.'
+  },
+  iguazu: {
+    label: 'Cataratas del Iguazú',
+    description: 'Más velocidad, más líneas, más corriente.'
+  },
+  patagonia: {
+    label: 'Patagonia nocturna',
+    description: 'Llegaste a la zona de leyenda. Cada hueco cuenta.'
+  }
+}
 
+const startScreen = document.querySelector('#startScreen')
+const gameScreen = document.querySelector('#gameScreen')
+const startLevelSelect = document.querySelector('#startLevel')
+const stageSelector = document.querySelector('#stageSelector')
+const startSceneLabel = document.querySelector('#startSceneLabel')
+const startSceneDescription = document.querySelector('#startSceneDescription')
+const startHint = document.querySelector('#startHint')
+const startGameButton = document.querySelector('#startGameButton')
+const startSettingsButton = document.querySelector('#startSettingsButton')
+const stageArt = document.querySelector('#stageArt')
 const boardCanvas = document.querySelector('#board')
 const nextCanvas = document.querySelector('.next')
 const savedCanvas = document.querySelector('.saved')
@@ -38,6 +80,11 @@ const heldEmpty = document.querySelector('#heldEmpty')
 const controlHint = document.querySelector('#controlHint')
 const holdKey = document.querySelector('#holdKey')
 const restartKey = document.querySelector('#restartKey')
+const pauseKey = document.querySelector('#pauseKey')
+const pauseButton = document.querySelector('#pauseButton')
+const pauseButtonLabel = document.querySelector('#pauseButtonLabel')
+const pauseOverlay = document.querySelector('#pauseOverlay')
+const resumeButton = document.querySelector('#resumeButton')
 const settingsToggle = document.querySelector('#settingsToggle')
 const openSettingsLink = document.querySelector('#openSettingsLink')
 const settingsClose = document.querySelector('#settingsClose')
@@ -46,9 +93,12 @@ const settingsPanel = document.querySelector('#settingsPanel')
 const settingsFeedback = document.querySelector('#settingsFeedback')
 const resetControlsButton = document.querySelector('#resetControls')
 const restartButton = document.querySelector('#restartButton')
+const soundToggle = document.querySelector('#soundToggle')
+const soundToggleLabel = document.querySelector('#soundToggleLabel')
 const boardContext = boardCanvas.getContext('2d')
 const nextContext = nextCanvas.getContext('2d')
 const savedContext = savedCanvas.getContext('2d')
+const soundManager = createSoundManager()
 
 boardCanvas.width = BLOCK_SIZE * BOARD_WIDTH
 boardCanvas.height = BLOCK_SIZE * BOARD_HEIGHT
@@ -64,10 +114,13 @@ savedContext.scale(BLOCK_SIZE, BLOCK_SIZE)
 
 let game = createGame()
 let controls = loadControls()
+let selectedStage = 'fresh'
+let gameStarted = false
 let dropCounter = 0
 let lastTime = 0
 let latestInput = null
 let listeningAction = null
+let lastRenderedLevel = 0
 
 function loadControls () {
   try {
@@ -77,11 +130,27 @@ function loadControls () {
   }
 }
 
+function loadSoundSetting () {
+  try {
+    return localStorage.getItem(SOUND_STORAGE_KEY) !== 'false'
+  } catch {
+    return true
+  }
+}
+
 function saveControls () {
   try {
     localStorage.setItem(CONTROLS_STORAGE_KEY, JSON.stringify(controls))
   } catch {
     showSettingsFeedback('No se pudo guardar la configuración en este navegador.', true)
+  }
+}
+
+function saveSoundSetting () {
+  try {
+    localStorage.setItem(SOUND_STORAGE_KEY, String(soundManager.isEnabled()))
+  } catch {
+    showSettingsFeedback('No se pudo guardar la preferencia de sonido.', true)
   }
 }
 
@@ -222,30 +291,107 @@ function drawBoard () {
   })
 }
 
+function renderStagePicker () {
+  stageSelector.replaceChildren()
+
+  STAGES.forEach((stage, index) => {
+    const button = document.createElement('button')
+    const icon = document.createElement('span')
+    const copy = document.createElement('span')
+    const title = document.createElement('strong')
+    const description = document.createElement('small')
+
+    button.type = 'button'
+    button.className = 'stage-option'
+    button.dataset.stageId = stage.id
+    button.setAttribute('aria-pressed', String(stage.id === selectedStage))
+    icon.className = `stage-option-icon stage-icon-${index + 1}`
+    icon.setAttribute('aria-hidden', 'true')
+    copy.className = 'stage-option-copy'
+    title.textContent = stage.name
+    description.textContent = stage.description
+    copy.append(title, description)
+    button.append(icon, copy)
+    button.addEventListener('click', () => selectStage(stage.id))
+    stageSelector.append(button)
+  })
+}
+
+function selectStage (stageId) {
+  selectedStage = getStage(stageId).id
+  document.querySelectorAll('[data-stage-id]').forEach((button) => {
+    button.classList.toggle('is-selected', button.dataset.stageId === selectedStage)
+    button.setAttribute('aria-pressed', String(button.dataset.stageId === selectedStage))
+  })
+  updateStartScene()
+}
+
+function updateStageArt (level) {
+  const backdrop = getBackdropForLevel(level)
+  const scene = SCENE_COPY[backdrop.id]
+  const nextArt = BACKGROUND_ART[backdrop.id]
+
+  if (stageArt.src !== nextArt) {
+    stageArt.classList.remove('is-visible')
+    stageArt.src = nextArt
+    stageArt.onload = () => stageArt.classList.add('is-visible')
+  }
+
+  document.body.dataset.stage = backdrop.id
+  return { backdrop, scene }
+}
+
+function updateStartScene () {
+  const level = Number(startLevelSelect.value)
+  const { scene } = updateStageArt(level)
+  const stage = getStage(selectedStage)
+  startSceneLabel.textContent = `${scene.label} · Nivel ${level}`
+  startSceneDescription.textContent = `${scene.description} ${stage.name}: ${stage.description}`
+}
+
+function getEffectiveScore (score, startLevel) {
+  return score + (startLevel - 1) * 1000
+}
+
 function updateLevelProgress () {
-  const currentLevel = getCurrentLevel(game.score)
-  const nextLevel = levels.find((level) => level.limit > game.score)
+  const currentLevel = getCurrentLevel(game.score, game.startLevel)
+  const effectiveScore = getEffectiveScore(game.score, game.startLevel)
+  const nextLevel = levels.find((level) => level.limit > effectiveScore)
   const progress = nextLevel
-    ? ((game.score - currentLevel.limit) / (nextLevel.limit - currentLevel.limit)) * 100
+    ? ((effectiveScore - currentLevel.limit) / (nextLevel.limit - currentLevel.limit)) * 100
     : 100
 
   levelProgressElement.style.width = `${Math.max(0, Math.min(progress, 100))}%`
 }
 
 function updateHud () {
-  const currentLevel = getCurrentLevel(game.score)
+  const currentLevel = getCurrentLevel(game.score, game.startLevel)
+  const isPaused = game.paused && !game.gameOver
   scoreElement.textContent = game.score
   levelElement.textContent = currentLevel.level
-  stateLabel.textContent = game.gameOver ? 'Partida terminada' : 'En partida'
+  stateLabel.textContent = game.gameOver ? 'Partida terminada' : isPaused ? 'En pausa' : 'En partida'
   stateDot.classList.toggle('game-over', game.gameOver)
+  stateDot.classList.toggle('is-paused', isPaused)
   statusElement.textContent = game.gameOver
     ? `Fin de partida · pulsá ${getKeyLabel(controls.restart)} para volver a jugar`
-    : 'En juego · prepará tu próxima jugada'
-  controlHint.textContent = `${getKeyLabel(controls.rotate)} rotar · ${getKeyLabel(controls.softDrop)} bajar`
+    : isPaused
+      ? `Juego en pausa · pulsá ${getKeyLabel(controls.pause)} para continuar`
+      : 'En juego · prepará tu próxima jugada'
+  controlHint.textContent = `${getKeyLabel(controls.rotate)} rotar · ${getKeyLabel(controls.softDrop)} bajar · ${getKeyLabel(controls.pause)} pausar`
   holdKey.textContent = getKeyLabel(controls.hold)
   restartKey.textContent = getKeyLabel(controls.restart)
+  pauseKey.textContent = getKeyLabel(controls.pause)
+  pauseButtonLabel.textContent = isPaused ? 'Reanudar' : 'Pausar'
+  pauseButton.setAttribute('aria-pressed', String(isPaused))
+  pauseButton.disabled = game.gameOver
+  pauseOverlay.hidden = !isPaused
   heldEmpty.hidden = Boolean(game.heldPiece)
   updateLevelProgress()
+
+  if (lastRenderedLevel !== currentLevel.level) {
+    lastRenderedLevel = currentLevel.level
+    updateStageArt(currentLevel.level)
+  }
 }
 
 function renderControlLabels () {
@@ -263,6 +409,13 @@ function renderControlLabels () {
     label.textContent = isListening ? '...' : getKeyLabel(controls[action])
     helper.textContent = isListening ? 'Esc cancela' : 'Editar'
   })
+}
+
+function renderSoundToggle () {
+  const enabled = soundManager.isEnabled()
+  soundToggle.classList.toggle('is-on', enabled)
+  soundToggle.setAttribute('aria-pressed', String(enabled))
+  soundToggleLabel.textContent = enabled ? 'Activado' : 'Silenciado'
 }
 
 function showSettingsFeedback (message, isError = false) {
@@ -286,7 +439,8 @@ function closeSettings () {
   settingsPanel.setAttribute('aria-hidden', 'true')
   settingsToggle.setAttribute('aria-expanded', 'false')
   renderControlLabels()
-  settingsToggle.focus()
+  if (gameScreen.hidden) startSettingsButton.focus()
+  else settingsToggle.focus()
 }
 
 function resetControls () {
@@ -305,13 +459,44 @@ function startListening (action) {
 
 function restartGame () {
   game = resetGame(game)
+  gameStarted = true
   dropCounter = 0
   lastTime = performance.now()
+  soundManager.unlock()
   draw()
+}
+
+function togglePauseGame () {
+  if (game.gameOver) return
+  togglePause(game)
+  draw()
+}
+
+function processGameEvents (previousLevel) {
+  const event = game.lastEvent
+  const currentLevel = getCurrentLevel(game.score, game.startLevel).level
+
+  if (event?.lines > 0) soundManager.playLineClear(event.lines)
+  if (currentLevel > previousLevel) soundManager.playLevelUp()
+  if (event?.gameOver) soundManager.playGameOver()
+  game.lastEvent = null
+}
+
+function runGameAction (action) {
+  const previousLevel = getCurrentLevel(game.score, game.startLevel).level
+  const result = action()
+  processGameEvents(previousLevel)
+  return result
 }
 
 function handleInput () {
   if (latestInput === null) return
+
+  if (latestInput === 'pause') {
+    togglePauseGame()
+    latestInput = null
+    return
+  }
 
   if (latestInput === 'restart' && game.gameOver) {
     restartGame()
@@ -319,19 +504,19 @@ function handleInput () {
     return
   }
 
-  if (game.gameOver) return
+  if (game.gameOver || game.paused) return
 
   switch (latestInput) {
     case 'rotate':
-      rotateActivePiece(game)
+      runGameAction(() => rotateActivePiece(game))
       break
     case 'hold':
-      holdActivePiece(game)
+      runGameAction(() => holdActivePiece(game))
       break
     case 'left':
     case 'right':
     case 'down':
-      moveActivePiece(game, latestInput)
+      runGameAction(() => moveActivePiece(game, latestInput))
       break
   }
 }
@@ -350,12 +535,12 @@ function update (time = 0) {
   handleInput()
   latestInput = null
 
-  if (!game.gameOver) {
-    const currentLevel = getCurrentLevel(game.score)
+  if (gameStarted && !game.gameOver && !game.paused) {
+    const currentLevel = getCurrentLevel(game.score, game.startLevel)
     dropCounter += deltaTime
 
     if (dropCounter >= currentLevel.speed) {
-      moveActivePiece(game, 'down')
+      runGameAction(() => moveActivePiece(game, 'down'))
       dropCounter = 0
     }
   }
@@ -364,16 +549,49 @@ function update (time = 0) {
   window.requestAnimationFrame(update)
 }
 
-document.querySelectorAll('[data-binding]').forEach((button) => {
-  button.addEventListener('click', () => startListening(button.dataset.binding))
-})
+function startGame () {
+  const startLevel = Number(startLevelSelect.value)
+  game = createGame({ startLevel, startingStage: selectedStage })
+  gameStarted = true
+  lastRenderedLevel = 0
+  startScreen.hidden = true
+  gameScreen.hidden = false
+  soundManager.unlock()
+  updateStageArt(startLevel)
+  lastTime = performance.now()
+  startHint.textContent = `Stage ${getStage(selectedStage).name} · nivel ${startLevel}. Buena suerte.`
+  draw()
+}
 
+renderStagePicker()
+selectStage(selectedStage)
+soundManager.setEnabled(loadSoundSetting())
+renderSoundToggle()
+renderControlLabels()
+draw()
+window.requestAnimationFrame(update)
+
+startLevelSelect.addEventListener('change', updateStartScene)
+startGameButton.addEventListener('click', startGame)
+startSettingsButton.addEventListener('click', openSettings)
+pauseButton.addEventListener('click', togglePauseGame)
+resumeButton.addEventListener('click', togglePauseGame)
 settingsToggle.addEventListener('click', openSettings)
 openSettingsLink.addEventListener('click', openSettings)
 settingsClose.addEventListener('click', closeSettings)
 settingsBackdrop.addEventListener('click', closeSettings)
 resetControlsButton.addEventListener('click', resetControls)
 restartButton.addEventListener('click', restartGame)
+soundToggle.addEventListener('click', () => {
+  soundManager.setEnabled(!soundManager.isEnabled())
+  if (soundManager.isEnabled()) soundManager.unlock()
+  saveSoundSetting()
+  renderSoundToggle()
+})
+
+document.querySelectorAll('[data-binding]').forEach((button) => {
+  button.addEventListener('click', () => startListening(button.dataset.binding))
+})
 
 document.addEventListener('keydown', (event) => {
   if (listeningAction !== null) {
@@ -405,6 +623,8 @@ document.addEventListener('keydown', (event) => {
     return
   }
 
+  if (gameScreen.hidden) return
+
   const action = findActionByCode(controls, event.code)
   if (!action) return
 
@@ -415,10 +635,7 @@ document.addEventListener('keydown', (event) => {
     softDrop: 'down',
     rotate: 'rotate',
     hold: 'hold',
+    pause: 'pause',
     restart: 'restart'
   }[action]
 })
-
-renderControlLabels()
-draw()
-window.requestAnimationFrame(update)
