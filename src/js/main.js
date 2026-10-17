@@ -6,6 +6,7 @@ import { levels } from './utils/levels.js'
 import { hasCollision } from './game/board.js'
 import { clonePiece } from './game/pieces.js'
 import { createGame, holdActivePiece, moveActivePiece, resetGame, rotateActivePiece, togglePause } from './game/engine.js'
+import { canReturnToStartScreen, GAME_OVER_ANIMATION_MS, getGameOverSummary } from './game/gameFlow.js'
 import { getBackdropForLevel, getStage, STAGES } from './game/stages.js'
 import { createSoundManager } from './audio/soundManager.js'
 import {
@@ -85,6 +86,9 @@ const pauseButton = document.querySelector('#pauseButton')
 const pauseButtonLabel = document.querySelector('#pauseButtonLabel')
 const pauseOverlay = document.querySelector('#pauseOverlay')
 const resumeButton = document.querySelector('#resumeButton')
+const gameOverOverlay = document.querySelector('#gameOverOverlay')
+const gameOverDialog = document.querySelector('.game-over-dialog')
+const gameOverSummary = document.querySelector('#gameOverSummary')
 const settingsToggle = document.querySelector('#settingsToggle')
 const openSettingsLink = document.querySelector('#openSettingsLink')
 const settingsClose = document.querySelector('#settingsClose')
@@ -121,6 +125,8 @@ let lastTime = 0
 let latestInput = null
 let listeningAction = null
 let lastRenderedLevel = 0
+let gameOverAnimationFinished = false
+let gameOverTimer = null
 
 function loadControls () {
   try {
@@ -461,7 +467,58 @@ function startListening (action) {
   renderControlLabels()
 }
 
+function hideGameOverOverlay () {
+  if (gameOverTimer !== null) {
+    window.clearTimeout(gameOverTimer)
+    gameOverTimer = null
+  }
+
+  gameOverAnimationFinished = false
+  gameOverOverlay.hidden = true
+  gameOverOverlay.classList.remove('is-active', 'is-ready')
+  gameOverOverlay.setAttribute('aria-hidden', 'true')
+}
+
+function showGameOverOverlay () {
+  if (gameOverTimer !== null) window.clearTimeout(gameOverTimer)
+
+  const currentLevel = getCurrentLevel(game.score, game.startLevel).level
+  gameOverAnimationFinished = false
+  gameOverSummary.textContent = getGameOverSummary({ score: game.score, level: currentLevel })
+  gameOverOverlay.hidden = false
+  gameOverOverlay.classList.remove('is-active', 'is-ready')
+  gameOverOverlay.setAttribute('aria-hidden', 'false')
+  gameOverOverlay.classList.add('is-active')
+  gameOverDialog.focus()
+
+  gameOverTimer = window.setTimeout(() => {
+    gameOverAnimationFinished = true
+    gameOverOverlay.classList.add('is-ready')
+    gameOverTimer = null
+  }, GAME_OVER_ANIMATION_MS)
+}
+
+function returnToStartScreen (keyCode) {
+  const canReturn = canReturnToStartScreen({
+    gameOver: game.gameOver,
+    animationFinished: gameOverAnimationFinished,
+    keyCode
+  })
+
+  if (!canReturn) return false
+
+  hideGameOverOverlay()
+  gameStarted = false
+  gameScreen.hidden = true
+  startScreen.hidden = false
+  startHint.textContent = 'Listo para jugar.'
+  updateStartScene()
+  startGameButton.focus()
+  return true
+}
+
 function restartGame () {
+  hideGameOverOverlay()
   game = resetGame(game)
   gameStarted = true
   dropCounter = 0
@@ -476,20 +533,24 @@ function togglePauseGame () {
   draw()
 }
 
-function processGameEvents (previousLevel) {
+function processGameEvents (previousLevel, wasGameOver) {
   const event = game.lastEvent
   const currentLevel = getCurrentLevel(game.score, game.startLevel).level
 
   if (event?.lines > 0) soundManager.playLineClear(event.lines)
   if (currentLevel > previousLevel) soundManager.playLevelUp()
-  if (event?.gameOver) soundManager.playGameOver()
+  if (event?.gameOver || (!wasGameOver && game.gameOver)) {
+    soundManager.playGameOver()
+    showGameOverOverlay()
+  }
   game.lastEvent = null
 }
 
 function runGameAction (action) {
   const previousLevel = getCurrentLevel(game.score, game.startLevel).level
+  const wasGameOver = game.gameOver
   const result = action()
-  processGameEvents(previousLevel)
+  processGameEvents(previousLevel, wasGameOver)
   return result
 }
 
@@ -498,12 +559,6 @@ function handleInput () {
 
   if (latestInput === 'pause') {
     togglePauseGame()
-    latestInput = null
-    return
-  }
-
-  if (latestInput === 'restart' && game.gameOver) {
-    restartGame()
     latestInput = null
     return
   }
@@ -555,6 +610,7 @@ function update (time = 0) {
 
 function startGame () {
   const startLevel = Number(startLevelSelect.value)
+  hideGameOverOverlay()
   game = createGame({ startLevel, startingStage: selectedStage })
   gameStarted = true
   lastRenderedLevel = 0
@@ -628,6 +684,12 @@ document.addEventListener('keydown', (event) => {
   }
 
   if (gameScreen.hidden) return
+
+  if (game.gameOver) {
+    event.preventDefault()
+    returnToStartScreen(event.code)
+    return
+  }
 
   const action = findActionByCode(controls, event.code)
   if (!action) return
