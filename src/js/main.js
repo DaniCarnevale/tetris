@@ -174,7 +174,6 @@ const levelLedTargets = [boardCanvas, statsCard]
 const statusElement = document.querySelector('#status')
 const stateDot = document.querySelector('#stateDot')
 const heldEmpty = document.querySelector('#heldEmpty')
-const controlHint = document.querySelector('#controlHint')
 const holdKey = document.querySelector('#holdKey')
 const pauseOverlay = document.querySelector('#pauseOverlay')
 const resumeButton = document.querySelector('#resumeButton')
@@ -691,7 +690,6 @@ function updateHud () {
   stateDot.classList.toggle('is-paused', isPaused)
   const stateCopy = game.gameOver ? 'Partida terminada' : isPaused ? 'En pausa' : 'En partida'
   statusElement.textContent = stateCopy
-  controlHint.textContent = `${getKeyLabel(controls.rotate)} rotar · ${getKeyLabel(controls.softDrop)} bajar · ${getKeyLabel(controls.pause)} pausar`
   holdKey.textContent = getKeyLabel(controls.hold)
   pauseOverlay.hidden = !isPaused
   heldEmpty.hidden = Boolean(game.heldPiece)
@@ -722,6 +720,7 @@ function renderPieceStats () {
     const track = document.createElement('div')
     const fill = document.createElement('span')
     const meter = document.createElement('div')
+    const axis = document.createElement('span')
     const glyph = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     const glyphPath = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 
@@ -731,15 +730,18 @@ function renderPieceStats () {
     track.className = 'piece-stat-track'
     fill.className = 'piece-stat-fill'
     meter.className = 'piece-stat-meter'
+    axis.className = 'piece-stat-axis'
     glyph.classList.add('piece-stat-glyph')
     glyphPath.classList.add('piece-stat-glyph-path')
     glyph.setAttribute('viewBox', `0 0 ${row.shape[0].length} ${row.shape.length}`)
+    glyph.setAttribute('width', String(row.shape[0].length * 8))
+    glyph.setAttribute('height', String(row.shape.length * 8))
     glyph.setAttribute('aria-hidden', 'true')
     glyphPath.setAttribute('d', row.glyphPath)
     glyphPath.setAttribute('fill', row.color)
     thumbnail.setAttribute('role', 'img')
     thumbnail.setAttribute('aria-label', row.label)
-    fill.style.width = `${row.width}%`
+    fill.style.height = `${row.height}%`
     fill.style.backgroundColor = row.color
     count.textContent = String(row.count)
     track.setAttribute('role', 'progressbar')
@@ -747,12 +749,13 @@ function renderPieceStats () {
     track.setAttribute('aria-valuemin', '0')
     track.setAttribute('aria-valuemax', String(view.max))
     track.setAttribute('aria-valuenow', String(row.count))
+    axis.setAttribute('aria-hidden', 'true')
 
     glyph.append(glyphPath)
     thumbnail.append(glyph)
     track.append(fill)
     meter.append(count, track)
-    item.append(meter, thumbnail)
+    item.append(meter, axis, thumbnail)
     pieceStatsList.append(item)
   })
 }

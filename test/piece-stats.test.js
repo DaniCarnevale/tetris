@@ -14,7 +14,7 @@ test('piece stats start with one counter per tetromino', () => {
 
   assert.equal(view.total, 0)
   assert.equal(view.rows.length, 7)
-  assert.ok(view.rows.every((row) => row.count === 0 && row.width === 0))
+  assert.ok(view.rows.every((row) => row.count === 0 && row.height === 0))
 })
 
 test('piece stats expose the tetromino geometry for its silhouette', () => {
@@ -49,9 +49,9 @@ test('piece stats count locked pieces and scale bars against the most used type'
 
   assert.equal(view.total, 3)
   assert.equal(square.count, 2)
-  assert.equal(square.width, 100)
+  assert.equal(square.height, 100)
   assert.equal(tee.count, 1)
-  assert.equal(tee.width, 50)
+  assert.equal(tee.height, 50)
 })
 
 test('unknown piece ids do not create accidental statistics', () => {

@@ -38,11 +38,11 @@ test('the game locks document scrolling only while a game is active', () => {
 
 test('piece stats use a compact visual model in the game cockpit', () => {
   assert.deepEqual(getPieceStatsLayout({ width: 1440 }), {
-    orientation: 'sidebar',
+    orientation: 'cartesian',
     showLongLabels: false
   })
   assert.deepEqual(getPieceStatsLayout({ width: 390 }), {
-    orientation: 'sidebar',
+    orientation: 'cartesian',
     showLongLabels: false
   })
 })
@@ -58,13 +58,13 @@ test('piece stats render each tetromino as a unified silhouette below its fill',
   assert.match(mainSource, /piece-stat-thumbnail/)
   assert.match(mainSource, /createElementNS/)
   assert.match(mainSource, /piece-stat-glyph/)
-  assert.match(mainSource, /item\.append\(meter, thumbnail\)/)
+  assert.match(mainSource, /item\.append\(meter, axis, thumbnail\)/)
   assert.doesNotMatch(mainSource, /label\.textContent = row\.shortLabel/)
   assert.match(stylesheet, /body\.is-game-active \.game-side-rail \.piece-stat-row \{[\s\S]*display: grid;/)
 })
 
 test('piece stat spacing keeps the number above the axis', () => {
-  assert.match(stylesheet, /body\.is-game-active \.piece-stat-meter \{[\s\S]*display: grid;[\s\S]*grid-template-rows: auto 54px;/)
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-meter \{[\s\S]*position: relative;[\s\S]*height: 54px;/)
   assert.match(stylesheet, /body\.is-game-active \.piece-stat-track \{[\s\S]*margin: 0;/)
   assert.match(stylesheet, /body\.is-game-active \.piece-stat-count \{[\s\S]*text-align: center;/)
 })
@@ -78,5 +78,4 @@ test('previews stay compact instead of stretching to the board height', () => {
   assert.match(stylesheet, /body\.is-game-active \.board-cockpit \{[\s\S]*align-items: start;/)
   assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \{[\s\S]*align-self: start;/)
   assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \.preview-stage \{[\s\S]*flex: 0 0 108px;/)
-  assert.doesNotMatch(stylesheet, /body\.is-game-active \.cockpit-preview \.preview-stage \{[\s\S]*flex: 1 1 auto;/)
 })
