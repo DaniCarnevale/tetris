@@ -39,7 +39,11 @@ function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous
           return { error: null }
         }
       },
-      from: (tableName) => tableName === 'player_settings' ? settingsTable : table
+      from: (tableName) => tableName === 'player_settings' ? settingsTable : table,
+      rpc: async (functionName, payload) => {
+        calls[functionName] = payload
+        return { error: null }
+      }
     }
   }
 }
@@ -148,6 +152,10 @@ test('loads and persists the chosen nickname and avatar path remotely', async ()
       avatar_path: 'user-1/avatar.webp'
     },
     options: { onConflict: 'player_id' }
+  })
+  assert.deepEqual(calls.sync_profile_score_identity, {
+    new_nickname: 'Ana',
+    new_avatar_path: 'user-1/avatar.webp'
   })
 })
 
