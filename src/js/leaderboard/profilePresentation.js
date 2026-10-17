@@ -1,3 +1,5 @@
+import { normalizeNickname as normalizeStoredNickname } from './leaderboardModel.js'
+
 export const PROFILE_SETUP_PENDING_STORAGE_KEY = 'tetris.profile.setup.pending'
 
 export function markProfileSetupPending (storage) {
@@ -26,6 +28,11 @@ export function createProfileCardModel (profile = {}, accountLabel = 'Invitado')
     avatarPath: normalizeAvatarPath(profile.avatarPath),
     accountLabel
   }
+}
+
+export function hasProfileChanges (draft = {}, savedProfile = {}) {
+  return normalizeStoredNickname(draft.nickname) !== normalizeStoredNickname(savedProfile.nickname) ||
+    normalizeAvatarPath(draft.avatarPath) !== normalizeAvatarPath(savedProfile.avatarPath)
 }
 
 function normalizeNickname (nickname) {

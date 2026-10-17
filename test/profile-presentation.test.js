@@ -5,6 +5,7 @@ import {
   PROFILE_SETUP_PENDING_STORAGE_KEY,
   consumeProfileSetupPending,
   createProfileCardModel,
+  hasProfileChanges,
   markProfileSetupPending
 } from '../src/js/leaderboard/profilePresentation.js'
 
@@ -45,4 +46,12 @@ test('falls back to a guest identity when profile data is incomplete', () => {
     avatarPath: null,
     accountLabel: 'Invitado'
   })
+})
+
+test('detects an edited nickname or avatar against the saved profile', () => {
+  const savedProfile = { nickname: 'Dani', avatarPath: 'user/avatar.webp' }
+
+  assert.equal(hasProfileChanges({ nickname: ' Dani ', avatarPath: 'user/avatar.webp' }, savedProfile), false)
+  assert.equal(hasProfileChanges({ nickname: 'Daniel', avatarPath: 'user/avatar.webp' }, savedProfile), true)
+  assert.equal(hasProfileChanges({ nickname: 'Dani', avatarPath: null }, savedProfile), true)
 })
