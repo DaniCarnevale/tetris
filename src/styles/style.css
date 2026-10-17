@@ -2545,6 +2545,10 @@ body.is-game-active .score-stat {
   min-width: 0;
 }
 
+body.is-game-active .score-primary {
+  padding-left: clamp(14px, 3vw, 36px);
+}
+
 body.is-game-active .score-primary span,
 body.is-game-active .score-stat span {
   display: block;
@@ -2578,6 +2582,12 @@ body.is-game-active .score-primary strong {
 
 body.is-game-active .score-stat strong {
   font-size: 1.08rem;
+}
+
+body.is-game-active .score-level strong {
+  color: #eaf4ff;
+  font-size: clamp(1.24rem, 2.5vw, 1.34rem);
+  letter-spacing: -0.03em;
 }
 
 body.is-game-active .score-record strong {
@@ -3023,6 +3033,10 @@ body.is-game-active .game-side-rail .control-row {
     font-size: 1.35rem;
   }
 
+  body.is-game-active .score-primary {
+    padding-left: 8px;
+  }
+
   body.is-game-active .score-state {
     font-size: 0;
   }
@@ -3109,6 +3123,10 @@ body.is-game-active .game-side-rail .control-row {
 
   body.is-game-active .score-stat strong {
     font-size: 0.9rem;
+  }
+
+  body.is-game-active .score-level strong {
+    font-size: 1.12rem;
   }
 
   body.is-game-active .score-record span {
