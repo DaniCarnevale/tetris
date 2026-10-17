@@ -348,6 +348,101 @@ select:focus {
   color: #ff9cad;
 }
 
+.account-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 3px;
+  padding: 12px;
+  border: 1px solid rgba(113, 183, 255, 0.15);
+  border-radius: 14px;
+  background: rgba(113, 183, 255, 0.045);
+}
+
+.account-copy {
+  min-width: 0;
+}
+
+.account-eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--accent-blue);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.account-copy strong {
+  display: block;
+  overflow: hidden;
+  color: #edf2ff;
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-copy p {
+  max-width: 220px;
+  margin: 4px 0 0;
+  color: #71809a;
+  font-size: 0.64rem;
+  line-height: 1.4;
+}
+
+.google-button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  min-height: 33px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9px;
+  color: #e9effc;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.64rem;
+  font-weight: 800;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.google-button:hover,
+.google-button:focus-visible {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+}
+
+.google-button:disabled {
+  cursor: default;
+  opacity: 0.58;
+  transform: none;
+}
+
+.google-mark {
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  border-radius: 50%;
+  color: #4285f4;
+  background: #ffffff;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.account-feedback {
+  min-height: 17px;
+  margin-bottom: 18px;
+}
+
+.account-feedback.is-error {
+  color: #ff9cad;
+}
+
 .stage-label-row {
   display: flex;
   align-items: baseline;

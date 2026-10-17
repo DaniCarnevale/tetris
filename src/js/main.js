@@ -11,6 +11,7 @@ import { getBackdropForLevel, getStage, STAGES } from './game/stages.js'
 import { createSoundManager } from './audio/soundManager.js'
 import { createLeaderboardService } from './leaderboard/leaderboardService.js'
 import { createAvatarService, validateAvatarFile } from './leaderboard/avatarService.js'
+import { createAccountService } from './leaderboard/accountService.js'
 import {
   createControls,
   findActionByCode,
@@ -77,6 +78,11 @@ const avatarPreviewImage = document.querySelector('#avatarPreviewImage')
 const avatarInitials = document.querySelector('#avatarInitials')
 const avatarRemoveButton = document.querySelector('#avatarRemoveButton')
 const avatarFeedback = document.querySelector('#avatarFeedback')
+const accountStatus = document.querySelector('#accountStatus')
+const accountHint = document.querySelector('#accountHint')
+const accountFeedback = document.querySelector('#accountFeedback')
+const googleSignInButton = document.querySelector('#googleSignInButton')
+const googleSignInLabel = document.querySelector('#googleSignInLabel')
 const stageArt = document.querySelector('#stageArt')
 const boardCanvas = document.querySelector('#board')
 const nextCanvas = document.querySelector('.next')
@@ -124,6 +130,7 @@ const savedContext = savedCanvas.getContext('2d')
 const soundManager = createSoundManager()
 const leaderboardService = createLeaderboardService()
 const avatarService = createAvatarService()
+const accountService = createAccountService()
 
 boardCanvas.width = BLOCK_SIZE * BOARD_WIDTH
 boardCanvas.height = BLOCK_SIZE * BOARD_HEIGHT
@@ -460,6 +467,7 @@ function showSettingsFeedback (message, isError = false) {
 function savePlayerNickname () {
   const profile = leaderboardService.setNickname(playerNickname.value)
   playerNickname.value = profile.nickname
+  accountService.saveProfile(profile).catch(() => {})
   return profile
 }
 
@@ -515,6 +523,7 @@ async function handleAvatarSelection () {
 
   if (result.source === 'online') {
     renderProfileAvatar(leaderboardService.getProfile(), result.url)
+    accountService.saveProfile(leaderboardService.getProfile()).catch(() => {})
     showAvatarFeedback('Avatar guardado. Se reemplazó el anterior.')
     return
   }
@@ -539,11 +548,69 @@ async function removeAvatar () {
   const result = await avatarService.removeAvatar()
   if (result.source === 'online') {
     renderProfileAvatar()
+    accountService.saveProfile(leaderboardService.getProfile()).catch(() => {})
     showAvatarFeedback('Avatar eliminado.')
     return
   }
 
   showAvatarFeedback(result.error ?? 'No se pudo eliminar el avatar.', true)
+}
+
+function renderAccountState (account) {
+  const isSignedIn = account.status === 'signed-in'
+  const isOffline = account.status === 'offline'
+
+  accountStatus.textContent = isSignedIn ? (account.email ?? 'Google conectado') : isOffline ? 'Modo local' : 'Modo invitado'
+  accountHint.textContent = isSignedIn
+    ? 'Tu ranking, nickname y avatar están asociados a Google.'
+    : 'Vinculá Google para conservar tu ranking, nickname y avatar.'
+  googleSignInLabel.textContent = isSignedIn ? 'Google conectado' : 'Vincular Google'
+  googleSignInButton.disabled = isSignedIn
+  accountFeedback.textContent = account.error
+    ? account.error
+    : isSignedIn
+      ? 'Perfil sincronizado con Supabase.'
+      : 'Podés seguir jugando como invitado.'
+  accountFeedback.classList.toggle('is-error', Boolean(account.error))
+}
+
+async function syncRemoteProfile () {
+  const account = await accountService.getAccountState()
+  renderAccountState(account)
+  if (!accountService.isOnline()) return
+
+  const remoteProfile = await accountService.loadProfile()
+  if (remoteProfile.source !== 'online') return
+
+  if (remoteProfile.profile) {
+    const profile = leaderboardService.setProfile(remoteProfile.profile)
+    playerNickname.value = profile.nickname
+    renderProfileAvatar(profile)
+    return
+  }
+
+  await accountService.saveProfile(leaderboardService.getProfile())
+}
+
+async function connectGoogle () {
+  googleSignInButton.disabled = true
+  accountFeedback.classList.remove('is-error')
+  accountFeedback.textContent = 'Abriendo Google...'
+
+  const result = await accountService.connectGoogle()
+  if (result.source === 'redirect' && result.url) {
+    window.location.assign(result.url)
+    return
+  }
+
+  if (result.source === 'online') {
+    await syncRemoteProfile()
+    return
+  }
+
+  googleSignInButton.disabled = false
+  accountFeedback.classList.add('is-error')
+  accountFeedback.textContent = result.error ?? 'No se pudo conectar con Google.'
 }
 
 function renderLeaderboard (entries) {
@@ -858,12 +925,14 @@ soundManager.setEnabled(loadSoundSetting())
 renderSoundToggle()
 renderControlLabels()
 draw()
+syncRemoteProfile().catch(() => {})
 window.requestAnimationFrame(update)
 
 startLevelSelect.addEventListener('change', updateStartScene)
 startGameButton.addEventListener('click', startGame)
 avatarInput.addEventListener('change', handleAvatarSelection)
 avatarRemoveButton.addEventListener('click', removeAvatar)
+googleSignInButton.addEventListener('click', connectGoogle)
 playerNickname.addEventListener('input', () => {
   avatarInitials.textContent = getInitials(playerNickname.value)
 })
