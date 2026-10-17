@@ -2,8 +2,10 @@
 
 import { normalizeNickname } from './leaderboardModel.js'
 import { createSupabaseClient, ensureAnonymousUser, getEnvironmentValue } from './supabaseClient.js'
+import { createUserSettings } from '../settings/settingsModel.js'
 
 export const PLAYER_PROFILE_TABLE = 'player_profiles'
+export const PLAYER_SETTINGS_TABLE = 'player_settings'
 export const GUEST_PROFILE_NICKNAME = 'Guest'
 
 export function canEditProfile (account) {
@@ -25,7 +27,9 @@ export function createAccountService ({
     connectGoogle: () => connectGoogle({ client, online, redirectTo }),
     signOut: () => signOut({ client, online }),
     loadProfile: () => loadProfile({ client, online }),
-    saveProfile: (profile) => saveProfile({ client, online, profile })
+    saveProfile: (profile) => saveProfile({ client, online, profile }),
+    loadSettings: () => loadSettings({ client, online }),
+    saveSettings: (settings) => saveSettings({ client, online, settings })
   }
 }
 
@@ -120,6 +124,60 @@ async function saveProfile ({ client, online, profile }) {
   } catch (error) {
     return { source: 'offline', error: getErrorMessage(error) }
   }
+}
+
+async function loadSettings ({ client, online }) {
+  if (!online) return createSettingsResult('offline', null, 'Supabase todavía no está configurado.')
+
+  try {
+    const user = await ensureAnonymousUser(client)
+    if (user.is_anonymous) return createSettingsResult('guest')
+    const { data, error } = await client
+      .from(PLAYER_SETTINGS_TABLE)
+      .select('controls, sound_enabled, music_enabled, music_volume')
+      .eq('player_id', user.id)
+      .maybeSingle()
+    if (error) throw error
+
+    return createSettingsResult('online', data
+      ? createUserSettings({
+        controls: data.controls,
+        soundEnabled: data.sound_enabled,
+        musicEnabled: data.music_enabled,
+        musicVolume: data.music_volume
+      })
+      : createUserSettings())
+  } catch (error) {
+    return createSettingsResult('offline', null, getErrorMessage(error))
+  }
+}
+
+async function saveSettings ({ client, online, settings }) {
+  if (!online) return createSettingsResult('offline', null, 'Supabase todavía no está configurado.')
+
+  try {
+    const user = await ensureAnonymousUser(client)
+    if (user.is_anonymous) return createSettingsResult('guest')
+    const normalized = createUserSettings(settings)
+    const { error } = await client
+      .from(PLAYER_SETTINGS_TABLE)
+      .upsert({
+        player_id: user.id,
+        controls: normalized.controls,
+        sound_enabled: normalized.soundEnabled,
+        music_enabled: normalized.musicEnabled,
+        music_volume: normalized.musicVolume
+      }, { onConflict: 'player_id' })
+    if (error) throw error
+
+    return createSettingsResult('online', normalized)
+  } catch (error) {
+    return createSettingsResult('offline', null, getErrorMessage(error))
+  }
+}
+
+function createSettingsResult (source, settings = createUserSettings(), error = null) {
+  return { source, settings, error }
 }
 
 function createGuestProfileResult () {

@@ -7,8 +7,23 @@ const LINE_CLEAR_SEQUENCES = {
   4: [523.25, 659.25, 783.99, 1046.5, 1318.51]
 }
 
+const MUSIC_SEQUENCE = Object.freeze([
+  { frequency: 659.25, duration: 0.22 },
+  { frequency: 783.99, duration: 0.22 },
+  { frequency: 987.77, duration: 0.22 },
+  { frequency: 783.99, duration: 0.22 },
+  { frequency: 659.25, duration: 0.22 },
+  { frequency: 523.25, duration: 0.22 },
+  { frequency: 587.33, duration: 0.22 },
+  { frequency: 659.25, duration: 0.42 }
+])
+
 export function getLineClearSequence (lines) {
   return LINE_CLEAR_SEQUENCES[Math.min(Math.max(lines, 1), 4)]
+}
+
+export function getMusicSequence () {
+  return MUSIC_SEQUENCE
 }
 
 function getAudioContextConstructor () {
@@ -33,16 +48,38 @@ function scheduleTone (context, frequency, startTime, duration, type, volume) {
 export function createSoundManager () {
   let context = null
   let enabled = true
+  let musicEnabled = true
+  let musicVolume = 0.5
+  let musicTimer = null
 
-  function ensureContext () {
-    if (!enabled) return null
-
+  function createContext () {
     const AudioContextConstructor = getAudioContextConstructor()
     if (!AudioContextConstructor) return null
 
     if (!context) context = new AudioContextConstructor()
     if (context.state === 'suspended') context.resume()
     return context
+  }
+
+  function ensureContext () {
+    if (!enabled) return null
+    return createContext()
+  }
+
+  function scheduleMusicLoop () {
+    musicTimer = null
+    if (!musicEnabled || musicVolume <= 0) return
+
+    const audioContext = createContext()
+    if (!audioContext) return
+
+    const startTime = audioContext.currentTime + 0.03
+    let offset = 0
+    MUSIC_SEQUENCE.forEach((note) => {
+      scheduleTone(audioContext, note.frequency, startTime + offset, note.duration, 'square', 0.035 * musicVolume)
+      offset += note.duration
+    })
+    musicTimer = window.setTimeout(scheduleMusicLoop, (offset + 0.05) * 1000)
   }
 
   function playLineClear (lines) {
@@ -80,15 +117,41 @@ export function createSoundManager () {
   }
 
   return {
-    unlock: ensureContext,
+    unlock () {
+      const audioContext = createContext()
+      if (musicEnabled && musicTimer === null) scheduleMusicLoop()
+      return audioContext
+    },
     playLineClear,
     playLevelUp,
     playGameOver,
+    playMusic () {
+      if (musicTimer === null) scheduleMusicLoop()
+    },
+    stopMusic () {
+      if (musicTimer !== null) window.clearTimeout(musicTimer)
+      musicTimer = null
+    },
     setEnabled (value) {
       enabled = Boolean(value)
     },
     isEnabled () {
       return enabled
+    },
+    setMusicEnabled (value) {
+      musicEnabled = Boolean(value)
+      if (!musicEnabled) this.stopMusic()
+    },
+    isMusicEnabled () {
+      return musicEnabled
+    },
+    setMusicVolume (value) {
+      const volume = Number(value)
+      musicVolume = Number.isFinite(volume) ? Math.min(Math.max(volume, 0), 1) : 0.5
+      if (musicVolume === 0) this.stopMusic()
+    },
+    getMusicVolume () {
+      return musicVolume
     }
   }
 }

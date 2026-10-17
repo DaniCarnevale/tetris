@@ -19,6 +19,7 @@ export function createLeaderboardEntry ({
   level = 1,
   lines = 0,
   stageId = 'fresh',
+  startLevel = 1,
   avatarPath = null,
   createdAt = new Date().toISOString()
 } = {}) {
@@ -28,6 +29,7 @@ export function createLeaderboardEntry ({
     level: normalizeNumber(level, 1),
     lines: normalizeNumber(lines),
     stageId: typeof stageId === 'string' && stageId.length > 0 ? stageId : 'fresh',
+    startLevel: normalizeLevel(startLevel),
     avatarPath: normalizeAvatarPath(avatarPath),
     createdAt
   }
@@ -45,9 +47,27 @@ export function sortLeaderboard (entries = [], limit = 10) {
     .slice(0, Math.max(0, limit))
 }
 
+export function filterLeaderboardEntries (entries = [], { stageId = null, startLevel = null } = {}) {
+  const sortedEntries = sortLeaderboard(entries, Number.MAX_SAFE_INTEGER)
+  const normalizedStageId = typeof stageId === 'string' && stageId.length > 0 ? stageId : null
+  const normalizedStartLevel = startLevel === null || startLevel === undefined
+    ? null
+    : normalizeNumber(startLevel, 1)
+
+  return sortedEntries.filter((entry) => {
+    const matchesStage = normalizedStageId === null || entry.stageId === normalizedStageId
+    const matchesStartLevel = normalizedStartLevel === null || entry.startLevel === normalizedStartLevel
+    return matchesStage && matchesStartLevel
+  })
+}
+
 function normalizeNumber (value, fallback = 0) {
   const number = Number(value)
   return Number.isFinite(number) && number >= 0 ? Math.floor(number) : fallback
+}
+
+function normalizeLevel (value) {
+  return Math.min(Math.max(normalizeNumber(value, 1), 1), 10)
 }
 
 function normalizeAvatarPath (avatarPath) {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 
 import { canEditProfile, createAccountService } from '../src/js/leaderboard/accountService.js'
 
-function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous-1', is_anonymous: true }, profile = null, oauthData = { url: 'https://accounts.google.test/authorize' } } = {}) {
+function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous-1', is_anonymous: true }, profile = null, settings = null, oauthData = { url: 'https://accounts.google.test/authorize' } } = {}) {
   const calls = {}
   const table = {
     select: () => table,
@@ -11,6 +11,15 @@ function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous
     maybeSingle: async () => ({ data: profile, error: null }),
     upsert: async (payload, options) => {
       calls.upsert = { payload, options }
+      return { error: null }
+    }
+  }
+  const settingsTable = {
+    select: () => settingsTable,
+    eq: () => settingsTable,
+    maybeSingle: async () => ({ data: settings, error: null }),
+    upsert: async (payload, options) => {
+      calls.settingsUpsert = { payload, options }
       return { error: null }
     }
   }
@@ -30,7 +39,7 @@ function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous
           return { error: null }
         }
       },
-      from: () => table
+      from: (tableName) => tableName === 'player_settings' ? settingsTable : table
     }
   }
 }
@@ -137,6 +146,69 @@ test('loads and persists the chosen nickname and avatar path remotely', async ()
       player_id: 'user-1',
       nickname: 'Ana',
       avatar_path: 'user-1/avatar.webp'
+    },
+    options: { onConflict: 'player_id' }
+  })
+})
+
+test('loads and persists gameplay settings for a signed-in account', async () => {
+  const { client, calls } = createAccountClient({
+    session: { user: { id: 'user-1', email: 'dani@example.com', is_anonymous: false } },
+    settings: {
+      controls: { pause: 'Space' },
+      sound_enabled: false,
+      music_enabled: true,
+      music_volume: 0.35
+    }
+  })
+  const service = createAccountService({
+    supabaseClient: client,
+    supabaseUrl: 'https://example.supabase.co',
+    supabaseKey: 'public-key'
+  })
+
+  assert.deepEqual(await service.loadSettings(), {
+    source: 'online',
+    settings: {
+      controls: {
+        moveLeft: 'ArrowLeft',
+        moveRight: 'ArrowRight',
+        softDrop: 'ArrowDown',
+        rotate: 'ArrowUp',
+        hold: 'KeyS',
+        pause: 'Space',
+        restart: 'Enter'
+      },
+      soundEnabled: false,
+      musicEnabled: true,
+      musicVolume: 0.35
+    },
+    error: null
+  })
+
+  const result = await service.saveSettings({
+    controls: { pause: 'KeyP' },
+    soundEnabled: true,
+    musicEnabled: false,
+    musicVolume: 0.8
+  })
+
+  assert.equal(result.source, 'online')
+  assert.deepEqual(calls.settingsUpsert, {
+    payload: {
+      player_id: 'user-1',
+      controls: {
+        moveLeft: 'ArrowLeft',
+        moveRight: 'ArrowRight',
+        softDrop: 'ArrowDown',
+        rotate: 'ArrowUp',
+        hold: 'KeyS',
+        pause: 'KeyP',
+        restart: 'Enter'
+      },
+      sound_enabled: true,
+      music_enabled: false,
+      music_volume: 0.8
     },
     options: { onConflict: 'player_id' }
   })
