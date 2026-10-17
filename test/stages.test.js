@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 
 import { BOARD_HEIGHT, BOARD_WIDTH } from '../src/js/config/config.js'
 import { createStageBoard, getBackdropForLevel } from '../src/js/game/stages.js'
-import { getLineClearSequence } from '../src/js/audio/soundManager.js'
+import { getLineClearSequence, getMusicSequence } from '../src/js/audio/soundManager.js'
 
 test('stage presets preserve board dimensions and provide a playable base', () => {
   const board = createStageBoard('foundation')
@@ -60,4 +60,9 @@ test('line clear sound sequences become richer from one to four lines', () => {
   assert.equal(getLineClearSequence(2).length, 2)
   assert.equal(getLineClearSequence(3).length, 3)
   assert.equal(getLineClearSequence(4).length, 5)
+})
+
+test('music has an original loop that can be reused across every level', () => {
+  assert.ok(getMusicSequence(1).length > 0)
+  assert.deepEqual(getMusicSequence(1), getMusicSequence(10))
 })
