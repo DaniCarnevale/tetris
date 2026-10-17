@@ -529,6 +529,13 @@ async function handleAvatarSelection () {
 }
 
 async function removeAvatar () {
+  const profile = leaderboardService.getProfile()
+  if (!profile.avatarPath && temporaryAvatarPreviewUrl !== null) {
+    renderProfileAvatar(profile)
+    showAvatarFeedback('Vista previa quitada.')
+    return
+  }
+
   const result = await avatarService.removeAvatar()
   if (result.source === 'online') {
     renderProfileAvatar()

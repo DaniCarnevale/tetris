@@ -100,7 +100,11 @@ async function uploadAvatar ({ client, online, file, storage, profileStorage, no
     }
 
     saveGuestProfile(profile.nickname, profileStorage, profile.id, avatarPath)
-    storage?.setItem(AVATAR_UPLOAD_STORAGE_KEY, String(now()))
+    try {
+      storage?.setItem(AVATAR_UPLOAD_STORAGE_KEY, String(now()))
+    } catch {
+      // The server-side Storage policy remains the source of truth for rate limiting.
+    }
 
     return {
       source: 'online',
