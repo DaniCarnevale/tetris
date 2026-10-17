@@ -27,6 +27,7 @@ test('creates a leaderboard entry with safe numeric values', () => {
     level: 3,
     lines: 8,
     stageId: 'foundation',
+    avatarPath: null,
     createdAt: '2026-10-17T12:00:00.000Z'
   })
 })

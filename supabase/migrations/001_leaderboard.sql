@@ -6,6 +6,7 @@ create table if not exists public.scores (
   level integer not null check (level between 1 and 10),
   lines integer not null check (lines >= 0),
   stage_id text not null default 'fresh',
+  avatar_path text check (avatar_path is null or avatar_path = player_id::text || '/avatar.webp'),
   start_level integer not null default 1 check (start_level between 1 and 10),
   created_at timestamptz not null default timezone('utc', now())
 );

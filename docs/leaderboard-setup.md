@@ -4,11 +4,13 @@ La app funciona como invitado y guarda un ranking local si Supabase no está con
 
 1. Crear un proyecto nuevo en Supabase.
 2. En Authentication, habilitar **Anonymous Sign-Ins**.
-3. Ejecutar `supabase/migrations/001_leaderboard.sql` desde el SQL Editor.
+3. Ejecutar `supabase/migrations/001_leaderboard.sql` y luego `supabase/migrations/002_avatar_storage.sql` desde el SQL Editor.
 4. Copiar `.env.example` a `.env.local`.
 5. Completar `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (la clave publicable/anon, nunca `service_role`).
 6. Reiniciar Vite con `npm run dev`.
 
 La app crea una sesión anónima para cada jugador y asocia el nickname a sus puntuaciones. El login con Google se puede sumar más adelante vinculando esa sesión invitada, sin cambiar el esquema de `scores`.
+
+Los avatares se guardan en el bucket `avatars`. Cada jugador puede tener un único archivo WebP de hasta 2 MB en una ruta fija. El bucket acepta JPG, PNG y WebP; la política de Storage y el trigger de rate limit restringen la ruta, el tamaño y una carga cada 30 segundos. Una nueva imagen reemplaza el archivo anterior.
 
 El ranking usa Supabase Realtime cuando el proyecto está configurado: la tabla se suscribe a nuevos inserts por WebSocket mientras está abierta y cierra el canal al salir, sin mantener conexiones innecesarias durante la partida.

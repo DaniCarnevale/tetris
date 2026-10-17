@@ -19,6 +19,7 @@ export function createLeaderboardEntry ({
   level = 1,
   lines = 0,
   stageId = 'fresh',
+  avatarPath = null,
   createdAt = new Date().toISOString()
 } = {}) {
   return {
@@ -27,6 +28,7 @@ export function createLeaderboardEntry ({
     level: normalizeNumber(level, 1),
     lines: normalizeNumber(lines),
     stageId: typeof stageId === 'string' && stageId.length > 0 ? stageId : 'fresh',
+    avatarPath: normalizeAvatarPath(avatarPath),
     createdAt
   }
 }
@@ -46,4 +48,8 @@ export function sortLeaderboard (entries = [], limit = 10) {
 function normalizeNumber (value, fallback = 0) {
   const number = Number(value)
   return Number.isFinite(number) && number >= 0 ? Math.floor(number) : fallback
+}
+
+function normalizeAvatarPath (avatarPath) {
+  return typeof avatarPath === 'string' && avatarPath.length > 0 ? avatarPath : null
 }

@@ -52,6 +52,23 @@
           <input class="text-input" id="playerNickname" type="text" maxlength="16" autocomplete="nickname" placeholder="Tu nombre en el ranking" aria-describedby="playerNicknameHint" />
           <p class="field-hint" id="playerNicknameHint">Jugás como invitado. Podés cambiarlo cuando quieras.</p>
 
+          <div class="avatar-setting">
+            <div class="avatar-preview" id="avatarPreview" aria-hidden="true">
+              <img id="avatarPreviewImage" alt="" hidden />
+              <span id="avatarInitials">JU</span>
+            </div>
+            <div class="avatar-copy">
+              <span class="field-label">Avatar</span>
+              <p>Una imagen chiquita para reconocerte en el ranking.</p>
+              <div class="avatar-actions">
+                <label class="button button-secondary avatar-upload-button" for="avatarInput">Elegir imagen</label>
+                <input id="avatarInput" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+                <button class="avatar-remove-button" id="avatarRemoveButton" type="button" hidden>Quitar</button>
+              </div>
+            </div>
+          </div>
+          <p class="field-hint avatar-feedback" id="avatarFeedback" aria-live="polite">JPG, PNG o WebP · hasta 2 MB.</p>
+
           <label class="field-label" for="startLevel">Comenzar desde el nivel</label>
           <div class="select-wrap">
             <select id="startLevel" aria-describedby="startLevelHint">

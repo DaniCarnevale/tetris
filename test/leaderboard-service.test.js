@@ -27,6 +27,7 @@ test('guest mode persists scores locally when Supabase is not configured', async
     level: 3,
     lines: 4,
     stageId: 'fresh',
+    avatarPath: null,
     createdAt: ranking.entries[0].createdAt
   })
 })

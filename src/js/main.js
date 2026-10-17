@@ -1,4 +1,4 @@
-/* global document, localStorage, performance, window */
+/* global URL, document, localStorage, performance, window */
 
 import { BLOCK_SIZE, BOARD_HEIGHT, BOARD_WIDTH } from './config/config.js'
 import { getCurrentLevel } from './managers/levelManager.js'
@@ -10,6 +10,7 @@ import { canReturnToStartScreen, GAME_OVER_ANIMATION_MS, getGameOverSummary } fr
 import { getBackdropForLevel, getStage, STAGES } from './game/stages.js'
 import { createSoundManager } from './audio/soundManager.js'
 import { createLeaderboardService } from './leaderboard/leaderboardService.js'
+import { createAvatarService, validateAvatarFile } from './leaderboard/avatarService.js'
 import {
   createControls,
   findActionByCode,
@@ -71,6 +72,11 @@ const startGameButton = document.querySelector('#startGameButton')
 const startSettingsButton = document.querySelector('#startSettingsButton')
 const leaderboardButton = document.querySelector('#leaderboardButton')
 const playerNickname = document.querySelector('#playerNickname')
+const avatarInput = document.querySelector('#avatarInput')
+const avatarPreviewImage = document.querySelector('#avatarPreviewImage')
+const avatarInitials = document.querySelector('#avatarInitials')
+const avatarRemoveButton = document.querySelector('#avatarRemoveButton')
+const avatarFeedback = document.querySelector('#avatarFeedback')
 const stageArt = document.querySelector('#stageArt')
 const boardCanvas = document.querySelector('#board')
 const nextCanvas = document.querySelector('.next')
@@ -117,6 +123,7 @@ const nextContext = nextCanvas.getContext('2d')
 const savedContext = savedCanvas.getContext('2d')
 const soundManager = createSoundManager()
 const leaderboardService = createLeaderboardService()
+const avatarService = createAvatarService()
 
 boardCanvas.width = BLOCK_SIZE * BOARD_WIDTH
 boardCanvas.height = BLOCK_SIZE * BOARD_HEIGHT
@@ -143,6 +150,7 @@ let gameOverAnimationFinished = false
 let gameOverTimer = null
 let leaderboardSaveRequest = 0
 let leaderboardUnsubscribe = () => {}
+let temporaryAvatarPreviewUrl = null
 
 function loadControls () {
   try {
@@ -455,6 +463,82 @@ function savePlayerNickname () {
   return profile
 }
 
+function getInitials (nickname) {
+  const words = String(nickname ?? 'Jugador').trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return 'JU'
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  return `${words[0][0]}${words[words.length - 1][0]}`.toUpperCase()
+}
+
+function clearTemporaryAvatarPreview () {
+  if (temporaryAvatarPreviewUrl !== null) URL.revokeObjectURL(temporaryAvatarPreviewUrl)
+  temporaryAvatarPreviewUrl = null
+}
+
+function renderProfileAvatar (profile = leaderboardService.getProfile(), url = null, temporary = false) {
+  clearTemporaryAvatarPreview()
+  const avatarUrl = url ?? avatarService.getAvatarUrl(profile.avatarPath)
+
+  if (temporary) temporaryAvatarPreviewUrl = avatarUrl
+
+  avatarPreviewImage.hidden = !avatarUrl
+  avatarPreviewImage.src = avatarUrl ?? ''
+  avatarPreviewImage.alt = avatarUrl ? `Avatar de ${profile.nickname}` : ''
+  avatarInitials.hidden = Boolean(avatarUrl)
+  avatarInitials.textContent = getInitials(profile.nickname)
+  avatarRemoveButton.hidden = !profile.avatarPath && !temporary
+}
+
+function showAvatarFeedback (message, isError = false) {
+  avatarFeedback.textContent = message
+  avatarFeedback.classList.toggle('is-error', isError)
+}
+
+async function handleAvatarSelection () {
+  const file = avatarInput.files?.[0]
+  if (!file) return
+
+  const validation = validateAvatarFile(file)
+  if (!validation.valid) {
+    showAvatarFeedback(validation.message, true)
+    avatarInput.value = ''
+    return
+  }
+
+  const previousProfile = leaderboardService.getProfile()
+  const previewUrl = URL.createObjectURL(file)
+  renderProfileAvatar(previousProfile, previewUrl, true)
+  showAvatarFeedback('Guardando avatar...')
+
+  const result = await avatarService.uploadAvatar(file)
+  avatarInput.value = ''
+
+  if (result.source === 'online') {
+    renderProfileAvatar(leaderboardService.getProfile(), result.url)
+    showAvatarFeedback('Avatar guardado. Se reemplazó el anterior.')
+    return
+  }
+
+  if (result.source === 'local' && !avatarService.isOnline()) {
+    showAvatarFeedback('Vista previa local. Configurá Supabase para guardarlo en el ranking.')
+    return
+  }
+
+  renderProfileAvatar(previousProfile)
+  showAvatarFeedback(result.error ?? 'No se pudo guardar el avatar.', true)
+}
+
+async function removeAvatar () {
+  const result = await avatarService.removeAvatar()
+  if (result.source === 'online') {
+    renderProfileAvatar()
+    showAvatarFeedback('Avatar eliminado.')
+    return
+  }
+
+  showAvatarFeedback(result.error ?? 'No se pudo eliminar el avatar.', true)
+}
+
 function renderLeaderboard (entries) {
   leaderboardList.replaceChildren()
 
@@ -468,12 +552,23 @@ function renderLeaderboard (entries) {
 
   entries.forEach((entry, index) => {
     const row = document.createElement('li')
+    const avatar = document.createElement('span')
     const details = document.createElement('div')
     const nickname = document.createElement('span')
     const meta = document.createElement('span')
     const score = document.createElement('strong')
 
     row.className = `leaderboard-row${index === 0 ? ' is-top' : ''}`
+    avatar.className = 'leaderboard-avatar'
+    const avatarUrl = leaderboardService.getAvatarUrl(entry.avatarPath)
+    if (avatarUrl) {
+      const image = document.createElement('img')
+      image.src = avatarUrl
+      image.alt = `Avatar de ${entry.nickname}`
+      avatar.append(image)
+    } else {
+      avatar.textContent = getInitials(entry.nickname)
+    }
     nickname.className = 'leaderboard-player'
     nickname.textContent = entry.nickname
     meta.className = 'leaderboard-meta'
@@ -481,7 +576,7 @@ function renderLeaderboard (entries) {
     score.className = 'leaderboard-score'
     score.textContent = SCORE_FORMATTER.format(entry.score)
     details.append(nickname, meta)
-    row.append(details, score)
+    row.append(avatar, details, score)
     leaderboardList.append(row)
   })
 }
@@ -749,7 +844,9 @@ function startGame () {
 
 renderStagePicker()
 selectStage(selectedStage)
-playerNickname.value = leaderboardService.getProfile().nickname
+const initialProfile = leaderboardService.getProfile()
+playerNickname.value = initialProfile.nickname
+renderProfileAvatar(initialProfile)
 soundManager.setEnabled(loadSoundSetting())
 renderSoundToggle()
 renderControlLabels()
@@ -758,6 +855,11 @@ window.requestAnimationFrame(update)
 
 startLevelSelect.addEventListener('change', updateStartScene)
 startGameButton.addEventListener('click', startGame)
+avatarInput.addEventListener('change', handleAvatarSelection)
+avatarRemoveButton.addEventListener('click', removeAvatar)
+playerNickname.addEventListener('input', () => {
+  avatarInitials.textContent = getInitials(playerNickname.value)
+})
 startSettingsButton.addEventListener('click', openSettings)
 leaderboardButton.addEventListener('click', openLeaderboard)
 gameLeaderboardButton.addEventListener('click', openLeaderboard)
