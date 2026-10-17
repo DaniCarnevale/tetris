@@ -138,19 +138,34 @@
           </section>
 
           <div class="board-cockpit">
-            <section class="info-card preview-card cockpit-preview hold-preview" aria-label="Ficha reservada">
-              <div class="preview-heading">
-                <div>
-                  <p class="card-kicker">RESERVA</p>
-                  <h2>Guardada</h2>
+            <div class="board-focus-row" aria-label="Fichas de referencia">
+              <section class="info-card preview-card cockpit-preview hold-preview" aria-label="Ficha reservada">
+                <div class="preview-heading">
+                  <div>
+                    <p class="card-kicker">RESERVA</p>
+                    <h2>Guardada</h2>
+                  </div>
+                  <kbd class="key-chip" id="holdKey">S</kbd>
                 </div>
-                <kbd class="key-chip" id="holdKey">S</kbd>
-              </div>
-              <div class="preview-stage">
-                <canvas class="saved" aria-label="Ficha guardada"></canvas>
-                <span class="empty-preview" id="heldEmpty">Vacía</span>
-              </div>
-            </section>
+                <div class="preview-stage">
+                  <canvas class="saved" aria-label="Ficha guardada"></canvas>
+                  <span class="empty-preview" id="heldEmpty">Vacía</span>
+                </div>
+              </section>
+
+              <section class="info-card preview-card cockpit-preview next-card" aria-label="Próxima ficha">
+                <div class="preview-heading">
+                  <div>
+                    <p class="card-kicker">PRÓXIMA</p>
+                    <h2>Siguiente</h2>
+                  </div>
+                  <span class="next-indicator" aria-hidden="true">01</span>
+                </div>
+                <div class="preview-stage">
+                  <canvas class="next" aria-label="Próxima ficha"></canvas>
+                </div>
+              </section>
+            </div>
 
             <section class="board-card" aria-label="Tablero principal">
               <div class="board-stage">
@@ -179,19 +194,6 @@
                     <p class="game-over-hint"><kbd class="key-chip game-over-key">↵</kbd> Presioná cualquier tecla para volver al inicio</p>
                   </div>
                 </div>
-              </div>
-            </section>
-
-            <section class="info-card preview-card cockpit-preview next-card" aria-label="Próxima ficha">
-              <div class="preview-heading">
-                <div>
-                  <p class="card-kicker">PRÓXIMA</p>
-                  <h2>Siguiente</h2>
-                </div>
-                <span class="next-indicator" aria-hidden="true">01</span>
-              </div>
-              <div class="preview-stage">
-                <canvas class="next" aria-label="Próxima ficha"></canvas>
               </div>
             </section>
           </div>

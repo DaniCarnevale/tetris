@@ -75,9 +75,9 @@ test('piece stat cards use one compact positive-axis row', () => {
 })
 
 test('previews stay compact instead of stretching to the board height', () => {
-  assert.match(stylesheet, /body\.is-game-active \.board-cockpit \{[\s\S]*align-items: start;/)
+  assert.match(stylesheet, /body\.is-game-active \.board-cockpit \{[\s\S]*align-items: stretch;/)
   assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \{[\s\S]*align-self: start;/)
-  assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \.preview-stage \{[\s\S]*flex: 0 0 108px;/)
+  assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \.preview-stage \{[\s\S]*flex: 0 0 84px;/)
 })
 
 test('hold and next previews share a compact focus row above the board', () => {
@@ -87,7 +87,7 @@ test('hold and next previews share a compact focus row above the board', () => {
 })
 
 test('pause backdrop and board use the same squared playfield frame', () => {
-  assert.match(stylesheet, /body\.is-game-active \.pause-overlay \{[\s\S]*inset: 0 auto 0 50%;[\s\S]*border: 0;[\s\S]*border-radius: 0;/)
+  assert.match(stylesheet, /body\.is-game-active \.pause-overlay \{[\s\S]*inset: 0 auto 0 50%;[\s\S]*aspect-ratio: 14 \/ 30;[\s\S]*border: 0;[\s\S]*border-radius: 0;/)
   assert.match(stylesheet, /body\.is-game-active #board \{[\s\S]*border-radius: 0;/)
 })
 
