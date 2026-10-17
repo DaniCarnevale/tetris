@@ -55,6 +55,6 @@ QA visual local con `browser-qa`:
 - Revisión en 375, 768 y 1440 px sin bloquear la navegación principal.
 - Screenshot de escritorio revisado; sin errores de consola observados en la sesión local.
 
-## Pendiente de infraestructura
+## Infraestructura verificada
 
-La migración debe ejecutarse en el proyecto Supabase configurado antes de publicar esta versión para que funcionen la persistencia remota de settings y el filtro público por `start_level`. Está preparada en `supabase/migrations/007_player_settings_and_rankings.sql` y debe aplicarse después de las migraciones 001–006.
+La migración equivalente a `supabase/migrations/007_player_settings_and_rankings.sql` fue ejecutada con éxito en el proyecto Supabase `tetris-leaderboard` (`piztcrckudupfljkizfa`). La consulta devolvió `Success. No rows returned`; después, producción mostró el ranking con estado `actualizado en vivo` y los filtros por stage/nivel funcionando.
