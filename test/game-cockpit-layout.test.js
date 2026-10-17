@@ -21,10 +21,10 @@ test('game cockpit keeps the focus path around the board', () => {
   assert.match(html, /id="recordScore"/)
 })
 
-test('piece stats use a compact meter above each tetromino thumbnail', () => {
-  assert.match(source, /fill\.style\.width = `\$\{row\.width\}%`/)
+test('piece stats use a compact vertical meter above each tetromino thumbnail', () => {
+  assert.match(source, /fill\.style\.height = `\$\{row\.height\}%`/)
   assert.match(source, /item\.append\(meter, thumbnail\)/)
-  assert.doesNotMatch(source, /fill\.style\.height = `\$\{row\.width\}%`/)
+  assert.doesNotMatch(source, /fill\.style\.width = `\$\{row\.width\}%`/)
   assert.doesNotMatch(source, /item\.append\(thumbnail, track, count\)/)
 })
 
