@@ -1,8 +1,8 @@
 # Revisión de seguridad — Tetris
 
 Fecha: 2026-10-17
-Rama revisada: `security/hardening-audit`
-Base: `develop` en `14d95b5`
+Rama revisada: `develop`
+Integración verificada: `c18ed17`
 
 ## Resultado
 
@@ -23,6 +23,7 @@ La aplicación no contiene secretos privados trackeados. La publishable key de S
 | Historial Git | PASS — sin `.env`, certificados, claves privadas ni tokens reales |
 | Sinks peligrosos en `src` | PASS — sin `innerHTML`, `eval`, `new Function` ni `console.log` |
 | RLS / Storage | PASS — verificado en el proyecto Supabase `piztcrckudupfljkizfa` |
+| Headers en producción | PASS — `HEAD https://tetris2mk.netlify.app/` respondió 200 con los headers esperados |
 
 ## Hardening aplicado
 
@@ -30,7 +31,7 @@ La aplicación no contiene secretos privados trackeados. La publishable key de S
 - Los usuarios anónimos ya no pueden subir, reemplazar o borrar avatares aunque intenten saltarse la interfaz.
 - Las funciones `security definer` de Storage usan `search_path = ''` y referencias calificadas para reducir riesgos de resolución de objetos.
 - Se eliminó la función SQL antigua `can_upload_avatar()` que ya no era necesaria.
-- Netlify incorpora `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, HSTS y CSP en modo report-only.
+- Netlify incorpora `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, HSTS y CSP en modo report-only mediante `netlify.toml`; se verificó directamente en producción.
 
 Migración: `supabase/migrations/005_security_hardening.sql`
 Aplicada y verificada en Supabase mediante `pg_policies` y `pg_proc`.
