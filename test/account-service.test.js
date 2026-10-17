@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 
 import { canEditProfile, createAccountService } from '../src/js/leaderboard/accountService.js'
 
-function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous-1', is_anonymous: true }, profile = null } = {}) {
+function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous-1', is_anonymous: true }, profile = null, linkIdentityError = null, oauthData = { url: 'https://accounts.google.test/authorize' } } = {}) {
   const calls = {}
   const table = {
     select: () => table,
@@ -23,7 +23,11 @@ function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous
         signInAnonymously: async () => ({ data: { user: anonymousUser }, error: null }),
         linkIdentity: async (payload) => {
           calls.linkIdentity = payload
-          return { data: { url: 'https://accounts.google.test/authorize' }, error: null }
+          return { data: linkIdentityError ? null : oauthData, error: linkIdentityError }
+        },
+        signInWithOAuth: async (payload) => {
+          calls.signInWithOAuth = payload
+          return { data: oauthData, error: null }
         },
         signOut: async (options) => {
           calls.signOut = options
@@ -49,6 +53,28 @@ test('links Google to the existing anonymous session instead of creating a new p
   assert.equal(result.source, 'redirect')
   assert.equal(result.url, 'https://accounts.google.test/authorize')
   assert.deepEqual(calls.linkIdentity, {
+    provider: 'google',
+    options: { redirectTo: 'http://127.0.0.1:5173/' }
+  })
+})
+
+test('signs into the existing Google account when linking to the guest is not possible', async () => {
+  const { client, calls } = createAccountClient({
+    linkIdentityError: { code: 'identity_already_exists', message: 'Identity is already linked to another user' },
+    oauthData: { url: 'https://accounts.google.test/sign-in' }
+  })
+  const service = createAccountService({
+    supabaseClient: client,
+    supabaseUrl: 'https://example.supabase.co',
+    supabaseKey: 'public-key',
+    redirectTo: 'http://127.0.0.1:5173/'
+  })
+
+  const result = await service.connectGoogle()
+
+  assert.equal(result.source, 'redirect')
+  assert.equal(result.url, 'https://accounts.google.test/sign-in')
+  assert.deepEqual(calls.signInWithOAuth, {
     provider: 'google',
     options: { redirectTo: 'http://127.0.0.1:5173/' }
   })
