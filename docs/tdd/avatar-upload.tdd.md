@@ -26,7 +26,7 @@
 ## Validación
 
 - `npm test`: 45/45 PASS.
-- `npm test -- --experimental-test-coverage`: 45/45 PASS; 88.47% de líneas, 83.04% de ramas y 89.53% de funciones.
+- `npm test -- --experimental-test-coverage`: 45/45 PASS; 88.37% de líneas, 82.85% de ramas y 89.53% de funciones.
 - `npm run lint`: PASS.
 - `npm run build`: PASS.
 - `git diff --check`: PASS.
