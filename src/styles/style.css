@@ -888,16 +888,14 @@ kbd:focus-visible {
 }
 
 .brand-mark {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  border: 1px solid rgba(156, 245, 91, 0.5);
-  border-radius: 13px;
-  color: var(--accent);
-  background: rgba(156, 245, 91, 0.08);
-  box-shadow: 0 0 26px rgba(156, 245, 91, 0.12);
-  font-size: 1.25rem;
+  display: block;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #050505;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.36), 0 0 22px rgba(255, 211, 38, 0.12);
 }
 
 .eyebrow,
@@ -920,8 +918,13 @@ h1 {
   margin-bottom: 2px;
   color: #f8fbff;
   font-size: clamp(1.8rem, 3vw, 2.45rem);
-  letter-spacing: 0.18em;
+  letter-spacing: 0.08em;
   line-height: 1;
+}
+
+.hero-brand h1,
+.brand-lockup h1 {
+  white-space: nowrap;
 }
 
 h2 {
@@ -2509,7 +2512,6 @@ body.is-game-active .piece-stat-fill {
     width: 34px;
     height: 34px;
     border-radius: 10px;
-    font-size: 1rem;
   }
 
   body.is-game-active h1 {
@@ -2669,7 +2671,10 @@ body.is-game-active .piece-stat-fill {
   }
 
   body.is-game-active .brand-mark {
-    display: none;
+    display: block;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
   }
 
   body.is-game-active h1 {
