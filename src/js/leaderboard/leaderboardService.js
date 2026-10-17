@@ -25,7 +25,29 @@ export function createLeaderboardService ({
       return saveGuestProfile(nickname, profileStorage, currentProfile.id)
     },
     getLeaderboard: (limit = 10) => getLeaderboard({ client, online, limit, storage }),
-    submitScore: (details) => submitScore({ client, online, details, profileStorage, storage })
+    submitScore: (details) => submitScore({ client, online, details, profileStorage, storage }),
+    subscribeToLeaderboard: (onInsert) => subscribeToLeaderboard({ client, online, onInsert })
+  }
+}
+
+function subscribeToLeaderboard ({ client, online, onInsert }) {
+  if (!online || typeof onInsert !== 'function') return () => {}
+
+  try {
+    const channel = client
+      .channel('leaderboard-live')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'scores' },
+        onInsert
+      )
+      .subscribe()
+
+    return () => {
+      void client.removeChannel(channel)
+    }
+  } catch {
+    return () => {}
   }
 }
 
