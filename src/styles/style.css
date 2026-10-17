@@ -2667,6 +2667,9 @@ body.is-game-active .cockpit-preview .empty-preview {
 
 body.is-game-active .board-card {
   display: flex;
+  grid-area: auto;
+  grid-column: auto;
+  grid-row: auto;
   min-width: 0;
   min-height: 0;
   flex-direction: column;
