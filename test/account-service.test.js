@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 
 import { canEditProfile, createAccountService } from '../src/js/leaderboard/accountService.js'
 
-function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous-1', is_anonymous: true }, profile = null, linkIdentityError = null, oauthData = { url: 'https://accounts.google.test/authorize' } } = {}) {
+function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous-1', is_anonymous: true }, profile = null, oauthData = { url: 'https://accounts.google.test/authorize' } } = {}) {
   const calls = {}
   const table = {
     select: () => table,
@@ -21,10 +21,6 @@ function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous
       auth: {
         getSession: async () => ({ data: { session }, error: null }),
         signInAnonymously: async () => ({ data: { user: anonymousUser }, error: null }),
-        linkIdentity: async (payload) => {
-          calls.linkIdentity = payload
-          return { data: linkIdentityError ? null : oauthData, error: linkIdentityError }
-        },
         signInWithOAuth: async (payload) => {
           calls.signInWithOAuth = payload
           return { data: oauthData, error: null }
