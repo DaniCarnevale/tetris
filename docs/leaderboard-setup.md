@@ -4,7 +4,7 @@ La app funciona como **Guest** y permite jugar sin cuenta. El guest usa el nickn
 
 1. Crear un proyecto nuevo en Supabase.
 2. En Authentication, habilitar **Anonymous Sign-Ins**.
-3. Ejecutar `supabase/migrations/001_leaderboard.sql`, `002_avatar_storage.sql` y `003_google_profiles.sql` desde el SQL Editor.
+3. Ejecutar en orden `supabase/migrations/001_leaderboard.sql` a `007_player_settings_and_rankings.sql` desde el SQL Editor.
 4. Copiar `.env.example` a `.env.local`.
 5. Completar `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (la clave publicable/anon, nunca `service_role`).
 6. Reiniciar Vite con `npm run dev`.
@@ -25,3 +25,5 @@ Para convertir la sesión invitada en una cuenta persistente:
 El botón de Google usa `signInWithOAuth`, por lo que funciona con identidades Google ya existentes y con cuentas nuevas. La sesión guest y la sesión Google son identidades distintas; los perfiles personalizados sólo se permiten a usuarios permanentes. [Google Auth en Supabase](https://supabase.com/docs/guides/auth/social-login/auth-google) · [Anonymous Sign-Ins](https://supabase.com/docs/guides/auth/auth-anonymous)
 
 El ranking usa Supabase Realtime cuando el proyecto está configurado: la tabla se suscribe a nuevos inserts por WebSocket mientras está abierta y cierra el canal al salir, sin mantener conexiones innecesarias durante la partida.
+
+Los rankings quedan separados por stage y nivel inicial. La pantalla permite elegir un stage y un nivel concreto, o consultar todos los niveles dentro de ese stage. Las preferencias de controles, feedback, música y volumen se guardan en `player_settings` para cuentas Google; los invitados conservan un fallback local.

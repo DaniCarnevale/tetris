@@ -14,6 +14,15 @@ function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous
       return { error: null }
     }
   }
+  const settingsTable = {
+    select: () => settingsTable,
+    eq: () => settingsTable,
+    maybeSingle: async () => ({ data: settings, error: null }),
+    upsert: async (payload, options) => {
+      calls.settingsUpsert = { payload, options }
+      return { error: null }
+    }
+  }
 
   return {
     calls,
@@ -30,17 +39,7 @@ function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous
           return { error: null }
         }
       },
-    from: (tableName) => tableName === 'player_settings'
-      ? {
-          select: () => table,
-          eq: () => table,
-          maybeSingle: async () => ({ data: settings, error: null }),
-          upsert: async (payload, options) => {
-            calls.settingsUpsert = { payload, options }
-            return { error: null }
-          }
-        }
-      : table
+      from: (tableName) => tableName === 'player_settings' ? settingsTable : table
     }
   }
 }
@@ -171,7 +170,15 @@ test('loads and persists gameplay settings for a signed-in account', async () =>
   assert.deepEqual(await service.loadSettings(), {
     source: 'online',
     settings: {
-      controls: { pause: 'Space' },
+      controls: {
+        moveLeft: 'ArrowLeft',
+        moveRight: 'ArrowRight',
+        softDrop: 'ArrowDown',
+        rotate: 'ArrowUp',
+        hold: 'KeyS',
+        pause: 'Space',
+        restart: 'Enter'
+      },
       soundEnabled: false,
       musicEnabled: true,
       musicVolume: 0.35
@@ -190,7 +197,15 @@ test('loads and persists gameplay settings for a signed-in account', async () =>
   assert.deepEqual(calls.settingsUpsert, {
     payload: {
       player_id: 'user-1',
-      controls: { pause: 'KeyP' },
+      controls: {
+        moveLeft: 'ArrowLeft',
+        moveRight: 'ArrowRight',
+        softDrop: 'ArrowDown',
+        rotate: 'ArrowUp',
+        hold: 'KeyS',
+        pause: 'KeyP',
+        restart: 'Enter'
+      },
       sound_enabled: true,
       music_enabled: false,
       music_volume: 0.8

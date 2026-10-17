@@ -358,6 +358,18 @@
           <button class="close-button" id="leaderboardClose" type="button" aria-label="Cerrar ranking">×</button>
         </div>
         <p class="settings-intro" id="leaderboardStatus">Cargando puntuaciones...</p>
+        <div class="leaderboard-filters" aria-label="Filtros del ranking">
+          <label class="leaderboard-filter">
+            <span>Stage</span>
+            <select id="leaderboardStage"></select>
+          </label>
+          <label class="leaderboard-filter">
+            <span>Nivel inicial</span>
+            <select id="leaderboardStartLevel">
+              <option value="all">Todos los niveles</option>
+            </select>
+          </label>
+        </div>
         <ol class="leaderboard-list" id="leaderboardList" aria-live="polite"></ol>
         <button class="button button-secondary leaderboard-refresh" id="leaderboardRefresh" type="button">Actualizar ranking</button>
       </div>
@@ -373,7 +385,7 @@
           </div>
           <button class="close-button" id="settingsClose" type="button" aria-label="Cerrar configuración">×</button>
         </div>
-        <p class="settings-intro">Elegí una acción y presioná la tecla que querés usar. Los cambios se guardan en este navegador.</p>
+        <p class="settings-intro">Elegí tus teclas y audio. Con Google, la configuración queda asociada a tu cuenta; como invitado se guarda en este navegador.</p>
 
         <div class="settings-section-label">Teclas</div>
         <div class="bindings-list">
@@ -390,6 +402,15 @@
         <div class="sound-setting">
           <div><strong>Feedback de juego</strong><span>Líneas, niveles y fin de partida</span></div>
           <button class="sound-toggle is-on" id="soundToggle" type="button" aria-pressed="true"><span class="sound-toggle-dot"></span><span id="soundToggleLabel">Activado</span></button>
+        </div>
+
+        <div class="sound-setting music-setting">
+          <div><strong>Música de fondo</strong><span id="musicVolumeLabel">50%</span></div>
+          <button class="sound-toggle is-on" id="musicToggle" type="button" aria-pressed="true"><span class="sound-toggle-dot"></span><span id="musicToggleLabel">Activada</span></button>
+          <label class="volume-control" for="musicVolume">
+            <span class="sr-only">Volumen de la música</span>
+            <input id="musicVolume" type="range" min="0" max="100" step="5" value="50" />
+          </label>
         </div>
 
         <p class="settings-feedback" id="settingsFeedback" aria-live="polite">Podés usar Escape para cancelar.</p>

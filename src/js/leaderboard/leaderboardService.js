@@ -1,6 +1,6 @@
 /* global localStorage */
 
-import { createLeaderboardEntry, sortLeaderboard } from './leaderboardModel.js'
+import { createLeaderboardEntry, filterLeaderboardEntries, sortLeaderboard } from './leaderboardModel.js'
 import { loadGuestProfile, saveGuestProfile } from './playerProfile.js'
 import { getAvatarUrl } from './avatarService.js'
 import { createSupabaseClient, ensureAnonymousUser, getEnvironmentValue } from './supabaseClient.js'
@@ -34,7 +34,17 @@ export function createLeaderboardService ({
       return saveGuestProfile(nickname, profileStorage, currentProfile.id, currentProfile.avatarPath)
     },
     getAvatarUrl: (avatarPath) => getAvatarUrl(client, online, avatarPath),
-    getLeaderboard: (limit = 10) => getLeaderboard({ client, online, limit, storage }),
+    getLeaderboard: (options = {}) => {
+      const filters = typeof options === 'number' ? { limit: options } : options
+      return getLeaderboard({
+        client,
+        online,
+        limit: Number(filters?.limit) || 10,
+        stageId: filters?.stageId ?? null,
+        startLevel: filters?.startLevel ?? null,
+        storage
+      })
+    },
     submitScore: (details) => submitScore({ client, online, details, profileStorage, storage }),
     subscribeToLeaderboard: (onInsert) => subscribeToLeaderboard({ client, online, onInsert })
   }
@@ -61,17 +71,19 @@ function subscribeToLeaderboard ({ client, online, onInsert }) {
   }
 }
 
-async function getLeaderboard ({ client, online, limit, storage }) {
-  if (!online) return localResult(storage, limit)
+async function getLeaderboard ({ client, online, limit, stageId, startLevel, storage }) {
+  if (!online) return localResult(storage, limit, { stageId, startLevel })
 
   try {
-    const { data, error } = await client
+    let query = client
       .from('scores')
-      .select('nickname, score, level, lines, stage_id, avatar_path, created_at')
+      .select('nickname, score, level, lines, stage_id, avatar_path, start_level, created_at')
       .order('score', { ascending: false })
       .order('level', { ascending: false })
       .order('created_at', { ascending: true })
-      .limit(limit)
+    if (stageId) query = query.eq('stage_id', stageId)
+    if (startLevel !== null && startLevel !== undefined) query = query.eq('start_level', Number(startLevel))
+    const { data, error } = await query.limit(limit)
 
     if (error) throw error
 
@@ -81,7 +93,7 @@ async function getLeaderboard ({ client, online, limit, storage }) {
       error: null
     }
   } catch (error) {
-    return localResult(storage, limit, getErrorMessage(error))
+    return localResult(storage, limit, { stageId, startLevel }, getErrorMessage(error))
   }
 }
 
@@ -104,7 +116,7 @@ async function submitScore ({ client, online, details, profileStorage, storage }
       lines: entry.lines,
       stage_id: entry.stageId,
       avatar_path: entry.avatarPath,
-      start_level: Number(details?.startLevel) || 1
+      start_level: entry.startLevel
     })
 
     if (error) throw error
@@ -116,21 +128,21 @@ async function submitScore ({ client, online, details, profileStorage, storage }
   }
 }
 
-function localResult (storage, limit, error = null) {
+function localResult (storage, limit, filters, error = null) {
   return {
-    entries: loadLocalEntries(storage, limit),
+    entries: loadLocalEntries(storage, limit, filters),
     source: 'local',
     error
   }
 }
 
-function loadLocalEntries (storage, limit = 10) {
+function loadLocalEntries (storage, limit = 10, filters = {}) {
   if (!storage) return []
 
   try {
     const stored = storage.getItem(LEADERBOARD_STORAGE_KEY)
     const entries = stored ? JSON.parse(stored) : []
-    return sortLeaderboard(Array.isArray(entries) ? entries : [], limit)
+    return filterLeaderboardEntries(Array.isArray(entries) ? entries : [], filters).slice(0, Math.max(0, limit))
   } catch {
     return []
   }
@@ -154,6 +166,7 @@ function mapRemoteEntry (entry) {
     level: entry.level,
     lines: entry.lines,
     stageId: entry.stage_id,
+    startLevel: entry.start_level,
     avatarPath: entry.avatar_path,
     createdAt: entry.created_at
   }

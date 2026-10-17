@@ -7,6 +7,7 @@ import { hasCollision } from './game/board.js'
 import { clonePiece } from './game/pieces.js'
 import { createGame, holdActivePiece, moveActivePiece, resetGame, rotateActivePiece, togglePause } from './game/engine.js'
 import { canReturnToStartScreen, GAME_OVER_ANIMATION_MS, getGameOverSummary } from './game/gameFlow.js'
+import { shouldAutoPause } from './game/focusPause.js'
 import { getBackdropForLevel, getStage, STAGES } from './game/stages.js'
 import { createLineClearAnimation, getLineClearProgress, isLineClearAnimationActive } from './game/lineClearAnimation.js'
 import { getPieceStatsView } from './game/pieceStats.js'
@@ -22,6 +23,12 @@ import {
   markProfileSetupPending
 } from './leaderboard/profilePresentation.js'
 import { createProfileAccessModel } from './leaderboard/profileView.js'
+import {
+  createUserSettings,
+  readStoredSettings,
+  serializeUserSettings,
+  USER_SETTINGS_STORAGE_KEY
+} from './settings/settingsModel.js'
 import {
   createControls,
   findActionByCode,
@@ -168,9 +175,12 @@ const gameLeaderboardButton = document.querySelector('#gameLeaderboardButton')
 const leaderboardBackdrop = document.querySelector('#leaderboardBackdrop')
 const leaderboardPanel = document.querySelector('#leaderboardPanel')
 const leaderboardClose = document.querySelector('#leaderboardClose')
+const leaderboardTitle = document.querySelector('#leaderboardTitle')
 const leaderboardStatus = document.querySelector('#leaderboardStatus')
 const leaderboardList = document.querySelector('#leaderboardList')
 const leaderboardRefresh = document.querySelector('#leaderboardRefresh')
+const leaderboardStage = document.querySelector('#leaderboardStage')
+const leaderboardStartLevel = document.querySelector('#leaderboardStartLevel')
 const settingsToggle = document.querySelector('#settingsToggle')
 const openSettingsLink = document.querySelector('#openSettingsLink')
 const settingsClose = document.querySelector('#settingsClose')
@@ -181,6 +191,10 @@ const resetControlsButton = document.querySelector('#resetControls')
 const restartButton = document.querySelector('#restartButton')
 const soundToggle = document.querySelector('#soundToggle')
 const soundToggleLabel = document.querySelector('#soundToggleLabel')
+const musicToggle = document.querySelector('#musicToggle')
+const musicToggleLabel = document.querySelector('#musicToggleLabel')
+const musicVolumeInput = document.querySelector('#musicVolume')
+const musicVolumeLabel = document.querySelector('#musicVolumeLabel')
 const gameProfile = document.querySelector('#gameProfile')
 const gameProfileAvatarImage = document.querySelector('#gameProfileAvatarImage')
 const gameProfileInitials = document.querySelector('#gameProfileInitials')
@@ -214,7 +228,8 @@ savedCanvas.height = BLOCK_SIZE * 4
 savedContext.scale(BLOCK_SIZE, BLOCK_SIZE)
 
 let game = createGame()
-let controls = loadControls()
+let userSettings = loadUserSettings()
+let controls = userSettings.controls
 let selectedStage = 'fresh'
 let gameStarted = false
 let dropCounter = 0
@@ -226,6 +241,7 @@ let gameOverAnimationFinished = false
 let gameOverTimer = null
 let lineClearAnimation = null
 let leaderboardSaveRequest = 0
+let leaderboardRefreshRequest = 0
 let leaderboardUnsubscribe = () => {}
 let temporaryAvatarPreviewUrl = null
 let profileEditingEnabled = false
@@ -233,36 +249,77 @@ let currentAccount = { status: 'guest', isAnonymous: true }
 let persistedProfile = null
 let lastRenderedPieceStats = ''
 
-function loadControls () {
+function loadUserSettings () {
   try {
-    return readStoredControls(localStorage.getItem(CONTROLS_STORAGE_KEY))
+    const storedSettings = localStorage.getItem(USER_SETTINGS_STORAGE_KEY)
+    if (storedSettings) return readStoredSettings(storedSettings)
+
+    return createUserSettings({
+      controls: readStoredControls(localStorage.getItem(CONTROLS_STORAGE_KEY)),
+      soundEnabled: localStorage.getItem(SOUND_STORAGE_KEY) !== 'false'
+    })
   } catch {
-    return createControls()
+    return createUserSettings()
   }
 }
 
-function loadSoundSetting () {
-  try {
-    return localStorage.getItem(SOUND_STORAGE_KEY) !== 'false'
-  } catch {
-    return true
-  }
+function getCurrentSettings () {
+  return createUserSettings({
+    controls,
+    soundEnabled: soundManager.isEnabled(),
+    musicEnabled: soundManager.isMusicEnabled(),
+    musicVolume: soundManager.getMusicVolume()
+  })
 }
 
-function saveControls () {
+function persistUserSettings () {
+  userSettings = getCurrentSettings()
   try {
-    localStorage.setItem(CONTROLS_STORAGE_KEY, JSON.stringify(controls))
+    localStorage.setItem(USER_SETTINGS_STORAGE_KEY, serializeUserSettings(userSettings))
   } catch {
     showSettingsFeedback('No se pudo guardar la configuración en este navegador.', true)
   }
+
+  if (canEditProfile(currentAccount)) {
+    accountService.saveSettings(userSettings).then((result) => {
+      if (result.source !== 'online') showSettingsFeedback(result.error ?? 'No se pudo sincronizar tu configuración.', true)
+    }).catch(() => {
+      showSettingsFeedback('No se pudo sincronizar tu configuración.', true)
+    })
+  }
+}
+
+function applyUserSettings (settings) {
+  userSettings = createUserSettings(settings)
+  controls = userSettings.controls
+  soundManager.setEnabled(userSettings.soundEnabled)
+  soundManager.setMusicEnabled(userSettings.musicEnabled)
+  soundManager.setMusicVolume(userSettings.musicVolume)
+  renderSoundToggle()
+  renderMusicSettings()
+  renderControlLabels()
+}
+
+function saveControls () {
+  persistUserSettings()
 }
 
 function saveSoundSetting () {
-  try {
-    localStorage.setItem(SOUND_STORAGE_KEY, String(soundManager.isEnabled()))
-  } catch {
-    showSettingsFeedback('No se pudo guardar la preferencia de sonido.', true)
-  }
+  persistUserSettings()
+}
+
+function renderMusicSettings () {
+  const enabled = soundManager.isMusicEnabled()
+  const volume = Math.round(soundManager.getMusicVolume() * 100)
+  musicToggle.classList.toggle('is-on', enabled)
+  musicToggle.setAttribute('aria-pressed', String(enabled))
+  musicToggleLabel.textContent = enabled ? 'Activada' : 'Silenciada'
+  musicVolumeInput.value = String(volume)
+  musicVolumeLabel.textContent = `${volume}%`
+}
+
+function saveMusicSetting () {
+  persistUserSettings()
 }
 
 function hexToRgb (hex) {
@@ -928,6 +985,9 @@ async function syncRemoteProfile () {
   const profileSetupPending = consumeProfileSetupPending(localStorage)
   if (!accountService.isOnline()) return
 
+  const remoteSettings = await accountService.loadSettings()
+  if (remoteSettings.source === 'online') applyUserSettings(remoteSettings.settings)
+
   const remoteProfile = await accountService.loadProfile()
   if (remoteProfile.source !== 'online') return
 
@@ -1005,7 +1065,7 @@ function renderLeaderboard (entries) {
     nickname.className = 'leaderboard-player'
     nickname.textContent = entry.nickname
     meta.className = 'leaderboard-meta'
-    meta.textContent = `Nivel ${entry.level} · ${entry.lines} líneas`
+    meta.textContent = `Nivel ${entry.level} · salida ${entry.startLevel} · ${entry.lines} líneas`
     score.className = 'leaderboard-score'
     score.textContent = SCORE_FORMATTER.format(entry.score)
     details.append(nickname, meta)
@@ -1014,24 +1074,71 @@ function renderLeaderboard (entries) {
   })
 }
 
+function renderLeaderboardFilters () {
+  leaderboardStage.replaceChildren()
+  STAGES.forEach((stage) => {
+    const option = document.createElement('option')
+    option.value = stage.id
+    option.textContent = stage.name
+    leaderboardStage.append(option)
+  })
+
+  for (let level = 1; level <= 10; level += 1) {
+    const option = document.createElement('option')
+    option.value = String(level)
+    option.textContent = `Nivel ${level}`
+    leaderboardStartLevel.append(option)
+  }
+}
+
+function syncLeaderboardFilters () {
+  const stageId = gameScreen.hidden ? selectedStage : game.stageId
+  const startLevel = gameScreen.hidden ? Number(startLevelSelect.value) : game.startLevel
+  leaderboardStage.value = stageId
+  leaderboardStartLevel.value = String(startLevel)
+}
+
+function getLeaderboardFilters () {
+  return {
+    stageId: leaderboardStage.value,
+    startLevel: leaderboardStartLevel.value === 'all' ? null : Number(leaderboardStartLevel.value)
+  }
+}
+
+function getLeaderboardContext () {
+  const stage = getStage(leaderboardStage.value)
+  const startLevel = leaderboardStartLevel.value === 'all'
+    ? 'todos los niveles'
+    : `nivel ${leaderboardStartLevel.value}`
+  return {
+    title: `Ranking · ${stage.name}`,
+    label: `Mejores puntuaciones · ${startLevel}`
+  }
+}
+
 async function refreshLeaderboard () {
+  const requestId = ++leaderboardRefreshRequest
+  const context = getLeaderboardContext()
+  leaderboardTitle.textContent = context.title
   leaderboardStatus.textContent = 'Cargando puntuaciones...'
-  const result = await leaderboardService.getLeaderboard()
+  const result = await leaderboardService.getLeaderboard({ limit: 10, ...getLeaderboardFilters() })
+  if (requestId !== leaderboardRefreshRequest) return
   renderLeaderboard(result.entries)
 
   if (result.source === 'online') {
     leaderboardStatus.textContent = leaderboardService.isOnline()
-      ? 'Ranking histórico · actualizado en vivo'
-      : 'Ranking histórico · mejores puntuaciones'
+      ? `${context.label} · actualizado en vivo`
+      : `${context.label} · mejores puntuaciones`
     return
   }
 
   leaderboardStatus.textContent = leaderboardService.isOnline()
-    ? 'Sin conexión al ranking. Mostrando puntuaciones de este dispositivo.'
-    : 'Modo invitado · ranking guardado en este dispositivo'
+    ? `${context.label} · sin conexión, usando este dispositivo`
+    : `${context.label} · modo invitado`
 }
 
 function openLeaderboard () {
+  syncLeaderboardFilters()
   leaderboardPanel.hidden = false
   leaderboardBackdrop.hidden = false
   leaderboardPanel.setAttribute('aria-hidden', 'false')
@@ -1159,6 +1266,7 @@ function returnToStartScreen (keyCode) {
   if (!canReturn) return false
 
   hideGameOverOverlay()
+  soundManager.stopMusic()
   gameStarted = false
   gameScreen.hidden = true
   startScreen.hidden = false
@@ -1175,13 +1283,20 @@ function restartGame () {
   dropCounter = 0
   lastTime = performance.now()
   soundManager.unlock()
+  soundManager.playMusic()
   draw()
 }
 
 function togglePauseGame () {
   if (game.gameOver) return
   togglePause(game)
+  if (game.paused) soundManager.stopMusic()
+  else soundManager.playMusic()
   draw()
+}
+
+function pauseOnFocusLoss () {
+  if (shouldAutoPause({ gameStarted, gameOver: game.gameOver, paused: game.paused })) togglePauseGame()
 }
 
 function processGameEvents (previousLevel, wasGameOver) {
@@ -1195,6 +1310,7 @@ function processGameEvents (previousLevel, wasGameOver) {
   }
   if (currentLevel > previousLevel) soundManager.playLevelUp()
   if (event?.gameOver || (!wasGameOver && game.gameOver)) {
+    soundManager.stopMusic()
     soundManager.playGameOver()
     showGameOverOverlay()
   }
@@ -1272,6 +1388,7 @@ function startGame () {
   startScreen.hidden = true
   gameScreen.hidden = false
   soundManager.unlock()
+  soundManager.playMusic()
   updateStageArt(startLevel)
   lastTime = performance.now()
   startHint.textContent = `Stage ${getStage(selectedStage).name} · nivel ${startLevel}. Buena suerte.`
@@ -1280,13 +1397,12 @@ function startGame () {
 
 renderStagePicker()
 selectStage(selectedStage)
+renderLeaderboardFilters()
 const initialProfile = leaderboardService.getProfile()
 persistedProfile = { ...initialProfile }
 playerNickname.value = initialProfile.nickname
 renderProfileAvatar(initialProfile)
-soundManager.setEnabled(loadSoundSetting())
-renderSoundToggle()
-renderControlLabels()
+applyUserSettings(userSettings)
 draw()
 syncRemoteProfile().catch(() => {})
 window.requestAnimationFrame(update)
@@ -1317,6 +1433,8 @@ gameProfile.addEventListener('click', openProfilePanel)
 leaderboardClose.addEventListener('click', closeLeaderboard)
 leaderboardBackdrop.addEventListener('click', closeLeaderboard)
 leaderboardRefresh.addEventListener('click', refreshLeaderboard)
+leaderboardStage.addEventListener('change', refreshLeaderboard)
+leaderboardStartLevel.addEventListener('change', refreshLeaderboard)
 pauseButton.addEventListener('click', togglePauseGame)
 resumeButton.addEventListener('click', togglePauseGame)
 settingsToggle.addEventListener('click', openSettings)
@@ -1331,6 +1449,25 @@ soundToggle.addEventListener('click', () => {
   saveSoundSetting()
   renderSoundToggle()
 })
+musicToggle.addEventListener('click', () => {
+  soundManager.setMusicEnabled(!soundManager.isMusicEnabled())
+  if (soundManager.isMusicEnabled()) soundManager.playMusic()
+  else soundManager.stopMusic()
+  saveMusicSetting()
+  renderMusicSettings()
+})
+musicVolumeInput.addEventListener('input', () => {
+  soundManager.setMusicVolume(Number(musicVolumeInput.value) / 100)
+  renderMusicSettings()
+})
+musicVolumeInput.addEventListener('change', () => {
+  saveMusicSetting()
+})
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) pauseOnFocusLoss()
+})
+window.addEventListener('blur', pauseOnFocusLoss)
 
 document.querySelectorAll('[data-binding]').forEach((button) => {
   button.addEventListener('click', () => startListening(button.dataset.binding))
