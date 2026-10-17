@@ -569,8 +569,9 @@ h2 {
 .info-card,
 .board-card {
   border: 1px solid var(--line);
-  background: linear-gradient(145deg, rgba(20, 27, 45, 0.88), rgba(11, 16, 29, 0.86));
+  background: linear-gradient(145deg, rgba(20, 27, 45, 0.72), rgba(11, 16, 29, 0.62));
   box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
 }
 
 .info-card {
@@ -707,6 +708,7 @@ canvas {
   min-width: 0;
   padding: 18px;
   border-radius: 22px;
+  background: linear-gradient(145deg, rgba(20, 27, 45, 0.42), rgba(11, 16, 29, 0.32));
 }
 
 .board-toolbar {
@@ -730,7 +732,8 @@ canvas {
   padding: 14px;
   border: 1px solid rgba(148, 163, 184, 0.1);
   border-radius: 16px;
-  background: #080d18;
+  background: rgba(8, 13, 24, 0.2);
+  backdrop-filter: blur(4px);
 }
 
 .pause-overlay {
