@@ -74,16 +74,17 @@ test('piece stat cards use one compact positive-axis row', () => {
   assert.match(stylesheet, /body\.is-game-active \.game-side-rail \.piece-stat-row \{[\s\S]*grid-template-rows: 54px 1px 28px;/)
 })
 
-test('previews stay compact instead of stretching to the board height', () => {
-  assert.match(stylesheet, /body\.is-game-active \.board-cockpit \{[\s\S]*align-items: stretch;/)
-  assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \{[\s\S]*align-self: start;/)
+test('previews flank the board instead of pushing it down', () => {
+  assert.match(stylesheet, /body\.is-game-active \.board-cockpit \{[\s\S]*display: grid;[\s\S]*max-width: min\(100%, 660px\);/)
+  assert.match(stylesheet, /body\.is-game-active \.board-focus-row \{[\s\S]*display: contents;/)
+  assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \{[\s\S]*align-self: end;/)
   assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \.preview-stage \{[\s\S]*flex: 0 0 84px;/)
 })
 
-test('hold and next previews share a compact focus row above the board', () => {
-  assert.match(stylesheet, /body\.is-game-active \.board-cockpit \{[\s\S]*display: flex;[\s\S]*flex-direction: column;/)
-  assert.match(stylesheet, /body\.is-game-active \.board-focus-row \{[\s\S]*grid-template-columns: minmax\(92px, 120px\) minmax\(92px, 120px\);/)
-  assert.match(stylesheet, /body\.is-game-active \.board-focus-row \{[\s\S]*justify-content: center;/)
+test('hold and next previews align near the lower sides of the playfield', () => {
+  assert.match(stylesheet, /body\.is-game-active \.hold-preview \{[\s\S]*grid-column: 1;[\s\S]*align-self: end;[\s\S]*margin-bottom: 32px;/)
+  assert.match(stylesheet, /body\.is-game-active \.next-card \{[\s\S]*grid-column: 3;[\s\S]*align-self: end;[\s\S]*margin-bottom: 32px;/)
+  assert.match(stylesheet, /body\.is-game-active \.board-cockpit > \.board-card \{[\s\S]*grid-column: 2;/)
 })
 
 test('pause backdrop and board use the same squared playfield frame', () => {
