@@ -217,7 +217,11 @@ function drawRoundedCell (context, x, y, color, { ghost = false, glow = false } 
 }
 
 function drawBoardGrid () {
-  boardContext.fillStyle = '#0a0f1c'
+  const boardBackground = boardContext.createLinearGradient(0, 0, 0, BOARD_HEIGHT)
+  boardBackground.addColorStop(0, '#0c1527')
+  boardBackground.addColorStop(0.52, '#080f1d')
+  boardBackground.addColorStop(1, '#070b15')
+  boardContext.fillStyle = boardBackground
   boardContext.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT)
   boardContext.lineWidth = 0.025
 
