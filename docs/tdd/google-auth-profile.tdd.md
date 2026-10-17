@@ -19,7 +19,7 @@
 | Google se vincula a la sesión invitada existente | `test/account-service.test.js` | PASS |
 | El estado distingue modo local, invitado y Google conectado | `test/account-service.test.js` | PASS |
 | Nickname y avatar se guardan en `player_profiles` | `test/account-service.test.js` | PASS |
-| El nickname y avatar locales siguen funcionando sin Supabase | `test/leaderboard-service.test.js`, browser QA | PASS |
+| El modo guest sigue funcionando sin Supabase con perfil fijo | `test/leaderboard-service.test.js`, browser QA | PASS |
 | El botón informa configuración faltante sin romper el juego | browser QA | PASS |
 
 ## Validación

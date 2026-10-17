@@ -18,7 +18,7 @@ function createStorage () {
   }
 }
 
-function createSupabaseClient (calls) {
+function createSupabaseClient (calls, user = { id: 'user-1' }) {
   const bucket = {
     upload: async (path, file, options) => {
       calls.upload = { path, file, options }
@@ -34,7 +34,7 @@ function createSupabaseClient (calls) {
   return {
     auth: {
       getSession: async () => ({ data: { session: null }, error: null }),
-      signInAnonymously: async () => ({ data: { user: { id: 'user-1' } }, error: null })
+      signInAnonymously: async () => ({ data: { user }, error: null })
     },
     storage: {
       from: () => bucket
@@ -104,5 +104,23 @@ test('blocks a repeated upload during the cooldown before calling Storage', asyn
   const result = await service.uploadAvatar({ type: 'image/png', size: 100 })
 
   assert.equal(result.source, 'blocked')
+  assert.equal(calls.upload, undefined)
+})
+
+test('blocks avatar uploads for anonymous guests', async () => {
+  const storage = createStorage()
+  const calls = {}
+  const service = createAvatarService({
+    storage,
+    profileStorage: storage,
+    supabaseClient: createSupabaseClient(calls, { id: 'anonymous-1', is_anonymous: true }),
+    supabaseUrl: 'https://example.supabase.co',
+    supabaseKey: 'public-key'
+  })
+
+  const result = await service.uploadAvatar({ type: 'image/png', size: 100 })
+
+  assert.equal(result.source, 'blocked')
+  assert.equal(result.error, 'Vinculá Google para usar un avatar.')
   assert.equal(calls.upload, undefined)
 })
