@@ -6,6 +6,7 @@ function cloneShape (shape) {
 
 export function createPiece (template) {
   return {
+    id: template.id ?? null,
     position: { x: 0, y: 0 },
     shape: cloneShape(template.shape),
     color: template.color
@@ -14,6 +15,7 @@ export function createPiece (template) {
 
 export function clonePiece (piece) {
   return {
+    id: piece.id ?? null,
     position: { ...piece.position },
     shape: cloneShape(piece.shape),
     color: piece.color

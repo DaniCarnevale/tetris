@@ -81,7 +81,88 @@ body {
 .start-screen {
   display: grid;
   min-height: calc(100vh - 72px);
+  padding-top: 42px;
   place-items: center;
+}
+
+.start-account-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.profile-access-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 5px 12px 5px 5px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 14px;
+  color: #edf2ff;
+  background: rgba(17, 23, 39, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.profile-access-button:hover,
+.profile-access-button:focus-visible,
+.profile-access-button.is-signed-in {
+  border-color: rgba(156, 245, 91, 0.42);
+  background: rgba(24, 35, 48, 0.86);
+  transform: translateY(-1px);
+}
+
+.profile-access-avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid rgba(156, 245, 91, 0.44);
+  border-radius: 11px;
+  color: #08100a;
+  background: linear-gradient(135deg, #9cf55b, #71b7ff);
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+
+.profile-access-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-access-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 84px;
+}
+
+.profile-access-copy strong,
+.profile-access-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-access-copy strong {
+  font-size: 0.7rem;
+}
+
+.profile-access-copy small {
+  color: var(--muted);
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+.start-settings-button {
+  min-height: 48px;
 }
 
 .start-layout {
@@ -860,6 +941,20 @@ h2 {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
+.player-chip-button {
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.player-chip-button:hover,
+.player-chip-button:focus-visible {
+  border-color: rgba(156, 245, 91, 0.5);
+  background: rgba(24, 35, 48, 0.86);
+  transform: translateY(-1px);
+}
+
 .player-chip-avatar {
   display: grid;
   width: 34px;
@@ -1153,6 +1248,73 @@ canvas {
   border-radius: inherit;
   background: linear-gradient(90deg, var(--accent-blue), var(--accent));
   transition: width 240ms ease;
+}
+
+.piece-stats-card {
+  min-width: 0;
+}
+
+.piece-stats-card .card-heading {
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.piece-stats-list {
+  display: grid;
+  gap: 10px;
+}
+
+.piece-stat-row {
+  display: grid;
+  gap: 5px;
+}
+
+.piece-stat-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--soft);
+  font-size: 0.65rem;
+}
+
+.piece-stat-label {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.piece-stat-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  margin-right: 6px;
+  border-radius: 50%;
+  box-shadow: 0 0 9px currentColor;
+}
+
+.piece-stat-count {
+  color: #eef7ff;
+  font-size: 0.66rem;
+}
+
+.piece-stat-track {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.piece-stat-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  box-shadow: 0 0 10px currentColor;
+  transition: width 260ms ease;
 }
 
 .board-card {
@@ -1519,6 +1681,27 @@ canvas {
   border-left: 1px solid rgba(148, 163, 184, 0.16);
   background: linear-gradient(160deg, #121a2c, #090d18 70%);
   box-shadow: -20px 0 60px rgba(0, 0, 0, 0.35);
+}
+
+.profile-panel {
+  position: fixed;
+  z-index: 30;
+  top: 0;
+  right: 0;
+  width: min(460px, 100%);
+  height: 100vh;
+  overflow-y: auto;
+  border-left: 1px solid rgba(148, 163, 184, 0.16);
+  background: linear-gradient(160deg, #121a2c, #090d18 70%);
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.35);
+}
+
+.profile-panel-inner {
+  padding: 32px 26px 40px;
+}
+
+.profile-panel .profile-setup-section {
+  margin-bottom: 0;
 }
 
 .leaderboard-panel {
@@ -1916,6 +2099,26 @@ canvas {
 
   .game-header {
     display: block;
+  }
+
+  .start-account-bar {
+    position: static;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+  }
+
+  .start-screen {
+    display: block;
+    padding-top: 0;
+  }
+
+  .start-account-bar .start-settings-button {
+    min-width: 48px;
+    padding: 0 11px;
+  }
+
+  .start-account-bar .start-settings-button span:last-child {
+    display: none;
   }
 
   .start-panel {

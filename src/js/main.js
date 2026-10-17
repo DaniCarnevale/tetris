@@ -9,6 +9,7 @@ import { createGame, holdActivePiece, moveActivePiece, resetGame, rotateActivePi
 import { canReturnToStartScreen, GAME_OVER_ANIMATION_MS, getGameOverSummary } from './game/gameFlow.js'
 import { getBackdropForLevel, getStage, STAGES } from './game/stages.js'
 import { createLineClearAnimation, getLineClearProgress, isLineClearAnimationActive } from './game/lineClearAnimation.js'
+import { getPieceStatsView } from './game/pieceStats.js'
 import { createSoundManager } from './audio/soundManager.js'
 import { createLeaderboardService } from './leaderboard/leaderboardService.js'
 import { createAvatarService, validateAvatarFile } from './leaderboard/avatarService.js'
@@ -19,6 +20,7 @@ import {
   createProfileCardModel,
   markProfileSetupPending
 } from './leaderboard/profilePresentation.js'
+import { createProfileAccessModel } from './leaderboard/profileView.js'
 import {
   createControls,
   findActionByCode,
@@ -115,6 +117,11 @@ const startHint = document.querySelector('#startHint')
 const startGameButton = document.querySelector('#startGameButton')
 const startSettingsButton = document.querySelector('#startSettingsButton')
 const leaderboardButton = document.querySelector('#leaderboardButton')
+const profileAccessButton = document.querySelector('#profileAccessButton')
+const startProfileAvatarImage = document.querySelector('#startProfileAvatarImage')
+const startProfileInitials = document.querySelector('#startProfileInitials')
+const startProfileName = document.querySelector('#startProfileName')
+const startProfileStatus = document.querySelector('#startProfileStatus')
 const playerNickname = document.querySelector('#playerNickname')
 const avatarInput = document.querySelector('#avatarInput')
 const avatarUploadButton = document.querySelector('#avatarUploadButton')
@@ -177,6 +184,12 @@ const gameProfileAvatarImage = document.querySelector('#gameProfileAvatarImage')
 const gameProfileInitials = document.querySelector('#gameProfileInitials')
 const gameProfileNickname = document.querySelector('#gameProfileNickname')
 const gameProfileAccount = document.querySelector('#gameProfileAccount')
+const pieceStatsTotal = document.querySelector('#pieceStatsTotal')
+const pieceStatsList = document.querySelector('#pieceStatsList')
+const profileBackdrop = document.querySelector('#profileBackdrop')
+const profilePanel = document.querySelector('#profilePanel')
+const profileClose = document.querySelector('#profileClose')
+const profileIntro = document.querySelector('#profileIntro')
 const boardContext = boardCanvas.getContext('2d')
 const nextContext = nextCanvas.getContext('2d')
 const savedContext = savedCanvas.getContext('2d')
@@ -214,6 +227,8 @@ let leaderboardSaveRequest = 0
 let leaderboardUnsubscribe = () => {}
 let temporaryAvatarPreviewUrl = null
 let profileEditingEnabled = false
+let currentAccount = { status: 'guest', isAnonymous: true }
+let lastRenderedPieceStats = ''
 
 function loadControls () {
   try {
@@ -532,11 +547,56 @@ function updateHud () {
   pauseOverlay.hidden = !isPaused
   heldEmpty.hidden = Boolean(game.heldPiece)
   updateLevelProgress()
+  renderPieceStats()
 
   if (lastRenderedLevel !== currentLevel.level) {
     lastRenderedLevel = currentLevel.level
     updateStageArt(currentLevel.level)
   }
+}
+
+function renderPieceStats () {
+  const view = getPieceStatsView(game.pieceStats)
+  const statsKey = view.rows.map((row) => row.count).join(',')
+  if (statsKey === lastRenderedPieceStats) return
+
+  lastRenderedPieceStats = statsKey
+  pieceStatsTotal.textContent = `${view.total} ${view.total === 1 ? 'ficha' : 'fichas'}`
+  pieceStatsList.replaceChildren()
+
+  view.rows.forEach((row) => {
+    const item = document.createElement('div')
+    const heading = document.createElement('div')
+    const label = document.createElement('span')
+    const dot = document.createElement('span')
+    const count = document.createElement('strong')
+    const track = document.createElement('div')
+    const fill = document.createElement('span')
+
+    item.className = 'piece-stat-row'
+    heading.className = 'piece-stat-heading'
+    label.className = 'piece-stat-label'
+    dot.className = 'piece-stat-dot'
+    count.className = 'piece-stat-count'
+    track.className = 'piece-stat-track'
+    fill.className = 'piece-stat-fill'
+    dot.style.backgroundColor = row.color
+    fill.style.width = `${row.width}%`
+    fill.style.backgroundColor = row.color
+    label.textContent = `${row.shortLabel} · ${row.label}`
+    count.textContent = String(row.count)
+    track.setAttribute('role', 'progressbar')
+    track.setAttribute('aria-label', `${row.label}: ${row.count}`)
+    track.setAttribute('aria-valuemin', '0')
+    track.setAttribute('aria-valuemax', String(view.max))
+    track.setAttribute('aria-valuenow', String(row.count))
+
+    label.prepend(dot)
+    heading.append(label, count)
+    track.append(fill)
+    item.append(heading, track)
+    pieceStatsList.append(item)
+  })
 }
 
 function renderControlLabels () {
@@ -625,6 +685,21 @@ function renderGameProfile (profile = leaderboardService.getProfile(), accountLa
   gameProfile.setAttribute('aria-label', `Perfil del jugador: ${model.nickname}`)
 }
 
+function renderStartProfileAccess (profile = leaderboardService.getProfile(), account = currentAccount) {
+  const model = createProfileAccessModel(account, profile)
+  const avatarUrl = avatarService.getAvatarUrl(model.signedIn ? profile.avatarPath : null)
+
+  startProfileAvatarImage.hidden = !avatarUrl
+  startProfileAvatarImage.src = avatarUrl ?? ''
+  startProfileAvatarImage.alt = avatarUrl ? `Avatar de ${model.name}` : ''
+  startProfileInitials.hidden = Boolean(avatarUrl)
+  startProfileInitials.textContent = getInitials(model.name)
+  startProfileName.textContent = model.name
+  startProfileStatus.textContent = model.status
+  profileAccessButton.setAttribute('aria-label', model.title)
+  profileAccessButton.classList.toggle('is-signed-in', model.signedIn)
+}
+
 function renderProfileAvatar (profile = leaderboardService.getProfile(), url = null, temporary = false) {
   clearTemporaryAvatarPreview()
   const avatarUrl = url ?? avatarService.getAvatarUrl(profile.avatarPath)
@@ -638,6 +713,7 @@ function renderProfileAvatar (profile = leaderboardService.getProfile(), url = n
   avatarInitials.textContent = getInitials(profile.nickname)
   avatarRemoveButton.hidden = !profile.avatarPath && !temporary
   renderGameProfile(profile)
+  renderStartProfileAccess(profile)
 }
 
 function showAvatarFeedback (message, isError = false) {
@@ -711,6 +787,7 @@ async function removeAvatar () {
 }
 
 function showProfileSetupPrompt (message) {
+  openProfilePanel()
   profileSetupPromptText.textContent = message
   profileSetupPrompt.hidden = false
   profileSetupSection.classList.add('is-priority')
@@ -722,8 +799,13 @@ function renderAccountState (account) {
   const isSignedIn = account.status === 'signed-in'
   const editable = canEditProfile(account)
 
+  currentAccount = account
   setProfileEditingEnabled(editable)
   renderGameProfile(leaderboardService.getProfile(), isSignedIn ? 'Google conectado' : 'Invitado')
+  renderStartProfileAccess(leaderboardService.getProfile(), account)
+  profileIntro.textContent = isSignedIn
+    ? 'Actualizá tu nickname y avatar cuando quieras.'
+    : 'Iniciá sesión para personalizar cómo aparecés en el ranking.'
   accountStatus.textContent = isSignedIn ? 'Google conectado' : 'Guest'
   accountHint.textContent = isSignedIn
     ? 'Tu ranking, nickname y avatar están asociados a Google.'
@@ -745,6 +827,23 @@ function renderAccountState (account) {
     avatarFeedback.textContent = 'Perfil guest fijo · iniciá sesión con Google para personalizarlo.'
     avatarFeedback.classList.remove('is-error')
   }
+}
+
+function openProfilePanel () {
+  profilePanel.hidden = false
+  profileBackdrop.hidden = false
+  profilePanel.setAttribute('aria-hidden', 'false')
+  profileAccessButton.setAttribute('aria-expanded', 'true')
+  profileClose.focus()
+}
+
+function closeProfilePanel () {
+  profilePanel.hidden = true
+  profileBackdrop.hidden = true
+  profilePanel.setAttribute('aria-hidden', 'true')
+  profileAccessButton.setAttribute('aria-expanded', 'false')
+  if (gameScreen.hidden) profileAccessButton.focus()
+  else gameProfile.focus()
 }
 
 async function disconnectGoogle () {
@@ -1151,8 +1250,12 @@ playerNickname.addEventListener('input', () => {
 })
 startSettingsButton.addEventListener('click', openSettings)
 leaderboardButton.addEventListener('click', openLeaderboard)
+profileAccessButton.addEventListener('click', openProfilePanel)
+profileClose.addEventListener('click', closeProfilePanel)
+profileBackdrop.addEventListener('click', closeProfilePanel)
 gameLeaderboardButton.addEventListener('click', openLeaderboard)
 gameOverLeaderboardButton.addEventListener('click', openLeaderboard)
+gameProfile.addEventListener('click', openProfilePanel)
 leaderboardClose.addEventListener('click', closeLeaderboard)
 leaderboardBackdrop.addEventListener('click', closeLeaderboard)
 leaderboardRefresh.addEventListener('click', refreshLeaderboard)
@@ -1202,6 +1305,11 @@ document.addEventListener('keydown', (event) => {
 
   if (!settingsPanel.hidden) {
     if (event.code === 'Escape') closeSettings()
+    return
+  }
+
+  if (!profilePanel.hidden) {
+    if (event.code === 'Escape') closeProfilePanel()
     return
   }
 
