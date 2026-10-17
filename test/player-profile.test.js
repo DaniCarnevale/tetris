@@ -18,13 +18,14 @@ function createStorage () {
 test('creates a stable guest profile with a normalized nickname', () => {
   assert.deepEqual(createGuestProfile({ nickname: '  dAnI  ', id: 'guest-1' }), {
     id: 'guest-1',
-    nickname: 'DAnI'
+    nickname: 'DAnI',
+    avatarPath: null
   })
 })
 
 test('saves and loads the guest profile from storage', () => {
   const storage = createStorage()
-  const profile = saveGuestProfile('lucas', storage, 'guest-2')
+  const profile = saveGuestProfile('lucas', storage, 'guest-2', 'guest-2/avatar.webp')
 
   assert.deepEqual(loadGuestProfile(storage), profile)
 })
@@ -35,6 +36,7 @@ test('repairs malformed profile data without throwing', () => {
 
   assert.deepEqual(loadGuestProfile(storage, () => 'guest-2'), {
     id: 'guest-2',
-    nickname: 'Jugador'
+    nickname: 'Jugador',
+    avatarPath: null
   })
 })

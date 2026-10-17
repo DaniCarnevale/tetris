@@ -27,8 +27,45 @@ test('guest mode persists scores locally when Supabase is not configured', async
     level: 3,
     lines: 4,
     stageId: 'fresh',
+    avatarPath: null,
     createdAt: ranking.entries[0].createdAt
   })
+})
+
+test('submits the current avatar path with an online score', async () => {
+  const storage = createStorage()
+  const inserted = []
+  const supabaseClient = {
+    auth: {
+      getSession: async () => ({ data: { session: null }, error: null }),
+      signInAnonymously: async () => ({ data: { user: { id: 'user-1' } }, error: null })
+    },
+    from: () => ({
+      insert: async (payload) => {
+        inserted.push(payload)
+        return { error: null }
+      }
+    })
+  }
+  const service = createLeaderboardService({
+    storage,
+    profileStorage: storage,
+    supabaseClient,
+    supabaseUrl: 'https://example.supabase.co',
+    supabaseKey: 'public-key'
+  })
+
+  service.setNickname('ana')
+  storage.setItem('tetris.player.profile', JSON.stringify({
+    id: 'guest-1',
+    nickname: 'Ana',
+    avatarPath: 'user-1/avatar.webp'
+  }))
+
+  const saved = await service.submitScore({ score: 100, level: 1, lines: 0, stageId: 'fresh' })
+
+  assert.equal(saved.source, 'online')
+  assert.equal(inserted[0].avatar_path, 'user-1/avatar.webp')
 })
 
 test('empty or broken local scores return a safe empty ranking', async () => {

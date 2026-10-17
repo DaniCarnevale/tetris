@@ -27,8 +27,16 @@ test('creates a leaderboard entry with safe numeric values', () => {
     level: 3,
     lines: 8,
     stageId: 'foundation',
+    avatarPath: null,
     createdAt: '2026-10-17T12:00:00.000Z'
   })
+})
+
+test('keeps the avatar path attached to a leaderboard entry', () => {
+  assert.equal(createLeaderboardEntry({
+    nickname: 'dani',
+    avatarPath: 'user-1/avatar.webp'
+  }).avatarPath, 'user-1/avatar.webp')
 })
 
 test('sorts leaderboard by score, then level and date', () => {

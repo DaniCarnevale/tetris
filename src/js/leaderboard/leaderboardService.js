@@ -22,7 +22,7 @@ export function createLeaderboardService ({
     getProfile: () => loadGuestProfile(profileStorage),
     setNickname: (nickname) => {
       const currentProfile = loadGuestProfile(profileStorage)
-      return saveGuestProfile(nickname, profileStorage, currentProfile.id)
+      return saveGuestProfile(nickname, profileStorage, currentProfile.id, currentProfile.avatarPath)
     },
     getLeaderboard: (limit = 10) => getLeaderboard({ client, online, limit, storage }),
     submitScore: (details) => submitScore({ client, online, details, profileStorage, storage }),
@@ -57,7 +57,7 @@ async function getLeaderboard ({ client, online, limit, storage }) {
   try {
     const { data, error } = await client
       .from('scores')
-      .select('nickname, score, level, lines, stage_id, created_at')
+      .select('nickname, score, level, lines, stage_id, avatar_path, created_at')
       .order('score', { ascending: false })
       .order('level', { ascending: false })
       .order('created_at', { ascending: true })
@@ -77,7 +77,7 @@ async function getLeaderboard ({ client, online, limit, storage }) {
 
 async function submitScore ({ client, online, details, profileStorage, storage }) {
   const profile = loadGuestProfile(profileStorage)
-  const entry = createLeaderboardEntry({ ...details, nickname: profile.nickname })
+  const entry = createLeaderboardEntry({ ...details, nickname: profile.nickname, avatarPath: profile.avatarPath })
 
   if (!online) {
     saveLocalEntry(entry, storage)
@@ -93,6 +93,7 @@ async function submitScore ({ client, online, details, profileStorage, storage }
       level: entry.level,
       lines: entry.lines,
       stage_id: entry.stageId,
+      avatar_path: entry.avatarPath,
       start_level: Number(details?.startLevel) || 1
     })
 
@@ -154,6 +155,7 @@ function mapRemoteEntry (entry) {
     level: entry.level,
     lines: entry.lines,
     stageId: entry.stage_id,
+    avatarPath: entry.avatar_path,
     createdAt: entry.created_at
   }
 }

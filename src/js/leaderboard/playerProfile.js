@@ -4,10 +4,11 @@ import { normalizeNickname } from './leaderboardModel.js'
 
 export const PLAYER_PROFILE_STORAGE_KEY = 'tetris.player.profile'
 
-export function createGuestProfile ({ nickname = 'Jugador', id = createGuestId() } = {}) {
+export function createGuestProfile ({ nickname = 'Jugador', id = createGuestId(), avatarPath = null } = {}) {
   return {
     id: typeof id === 'string' && id.length > 0 ? id : createGuestId(),
-    nickname: normalizeNickname(nickname)
+    nickname: normalizeNickname(nickname),
+    avatarPath: normalizeAvatarPath(avatarPath)
   }
 }
 
@@ -21,15 +22,16 @@ export function loadGuestProfile (storage = getStorage(), createId = createGuest
     const parsedProfile = JSON.parse(rawProfile)
     return createGuestProfile({
       id: parsedProfile?.id || createId(),
-      nickname: parsedProfile?.nickname
+      nickname: parsedProfile?.nickname,
+      avatarPath: parsedProfile?.avatarPath
     })
   } catch {
     return createGuestProfile({ id: createId() })
   }
 }
 
-export function saveGuestProfile (nickname, storage = getStorage(), id) {
-  const profile = createGuestProfile({ nickname, id })
+export function saveGuestProfile (nickname, storage = getStorage(), id, avatarPath = null) {
+  const profile = createGuestProfile({ nickname, id, avatarPath })
 
   try {
     storage?.setItem(PLAYER_PROFILE_STORAGE_KEY, JSON.stringify(profile))
@@ -46,4 +48,8 @@ function createGuestId () {
 
 function getStorage () {
   return typeof localStorage === 'undefined' ? null : localStorage
+}
+
+function normalizeAvatarPath (avatarPath) {
+  return typeof avatarPath === 'string' && avatarPath.length > 0 ? avatarPath : null
 }
