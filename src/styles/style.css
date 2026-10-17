@@ -1607,6 +1607,49 @@ canvas {
   animation: board-line-clear-pulse 560ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+#board.is-level-led,
+.stats-card.is-level-led {
+  --level-led-color: 156, 245, 91;
+}
+
+#board.is-level-led-danger,
+.stats-card.is-level-led-danger {
+  --level-led-color: 255, 86, 86;
+}
+
+#board.is-level-led-pulse,
+.stats-card.is-level-led-pulse {
+  animation: level-led-pulse var(--level-led-pulse-duration, 1.8s) ease-in-out infinite;
+}
+
+#board.is-level-led-steady,
+.stats-card.is-level-led-steady {
+  border-color: rgba(var(--level-led-color), 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 16px rgba(var(--level-led-color), 0.46),
+    0 0 36px rgba(var(--level-led-color), 0.28);
+}
+
+@keyframes level-led-pulse {
+  0%,
+  100% {
+    border-color: rgba(var(--level-led-color), 0.28);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 0 8px rgba(var(--level-led-color), 0.16),
+      0 0 18px rgba(var(--level-led-color), 0.08);
+  }
+
+  50% {
+    border-color: rgba(var(--level-led-color), 0.96);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 18px rgba(var(--level-led-color), 0.56),
+      0 0 42px rgba(var(--level-led-color), 0.34);
+  }
+}
+
 @keyframes board-line-clear-pulse {
   0% {
     filter: brightness(1);
@@ -1622,8 +1665,18 @@ canvas {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #board.is-line-clearing {
+  #board.is-line-clearing,
+  #board.is-level-led-pulse,
+  .stats-card.is-level-led-pulse {
     animation: none;
+  }
+
+  #board.is-level-led-pulse,
+  .stats-card.is-level-led-pulse {
+    border-color: rgba(var(--level-led-color), 0.74);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 0 14px rgba(var(--level-led-color), 0.34);
   }
 }
 
