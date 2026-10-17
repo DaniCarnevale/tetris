@@ -55,7 +55,16 @@ async function connectGoogle ({ client, online, redirectTo }) {
       provider: 'google',
       options: { redirectTo }
     })
-    if (error) throw error
+    if (error && !isIdentityAlreadyExistsError(error)) throw error
+
+    if (isIdentityAlreadyExistsError(error)) {
+      const { data: signInData, error: signInError } = await client.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo }
+      })
+      if (signInError) throw signInError
+      return { source: 'redirect', url: signInData?.url ?? null, error: null }
+    }
 
     return { source: 'redirect', url: data?.url ?? null, error: null }
   } catch (error) {
@@ -144,4 +153,10 @@ function getDefaultRedirectTo () {
 
 function getErrorMessage (error) {
   return error instanceof Error ? error.message : String(error?.message ?? error ?? 'Error desconocido')
+}
+
+function isIdentityAlreadyExistsError (error) {
+  const code = error?.code ?? error?.error_code
+  const message = String(error?.message ?? error ?? '').toLowerCase()
+  return code === 'identity_already_exists' || message.includes('identity already linked')
 }
