@@ -706,9 +706,12 @@ canvas {
 
 .board-card {
   min-width: 0;
-  padding: 18px;
-  border-radius: 22px;
-  background: linear-gradient(145deg, rgba(20, 27, 45, 0.42), rgba(11, 16, 29, 0.32));
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .board-toolbar {
@@ -729,17 +732,16 @@ canvas {
   position: relative;
   display: grid;
   place-items: center;
-  padding: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 16px;
-  background: rgba(8, 13, 24, 0.2);
-  backdrop-filter: blur(4px);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .pause-overlay {
   position: absolute;
   z-index: 2;
-  inset: 14px;
+  inset: 0;
   display: grid;
   place-items: center;
   border: 1px solid rgba(247, 199, 91, 0.18);
