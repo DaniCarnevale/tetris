@@ -79,3 +79,7 @@ test('previews stay compact instead of stretching to the board height', () => {
   assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \{[\s\S]*align-self: start;/)
   assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \.preview-stage \{[\s\S]*flex: 0 0 108px;/)
 })
+
+test('desktop board respects the viewport height to avoid page scrolling', () => {
+  assert.match(stylesheet, /body\.is-game-active #board \{[\s\S]*height: min\(650px, calc\(100dvh - 240px\)\);/)
+})

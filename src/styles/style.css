@@ -2671,7 +2671,7 @@ body.is-game-active .board-stage {
 
 body.is-game-active #board {
   width: auto;
-  height: min(650px, 100%);
+  height: min(650px, calc(100dvh - 240px));
   max-width: 100%;
   max-height: 100%;
 }
