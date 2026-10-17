@@ -1,9 +1,8 @@
 /* global localStorage */
 
-import { createClient } from '@supabase/supabase-js'
-
 import { createLeaderboardEntry, sortLeaderboard } from './leaderboardModel.js'
 import { loadGuestProfile, saveGuestProfile } from './playerProfile.js'
+import { createSupabaseClient, ensureAnonymousUser, getEnvironmentValue } from './supabaseClient.js'
 
 export const LEADERBOARD_STORAGE_KEY = 'tetris.leaderboard.local'
 
@@ -20,6 +19,15 @@ export function createLeaderboardService ({
   return {
     isOnline: () => online,
     getProfile: () => loadGuestProfile(profileStorage),
+    setProfile: (profile) => {
+      const currentProfile = loadGuestProfile(profileStorage)
+      return saveGuestProfile(
+        profile?.nickname ?? currentProfile.nickname,
+        profileStorage,
+        currentProfile.id,
+        profile?.avatarPath ?? null
+      )
+    },
     setNickname: (nickname) => {
       const currentProfile = loadGuestProfile(profileStorage)
       return saveGuestProfile(nickname, profileStorage, currentProfile.id, currentProfile.avatarPath)
@@ -106,17 +114,6 @@ async function submitScore ({ client, online, details, profileStorage, storage }
   }
 }
 
-async function ensureAnonymousUser (client) {
-  const { data: sessionData, error: sessionError } = await client.auth.getSession()
-  if (sessionError) throw sessionError
-  if (sessionData?.session?.user) return sessionData.session.user
-
-  const { data, error } = await client.auth.signInAnonymously()
-  if (error) throw error
-  if (!data?.user) throw new Error('No se pudo crear la sesión invitada.')
-  return data.user
-}
-
 function localResult (storage, limit, error = null) {
   return {
     entries: loadLocalEntries(storage, limit),
@@ -158,21 +155,6 @@ function mapRemoteEntry (entry) {
     avatarPath: entry.avatar_path,
     createdAt: entry.created_at
   }
-}
-
-function createSupabaseClient (url, key) {
-  if (!url || !key) return null
-
-  try {
-    return createClient(url, key)
-  } catch {
-    return null
-  }
-}
-
-function getEnvironmentValue (name) {
-  const environment = typeof import.meta.env === 'object' ? import.meta.env : {}
-  return environment[name]
 }
 
 function getErrorMessage (error) {

@@ -1,8 +1,7 @@
 /* global localStorage */
 
-import { createClient } from '@supabase/supabase-js'
-
 import { loadGuestProfile, saveGuestProfile } from './playerProfile.js'
+import { createSupabaseClient, ensureAnonymousUser, getEnvironmentValue } from './supabaseClient.js'
 
 export const AVATAR_BUCKET = 'avatars'
 export const AVATAR_MAX_BYTES = 2 * 1024 * 1024
@@ -149,32 +148,6 @@ function getAvatarUrl (client, online, avatarPath) {
   } catch {
     return null
   }
-}
-
-async function ensureAnonymousUser (client) {
-  const { data: sessionData, error: sessionError } = await client.auth.getSession()
-  if (sessionError) throw sessionError
-  if (sessionData?.session?.user) return sessionData.session.user
-
-  const { data, error } = await client.auth.signInAnonymously()
-  if (error) throw error
-  if (!data?.user) throw new Error('No se pudo crear la sesión invitada.')
-  return data.user
-}
-
-function createSupabaseClient (url, key) {
-  if (!url || !key) return null
-
-  try {
-    return createClient(url, key)
-  } catch {
-    return null
-  }
-}
-
-function getEnvironmentValue (name) {
-  const environment = typeof import.meta.env === 'object' ? import.meta.env : {}
-  return environment[name]
 }
 
 function getErrorMessage (error) {
