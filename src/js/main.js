@@ -41,19 +41,19 @@ const BACKGROUND_ART = {
 const SCENE_COPY = {
   'buenos-aires': {
     label: 'Buenos Aires',
-    description: 'La ciudad se enciende. El desafío recién comienza.'
+    description: 'Velocidad baja.'
   },
   humahuaca: {
     label: 'Quebrada de Humahuaca',
-    description: 'El ritmo sube y la montaña empieza a marcar el pulso.'
+    description: 'Velocidad media.'
   },
   iguazu: {
     label: 'Cataratas del Iguazú',
-    description: 'Más velocidad, más líneas, más corriente.'
+    description: 'Velocidad alta.'
   },
   patagonia: {
     label: 'Patagonia nocturna',
-    description: 'Llegaste a la zona de leyenda. Cada hueco cuenta.'
+    description: 'Máxima velocidad.'
   }
 }
 
@@ -346,7 +346,7 @@ function updateStartScene () {
   const { scene } = updateStageArt(level)
   const stage = getStage(selectedStage)
   startSceneLabel.textContent = `${scene.label} · Nivel ${level}`
-  startSceneDescription.textContent = `${scene.description} ${stage.name}: ${stage.description}`
+  startSceneDescription.textContent = `${scene.description} ${stage.name}.`
 }
 
 function getEffectiveScore (score, startLevel) {

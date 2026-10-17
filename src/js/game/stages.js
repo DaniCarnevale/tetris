@@ -12,13 +12,13 @@ export const STAGES = Object.freeze([
   {
     id: 'fresh',
     name: 'Tablero limpio',
-    description: 'Empezá con todo el espacio para construir.',
+    description: 'Tablero vacío.',
     rows: []
   },
   {
     id: 'foundation',
     name: 'Fundación',
-    description: 'Una base baja para empezar con ritmo.',
+    description: 'Base baja.',
     rows: [
       '...aaa....bb...',
       '....aa..bbb...',
@@ -28,7 +28,7 @@ export const STAGES = Object.freeze([
   {
     id: 'ascent',
     name: 'Ascenso',
-    description: 'Una torre irregular que exige leer el tablero.',
+    description: 'Base irregular.',
     rows: [
       '...aaa....bb...',
       '...aaa...bbb...',
