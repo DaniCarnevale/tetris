@@ -33,20 +33,35 @@ test('guest mode persists scores locally when Supabase is not configured', async
   })
 })
 
-test('submits the current avatar path with an online score', async () => {
+test('submits only a server-verified run result online', async () => {
   const storage = createStorage()
-  const inserted = []
+  const invoked = []
   const supabaseClient = {
     auth: {
       getSession: async () => ({ data: { session: null }, error: null }),
       signInAnonymously: async () => ({ data: { user: { id: 'user-1' } }, error: null })
     },
-    from: () => ({
-      insert: async (payload) => {
-        inserted.push(payload)
-        return { error: null }
+    functions: {
+      invoke: async (name, options) => {
+        invoked.push({ name, options })
+        if (name === 'start-run') return { data: { runId: 'run-1', seed: 123456 }, error: null }
+        return {
+          data: {
+            entry: {
+              nickname: 'Ana',
+              score: 0,
+              level: 1,
+              lines: 0,
+              stageId: 'fresh',
+              startLevel: 1,
+              avatarPath: 'user-1/avatar.webp',
+              createdAt: '2026-10-17T12:00:00.000Z'
+            }
+          },
+          error: null
+        }
       }
-    })
+    }
   }
   const service = createLeaderboardService({
     storage,
@@ -57,16 +72,14 @@ test('submits the current avatar path with an online score', async () => {
   })
 
   service.setNickname('ana')
-  storage.setItem('tetris.player.profile', JSON.stringify({
-    id: 'guest-1',
-    nickname: 'Ana',
-    avatarPath: 'user-1/avatar.webp'
-  }))
-
-  const saved = await service.submitScore({ score: 100, level: 1, lines: 0, stageId: 'fresh' })
+  const run = await service.startRun({ stageId: 'fresh', startLevel: 1 })
+  const saved = await service.submitScore({ run, actions: ['down'] })
 
   assert.equal(saved.source, 'online')
-  assert.equal(inserted[0].avatar_path, 'user-1/avatar.webp')
+  assert.equal(saved.score, 0)
+  assert.deepEqual(invoked.map(({ name }) => name), ['start-run', 'submit-score'])
+  assert.equal(invoked[1].options.body.runId, 'run-1')
+  assert.deepEqual(invoked[1].options.body.actions, ['down'])
 })
 
 test('resolves avatar URLs for public leaderboard entries', () => {

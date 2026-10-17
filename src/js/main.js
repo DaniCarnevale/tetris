@@ -5,7 +5,7 @@ import { getCurrentLevel } from './managers/levelManager.js'
 import { levels } from './utils/levels.js'
 import { hasCollision } from './game/board.js'
 import { clonePiece } from './game/pieces.js'
-import { createGame, holdActivePiece, moveActivePiece, resetGame, rotateActivePiece, togglePause } from './game/engine.js'
+import { createGame, holdActivePiece, moveActivePiece, rotateActivePiece, togglePause } from './game/engine.js'
 import { canReturnToStartScreen, GAME_OVER_ANIMATION_MS, getGameOverSummary } from './game/gameFlow.js'
 import { shouldAutoPause } from './game/focusPause.js'
 import { getBackdropForLevel, getStage, STAGES } from './game/stages.js'
@@ -18,6 +18,7 @@ import { createLeaderboardService } from './leaderboard/leaderboardService.js'
 import { createAvatarService, validateAvatarFile } from './leaderboard/avatarService.js'
 import { canEditProfile, createAccountService, GUEST_PROFILE_NICKNAME } from './leaderboard/accountService.js'
 import { createSupabaseClient } from './leaderboard/supabaseClient.js'
+import { createSeededRandom } from './leaderboard/runSecurity.js'
 import {
   consumeProfileSetupPending,
   createProfileCardModel,
@@ -253,6 +254,9 @@ let currentAccount = { status: 'guest', isAnonymous: true }
 let persistedProfile = null
 let lastRenderedPieceStats = ''
 let levelLedTimer = null
+let activeRun = null
+let runActions = []
+let runStartRequest = 0
 
 function syncGameViewport () {
   const viewport = window.visualViewport
@@ -1226,6 +1230,8 @@ async function submitGameScore () {
   gameOverSaveStatus.textContent = 'Guardando puntuación...'
 
   const result = await leaderboardService.submitScore({
+    run: activeRun,
+    actions: [...runActions],
     score: game.score,
     level: currentLevel,
     lines: game.lines,
@@ -1243,7 +1249,7 @@ async function submitGameScore () {
 
   gameOverSaveStatus.classList.add('is-warning')
   gameOverSaveStatus.textContent = leaderboardService.isOnline()
-    ? 'Sin conexión: guardada en este dispositivo.'
+    ? 'No se pudo validar en servidor: guardada solo en este dispositivo.'
     : 'Modo invitado: guardada en este dispositivo.'
 }
 
@@ -1337,16 +1343,10 @@ function returnToStartScreen (keyCode) {
 
 function restartGame () {
   hideGameOverOverlay()
-  game = resetGame(game)
-  gameStarted = true
-  syncGameViewport()
-  lastRenderedLevel = 0
-  clearLevelLedFeedback()
-  dropCounter = 0
-  lastTime = performance.now()
-  soundManager.unlock()
-  soundManager.playMusic()
-  draw()
+  gameStarted = false
+  activeRun = null
+  runActions = []
+  startGame()
 }
 
 function togglePauseGame () {
@@ -1379,10 +1379,11 @@ function processGameEvents (previousLevel, wasGameOver) {
   game.lastEvent = null
 }
 
-function runGameAction (action) {
+function runGameAction (action, actionType = null) {
   const previousLevel = getCurrentLevel(game.score, game.startLevel).level
   const wasGameOver = game.gameOver
   const result = action()
+  if (actionType && activeRun) runActions.push(actionType)
   processGameEvents(previousLevel, wasGameOver)
   return result
 }
@@ -1400,15 +1401,15 @@ function handleInput () {
 
   switch (latestInput) {
     case 'rotate':
-      runGameAction(() => rotateActivePiece(game))
+      runGameAction(() => rotateActivePiece(game), 'rotate')
       break
     case 'hold':
-      runGameAction(() => holdActivePiece(game))
+      runGameAction(() => holdActivePiece(game), 'hold')
       break
     case 'left':
     case 'right':
     case 'down':
-      runGameAction(() => moveActivePiece(game, latestInput))
+      runGameAction(() => moveActivePiece(game, latestInput), latestInput)
       break
   }
 }
@@ -1432,7 +1433,7 @@ function update (time = 0) {
     dropCounter += deltaTime
 
     if (dropCounter >= currentLevel.speed) {
-      runGameAction(() => moveActivePiece(game, 'down'))
+      runGameAction(() => moveActivePiece(game, 'down'), 'down')
       dropCounter = 0
     }
   }
@@ -1441,10 +1442,18 @@ function update (time = 0) {
   window.requestAnimationFrame(update)
 }
 
-function startGame () {
+async function startGame () {
   const startLevel = Number(startLevelSelect.value)
+  const requestId = ++runStartRequest
+  startGameButton.disabled = true
   hideGameOverOverlay()
-  game = createGame({ startLevel, startingStage: selectedStage })
+  const run = await leaderboardService.startRun({ stageId: selectedStage, startLevel })
+  if (requestId !== runStartRequest) return
+
+  activeRun = run.source === 'online' ? run : null
+  runActions = []
+  const random = run.source === 'online' ? createSeededRandom(run.seed) : Math.random
+  game = createGame({ random, startLevel, startingStage: selectedStage })
   gameStarted = true
   syncGameViewport()
   lastRenderedLevel = 0
@@ -1455,6 +1464,7 @@ function startGame () {
   updateStageArt(startLevel)
   lastTime = performance.now()
   startHint.textContent = `Stage ${getStage(selectedStage).name} · nivel ${startLevel}. Buena suerte.`
+  startGameButton.disabled = false
   draw()
 }
 
