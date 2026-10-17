@@ -52,3 +52,9 @@ test('piece stats use horizontal fills in the active cockpit', () => {
   assert.doesNotMatch(mainSource, /fill\.style\.height = `\$\{row\.width\}%`/)
   assert.match(stylesheet, /body\.is-game-active \.piece-stat-track \{[\s\S]*height: 6px;/)
 })
+
+test('piece stats render each tetromino as a miniature shape', () => {
+  assert.match(mainSource, /piece-stat-thumbnail/)
+  assert.match(mainSource, /row\.shape\.forEach/)
+  assert.match(stylesheet, /\.piece-stat-thumbnail \{[\s\S]*grid-template-columns/)
+})
