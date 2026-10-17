@@ -8,6 +8,7 @@ import { clonePiece } from './game/pieces.js'
 import { createGame, holdActivePiece, moveActivePiece, resetGame, rotateActivePiece, togglePause } from './game/engine.js'
 import { canReturnToStartScreen, GAME_OVER_ANIMATION_MS, getGameOverSummary } from './game/gameFlow.js'
 import { getBackdropForLevel, getStage, STAGES } from './game/stages.js'
+import { createLineClearAnimation, getLineClearProgress, isLineClearAnimationActive } from './game/lineClearAnimation.js'
 import { createSoundManager } from './audio/soundManager.js'
 import { createLeaderboardService } from './leaderboard/leaderboardService.js'
 import { createAvatarService, validateAvatarFile } from './leaderboard/avatarService.js'
@@ -208,6 +209,7 @@ let listeningAction = null
 let lastRenderedLevel = 0
 let gameOverAnimationFinished = false
 let gameOverTimer = null
+let lineClearAnimation = null
 let leaderboardSaveRequest = 0
 let leaderboardUnsubscribe = () => {}
 let temporaryAvatarPreviewUrl = null
@@ -363,6 +365,52 @@ function getGhostPiece () {
   }
 }
 
+function drawLineClearAnimation () {
+  if (!lineClearAnimation) return
+
+  const now = performance.now()
+  const progress = getLineClearProgress(lineClearAnimation, now)
+
+  if (!isLineClearAnimationActive(lineClearAnimation, now)) {
+    lineClearAnimation = null
+    boardCanvas.classList.remove('is-line-clearing')
+    return
+  }
+
+  const collapse = 1 - Math.pow(1 - progress, 3)
+  const flash = Math.sin(progress * Math.PI)
+
+  boardContext.save()
+  lineClearAnimation.rows.forEach(({ y, cells }, rowIndex) => {
+    const beam = boardContext.createLinearGradient(0, y, BOARD_WIDTH, y)
+    beam.addColorStop(0, 'rgba(113, 183, 255, 0)')
+    beam.addColorStop(0.5, `rgba(213, 247, 255, ${0.2 + flash * 0.45})`)
+    beam.addColorStop(1, 'rgba(113, 183, 255, 0)')
+    boardContext.globalAlpha = 0.7
+    boardContext.fillStyle = beam
+    boardContext.fillRect(0, y, BOARD_WIDTH, 1)
+
+    cells.forEach((color, x) => {
+      if (color === null) return
+
+      const scale = Math.max(0.16, 1 - collapse * 0.84)
+      const driftDirection = x % 2 === 0 ? -1 : 1
+      const drift = driftDirection * collapse * (0.14 + (x % 3) * 0.04)
+      const rise = collapse * (0.12 + ((x + rowIndex) % 4) * 0.04)
+
+      boardContext.save()
+      boardContext.globalAlpha = 1 - progress
+      boardContext.translate(x + 0.5 + drift, y + 0.5 - rise)
+      boardContext.scale(scale, scale)
+      boardContext.translate(-0.5, -0.5)
+      drawRoundedCell(boardContext, 0, 0, color, { glow: true })
+      boardContext.restore()
+    })
+  })
+  boardContext.restore()
+  boardCanvas.classList.add('is-line-clearing')
+}
+
 function drawBoard () {
   drawBoardGrid()
 
@@ -384,6 +432,8 @@ function drawBoard () {
       if (value) drawRoundedCell(boardContext, x + game.activePiece.position.x, y + game.activePiece.position.y, game.activePiece.color, { glow: true })
     })
   })
+
+  drawLineClearAnimation()
 }
 
 function renderStagePicker () {
@@ -983,7 +1033,11 @@ function processGameEvents (previousLevel, wasGameOver) {
   const event = game.lastEvent
   const currentLevel = getCurrentLevel(game.score, game.startLevel).level
 
-  if (event?.lines > 0) soundManager.playLineClear(event.lines)
+  if (event?.lines > 0) {
+    lineClearAnimation = createLineClearAnimation(event.clearedRows, performance.now())
+    if (lineClearAnimation) boardCanvas.classList.add('is-line-clearing')
+    soundManager.playLineClear(event.lines)
+  }
   if (currentLevel > previousLevel) soundManager.playLevelUp()
   if (event?.gameOver || (!wasGameOver && game.gameOver)) {
     soundManager.playGameOver()

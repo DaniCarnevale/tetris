@@ -1,4 +1,4 @@
-import { clearCompletedRows, hasCollision, mergePiece } from './board.js'
+import { clearCompletedRows, getCompletedRows, hasCollision, mergePiece } from './board.js'
 import { clonePiece, randomPiece, rotateMatrix, spawnPiece } from './pieces.js'
 import { createStageBoard, getStage } from './stages.js'
 import { levels } from '../utils/levels.js'
@@ -31,6 +31,7 @@ export function createGame ({ random = Math.random, startLevel = 1, startingStag
 
 function lockActivePiece (game) {
   mergePiece(game.activePiece, game.board)
+  const clearedRows = getCompletedRows(game.board)
   const result = clearCompletedRows(game.board)
   game.score += result.points
   game.lines += result.lines
@@ -42,6 +43,7 @@ function lockActivePiece (game) {
     type: result.lines > 0 ? 'line-clear' : 'lock',
     lines: result.lines,
     points: result.points,
+    clearedRows,
     gameOver: game.gameOver
   }
 
