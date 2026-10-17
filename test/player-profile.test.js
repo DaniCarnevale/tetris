@@ -33,7 +33,7 @@ test('repairs malformed profile data without throwing', () => {
   const storage = createStorage()
   storage.setItem('tetris.player.profile', '{"id":"","nickname":""}')
 
-  assert.deepEqual(loadGuestProfile(storage), {
+  assert.deepEqual(loadGuestProfile(storage, () => 'guest-2'), {
     id: 'guest-2',
     nickname: 'Jugador'
   })
