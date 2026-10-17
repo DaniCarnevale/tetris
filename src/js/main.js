@@ -655,7 +655,7 @@ function renderPieceStats () {
     track.className = 'piece-stat-track'
     fill.className = 'piece-stat-fill'
     dot.style.backgroundColor = row.color
-    fill.style.height = `${row.width}%`
+    fill.style.width = `${row.width}%`
     fill.style.backgroundColor = row.color
     label.textContent = row.shortLabel
     count.textContent = String(row.count)
