@@ -80,6 +80,17 @@ test('previews stay compact instead of stretching to the board height', () => {
   assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \.preview-stage \{[\s\S]*flex: 0 0 108px;/)
 })
 
+test('hold and next previews share a compact focus row above the board', () => {
+  assert.match(stylesheet, /body\.is-game-active \.board-cockpit \{[\s\S]*display: flex;[\s\S]*flex-direction: column;/)
+  assert.match(stylesheet, /body\.is-game-active \.board-focus-row \{[\s\S]*grid-template-columns: minmax\(92px, 120px\) minmax\(92px, 120px\);/)
+  assert.match(stylesheet, /body\.is-game-active \.board-focus-row \{[\s\S]*justify-content: center;/)
+})
+
+test('pause backdrop and board use the same squared playfield frame', () => {
+  assert.match(stylesheet, /body\.is-game-active \.pause-overlay \{[\s\S]*inset: 0 auto 0 50%;[\s\S]*border: 0;[\s\S]*border-radius: 0;/)
+  assert.match(stylesheet, /body\.is-game-active #board \{[\s\S]*border-radius: 0;/)
+})
+
 test('desktop board respects the viewport height to avoid page scrolling', () => {
   assert.match(stylesheet, /body\.is-game-active #board \{[\s\S]*height: min\(650px, calc\(100dvh - 240px\)\);/)
 })
