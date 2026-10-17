@@ -2,13 +2,13 @@
 
 ## User journeys
 
-- Como jugador invitado, quiero vincular Google sin perder mi ranking, nickname ni avatar.
+- Como jugador invitado, quiero iniciar sesión con Google para personalizar mi nickname y avatar.
 - Como jugador autenticado, quiero recuperar mi nickname y avatar en otra sesión.
 - Como jugador, quiero seguir jugando sin cuenta si Supabase todavía no está configurado.
 
 ## Evidencia RED/GREEN
 
-1. Se agregó `test/account-service.test.js` para cubrir el enlace de Google sobre una sesión anónima, el estado de cuenta y la persistencia remota del perfil.
+1. Se agregó `test/account-service.test.js` para cubrir el inicio de Google desde una sesión guest, el estado de cuenta y la persistencia remota del perfil.
 2. La ejecución RED falló porque `accountService.js` todavía no existía.
 3. La implementación GREEN agregó el servicio de cuenta, helpers compartidos de Supabase, la UI de estado de cuenta y la migración `003_google_profiles.sql`.
 
@@ -16,7 +16,7 @@
 
 | Garantía | Prueba | Resultado |
 |---|---|---|
-| Google se vincula a la sesión invitada existente | `test/account-service.test.js` | PASS |
+| Google inicia sesión desde guest, incluso si la identidad ya existe | `test/account-service.test.js` | PASS |
 | El estado distingue modo local, invitado y Google conectado | `test/account-service.test.js` | PASS |
 | Nickname y avatar se guardan en `player_profiles` | `test/account-service.test.js` | PASS |
 | El modo guest sigue funcionando sin Supabase con perfil fijo | `test/leaderboard-service.test.js`, browser QA | PASS |
