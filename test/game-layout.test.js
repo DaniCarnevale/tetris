@@ -9,6 +9,7 @@ import {
 } from '../src/js/game/layout.js'
 
 const mainSource = await readFile(new URL('../src/js/main.js', import.meta.url), 'utf8')
+const indexSource = await readFile(new URL('../src/index.html', import.meta.url), 'utf8')
 const stylesheet = await readFile(new URL('../src/styles/style.css', import.meta.url), 'utf8')
 
 test('game layout uses the mobile cockpit at narrow widths', () => {
@@ -95,6 +96,12 @@ test('pause backdrop and board use the same squared playfield frame', () => {
 
 test('desktop board respects the viewport height to avoid page scrolling', () => {
   assert.match(stylesheet, /body\.is-game-active #board \{[\s\S]*height: min\(650px, calc\(100dvh - 240px\)\);/)
+})
+
+test('scoreboard gives the score breathing room and promotes the current level', () => {
+  assert.match(indexSource, /class="score-stat score-level"/)
+  assert.match(stylesheet, /body\.is-game-active \.score-primary \{[\s\S]*padding-left: clamp\(14px, 3vw, 36px\);/)
+  assert.match(stylesheet, /body\.is-game-active \.score-level strong \{[\s\S]*font-size: clamp\(1\.24rem, 2\.5vw, 1\.34rem\);/)
 })
 
 test('active games lock the document viewport while preserving panel scrolling', () => {
