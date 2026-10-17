@@ -1423,6 +1423,7 @@ canvas {
 }
 
 .pause-dialog {
+  width: min(280px, calc(100vw - 32px));
   max-width: 280px;
   padding: 24px;
   border: 1px solid rgba(247, 199, 91, 0.26);
@@ -2601,11 +2602,20 @@ body.is-game-active .scoreboard-card .level-progress {
 }
 
 body.is-game-active .board-cockpit {
-  display: grid;
+  display: flex;
   min-height: 0;
   flex: 1 1 auto;
-  grid-template-columns: minmax(104px, 128px) minmax(250px, 1fr) minmax(104px, 128px);
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+
+body.is-game-active .board-focus-row {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: minmax(92px, 120px) minmax(92px, 120px);
+  gap: 10px;
+  justify-content: center;
   align-items: start;
 }
 
@@ -2615,9 +2625,9 @@ body.is-game-active .cockpit-preview {
   min-height: 0;
   align-self: start;
   height: fit-content;
-  padding: 11px;
+  padding: 8px;
   flex-direction: column;
-  border-radius: 15px;
+  border-radius: 12px;
   background: linear-gradient(145deg, rgba(19, 28, 49, 0.82), rgba(8, 13, 25, 0.7));
 }
 
@@ -2626,7 +2636,7 @@ body.is-game-active .preview-heading {
   align-items: flex-start;
   justify-content: space-between;
   gap: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 
 body.is-game-active .preview-heading h2 {
@@ -2637,9 +2647,9 @@ body.is-game-active .preview-heading h2 {
 }
 
 body.is-game-active .cockpit-preview .preview-stage {
-  min-height: 108px;
-  height: 108px;
-  flex: 0 0 108px;
+  min-height: 84px;
+  height: 84px;
+  flex: 0 0 84px;
   border-color: rgba(148, 163, 184, 0.12);
   background:
     linear-gradient(rgba(148, 163, 184, 0.025) 1px, transparent 1px),
@@ -2649,8 +2659,8 @@ body.is-game-active .cockpit-preview .preview-stage {
 }
 
 body.is-game-active .cockpit-preview .preview-stage canvas {
-  width: min(96px, 100%);
-  height: min(96px, 100%);
+  width: min(76px, 100%);
+  height: min(76px, 100%);
 }
 
 body.is-game-active .cockpit-preview .empty-preview {
@@ -2680,6 +2690,18 @@ body.is-game-active #board {
   height: min(650px, calc(100dvh - 240px));
   max-width: 100%;
   max-height: 100%;
+  border-radius: 0;
+}
+
+body.is-game-active .pause-overlay {
+  inset: 0 auto 0 50%;
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  aspect-ratio: 14 / 30;
+  transform: translateX(-50%);
+  border: 0;
+  border-radius: 0;
 }
 
 body.is-game-active .profile-menu-shell {
@@ -2909,7 +2931,11 @@ body.is-game-active .game-side-rail .control-row {
   }
 
   body.is-game-active .board-cockpit {
-    grid-template-columns: minmax(92px, 110px) minmax(220px, 1fr) minmax(92px, 110px);
+    gap: 8px;
+  }
+
+  body.is-game-active .board-focus-row {
+    grid-template-columns: minmax(92px, 110px) minmax(92px, 110px);
     gap: 9px;
   }
 
@@ -3003,7 +3029,11 @@ body.is-game-active .game-side-rail .control-row {
   }
 
   body.is-game-active .board-cockpit {
-    grid-template-columns: minmax(76px, 88px) minmax(0, 1fr) minmax(76px, 88px);
+    gap: 6px;
+  }
+
+  body.is-game-active .board-focus-row {
+    grid-template-columns: minmax(76px, 88px) minmax(76px, 88px);
     gap: 6px;
   }
 
@@ -3086,23 +3116,12 @@ body.is-game-active .game-side-rail .control-row {
   }
 
   body.is-game-active .board-cockpit {
-    grid-template-areas:
-      'hold next'
-      'board board';
+    gap: 6px;
+  }
+
+  body.is-game-active .board-focus-row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-
-  body.is-game-active .hold-preview {
-    grid-area: hold;
-  }
-
-  body.is-game-active .next-card {
-    grid-area: next;
-  }
-
-  body.is-game-active .board-cockpit > .board-card {
-    grid-area: board;
+    gap: 6px;
   }
 
   body.is-game-active .cockpit-preview .preview-stage {

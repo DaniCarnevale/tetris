@@ -18,9 +18,14 @@ test('game cockpit removes repeated copy and broken restart controls', () => {
 test('game cockpit keeps the focus path around the board', () => {
   assert.match(html, /class="game-main-column"/)
   assert.match(html, /class="board-cockpit"/)
+  assert.match(html, /class="board-focus-row"/)
   assert.match(html, /class="game-side-rail"/)
   assert.match(html, /id="gameProfileMenu"/)
   assert.match(html, /id="recordScore"/)
+})
+
+test('hold and next previews stay together immediately above the playfield', () => {
+  assert.match(html, /class="board-focus-row"[\s\S]*class="[^"]*hold-preview[^"]*"[\s\S]*class="[^"]*next-card[^"]*"/)
 })
 
 test('piece stats use a compact vertical meter above each tetromino thumbnail', () => {
