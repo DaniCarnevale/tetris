@@ -1279,14 +1279,14 @@ canvas {
 }
 
 .piece-stat-row {
-  display: grid;
-  grid-template-columns: 32px 6px minmax(0, 1fr);
+  display: flex;
   align-items: center;
-  gap: 8px;
+  min-width: 0;
 }
 
 .piece-stat-thumbnail {
   display: block;
+  flex: 0 0 30px;
   width: 30px;
   height: 24px;
   min-width: 0;
@@ -1306,19 +1306,21 @@ canvas {
 }
 
 .piece-stat-count {
-  grid-column: 3;
+  flex: 0 0 auto;
   min-width: 1.1em;
+  margin-left: 4px;
   color: #eef7ff;
   font-size: 0.66rem;
   font-variant-numeric: tabular-nums;
-  text-align: right;
+  text-align: left;
 }
 
 .piece-stat-track {
-  grid-column: 2;
+  flex: 0 0 6px;
   display: flex;
   width: 6px;
   height: 24px;
+  margin-left: 8px;
   overflow: hidden;
   border-radius: 99px;
   background: rgba(148, 163, 184, 0.1);
@@ -2438,11 +2440,9 @@ body.is-game-active .piece-stats-list {
 }
 
 body.is-game-active .piece-stat-row {
-  display: grid;
+  display: flex;
   height: auto;
   min-width: 0;
-  grid-template-columns: 30px 6px minmax(0, 1fr);
-  gap: 7px;
   padding: 8px;
   border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 12px;
@@ -2451,13 +2451,16 @@ body.is-game-active .piece-stat-row {
 }
 
 body.is-game-active .piece-stat-thumbnail {
+  flex-basis: 30px;
   width: 30px;
   height: 22px;
 }
 
 body.is-game-active .piece-stat-track {
+  flex-basis: 6px;
   width: 6px;
   height: 22px;
+  margin-left: 8px;
   border: 1px solid rgba(148, 163, 184, 0.1);
   border-radius: 99px;
   background: rgba(148, 163, 184, 0.1);
@@ -2624,23 +2627,25 @@ body.is-game-active .piece-stat-fill {
 
   body.is-game-active .piece-stat-row {
     height: 58px;
-    grid-template-columns: 22px 5px minmax(0, 1fr);
-    gap: 4px;
     padding: 4px 2px;
     border-radius: 7px;
   }
 
   body.is-game-active .piece-stat-thumbnail {
+    flex-basis: 22px;
     width: 22px;
     height: 18px;
   }
 
   body.is-game-active .piece-stat-track {
+    flex-basis: 5px;
     width: 5px;
     height: 18px;
+    margin-left: 6px;
   }
 
   body.is-game-active .piece-stat-count {
+    margin-left: 3px;
     font-size: 0.58rem;
   }
 
@@ -2752,23 +2757,25 @@ body.is-game-active .piece-stat-fill {
 
   body.is-game-active .piece-stat-row {
     height: 50px;
-    grid-template-columns: 18px 4px minmax(0, 1fr);
-    gap: 3px;
     padding-inline: 2px;
   }
 
   body.is-game-active .piece-stat-thumbnail {
+    flex-basis: 18px;
     width: 18px;
     height: 16px;
   }
 
   body.is-game-active .piece-stat-count {
     min-width: 1em;
+    margin-left: 2px;
     font-size: 0.54rem;
   }
 
   body.is-game-active .piece-stat-track {
+    flex-basis: 4px;
     width: 4px;
     height: 16px;
+    margin-left: 4px;
   }
 }

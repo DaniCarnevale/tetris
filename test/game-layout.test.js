@@ -60,7 +60,7 @@ test('piece stats render each tetromino as a unified silhouette beside its fill'
   assert.match(mainSource, /piece-stat-glyph/)
   assert.match(mainSource, /item\.append\(thumbnail, track, count\)/)
   assert.doesNotMatch(mainSource, /label\.textContent = row\.shortLabel/)
-  assert.match(stylesheet, /grid-template-columns: 30px 6px minmax\(0, 1fr\)/)
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-row \{[\s\S]*display: flex;/)
 })
 
 test('piece stat spacing keeps the silhouette group compact and intentional', () => {
