@@ -177,6 +177,19 @@
                 <button class="button button-primary" id="resumeButton" type="button">Continuar partida</button>
               </div>
             </div>
+            <div class="game-over-overlay" id="gameOverOverlay" hidden aria-hidden="true">
+              <div class="game-over-dialog" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle" tabindex="-1">
+                <div class="game-over-signal" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <p class="card-kicker">PARTIDA TERMINADA</p>
+                <h2 id="gameOverTitle">Game over</h2>
+                <p class="game-over-summary" id="gameOverSummary">Puntuación 0 · Nivel 1</p>
+                <p class="game-over-hint"><kbd class="key-chip game-over-key">↵</kbd> Presioná cualquier tecla para volver al inicio</p>
+              </div>
+            </div>
           </div>
           <div class="board-footer">
             <span><span class="legend-dot" aria-hidden="true"></span> La pieza translúcida muestra dónde caerá.</span>
