@@ -14,6 +14,22 @@ test('stage presets preserve board dimensions and provide a playable base', () =
   assert.ok(board[BOARD_HEIGHT - 1].some((cell) => cell === null))
 })
 
+test('stage bases vary their block positions while preserving a playable center well', () => {
+  const leftVariant = createStageBoard('foundation', () => 0)
+  const rightVariant = createStageBoard('foundation', () => 0.99)
+
+  assert.notDeepEqual(leftVariant, rightVariant)
+
+  for (const board of [leftVariant, rightVariant]) {
+    assert.ok(board.slice(-3).every((row) => row[6] === null && row[7] === null))
+  }
+
+  assert.deepEqual(
+    createStageBoard('foundation', () => 0.25),
+    createStageBoard('foundation', () => 0.25)
+  )
+})
+
 test('backgrounds progress with difficulty without removing the level system', () => {
   assert.equal(getBackdropForLevel(1).id, 'buenos-aires')
   assert.equal(getBackdropForLevel(3).id, 'humahuaca')

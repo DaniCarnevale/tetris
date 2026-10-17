@@ -52,17 +52,59 @@ const BACKDROP_PROGRESS = [
   { level: 10, id: 'perito-moreno' }
 ]
 
+const CENTER_WELL_COLUMNS = new Set([
+  Math.floor(BOARD_WIDTH / 2) - 1,
+  Math.floor(BOARD_WIDTH / 2)
+])
+
+function randomIndex (random, length) {
+  const value = Number(typeof random === 'function' ? random() : Math.random())
+  const normalized = Number.isFinite(value) ? Math.min(Math.max(value, 0), 0.999999) : 0
+  return Math.floor(normalized * length)
+}
+
+function randomizePattern (pattern, random) {
+  const cells = pattern
+    .padEnd(BOARD_WIDTH, '.')
+    .slice(0, BOARD_WIDTH)
+    .split('')
+    .filter((cell) => COLORS[cell])
+
+  if (cells.length === 0) return pattern
+
+  const availableColumns = Array.from({ length: BOARD_WIDTH }, (_, column) => column)
+    .filter((column) => !CENTER_WELL_COLUMNS.has(column))
+
+  for (let index = availableColumns.length - 1; index > 0; index--) {
+    const swapIndex = randomIndex(random, index + 1)
+    const currentColumn = availableColumns[index]
+    availableColumns[index] = availableColumns[swapIndex]
+    availableColumns[swapIndex] = currentColumn
+  }
+
+  const randomizedColumns = availableColumns
+    .slice(0, cells.length)
+    .sort((left, right) => left - right)
+  const randomizedPattern = Array(BOARD_WIDTH).fill('.')
+
+  randomizedColumns.forEach((column, index) => {
+    randomizedPattern[column] = cells[index]
+  })
+
+  return randomizedPattern.join('')
+}
+
 export function getStage (stageId) {
   return STAGES.find((stage) => stage.id === stageId) ?? STAGES[0]
 }
 
-export function createStageBoard (stageId) {
+export function createStageBoard (stageId, random = Math.random) {
   const board = createBoard()
   const stage = getStage(stageId)
 
   stage.rows.forEach((pattern, rowIndex) => {
     const boardRow = board[BOARD_HEIGHT - 1 - rowIndex]
-    pattern.padEnd(BOARD_WIDTH, '.').slice(0, BOARD_WIDTH).split('').forEach((cell, column) => {
+    randomizePattern(pattern, random).split('').forEach((cell, column) => {
       if (COLORS[cell]) boardRow[column] = COLORS[cell]
     })
   })

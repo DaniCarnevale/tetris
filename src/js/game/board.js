@@ -41,6 +41,12 @@ export function mergePiece (piece, board) {
   })
 }
 
+export function getCompletedRows (board) {
+  return board
+    .map((cells, y) => ({ y, cells: [...cells] }))
+    .filter(({ cells }) => cells.length > 0 && cells.every((cell) => cell !== null))
+}
+
 const LINE_POINTS = [0, 100, 250, 400, 600]
 
 export function clearCompletedRows (board) {

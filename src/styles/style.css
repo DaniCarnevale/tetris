@@ -1421,6 +1421,30 @@ canvas {
     0 0 34px rgba(54, 127, 255, 0.12);
 }
 
+#board.is-line-clearing {
+  animation: board-line-clear-pulse 560ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes board-line-clear-pulse {
+  0% {
+    filter: brightness(1);
+  }
+
+  24% {
+    filter: brightness(1.35) saturate(1.25);
+  }
+
+  100% {
+    filter: brightness(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #board.is-line-clearing {
+    animation: none;
+  }
+}
+
 .board-footer {
   display: flex;
   justify-content: space-between;

@@ -139,6 +139,21 @@ test('game tracks total cleared lines for the leaderboard', () => {
   assert.equal(game.lines, 1)
 })
 
+test('line clear events preserve removed cells for the destruction animation', () => {
+  const game = createGame({ random: createTestRandom([0, 0, 1]) })
+  game.activePiece = createPiece({ shape: [[1]], color: '#active' })
+  game.activePiece.position = { x: 0, y: BOARD_HEIGHT - 1 }
+  game.board[BOARD_HEIGHT - 1].fill('#locked')
+  game.board[BOARD_HEIGHT - 1][0] = null
+
+  moveActivePiece(game, 'down')
+
+  assert.equal(game.lastEvent.type, 'line-clear')
+  assert.equal(game.lastEvent.clearedRows.length, 1)
+  assert.equal(game.lastEvent.clearedRows[0].y, BOARD_HEIGHT - 1)
+  assert.equal(game.lastEvent.clearedRows[0].cells[0], '#active')
+})
+
 test('resetGame returns a fresh game with score, hold and board reset', () => {
   const game = createGame({ random: createTestRandom([0, 1, 2]) })
   game.score = 500
