@@ -1,19 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="../public/tetris.svg" />
+    <link rel="icon" type="image/svg+xml" href="/tetris.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tetris</title>
   </head>
   <body>
     <div id="app">
-      <canvas class="saved"></canvas>
-      <canvas id="board"></canvas>
-      <canvas class="next"></canvas>
+      <canvas class="saved" aria-label="Pieza guardada"></canvas>
+      <canvas id="board" aria-label="Tablero de Tetris"></canvas>
+      <canvas class="next" aria-label="Próxima pieza"></canvas>
     </div>
-    <strong>Score: <span></span></strong>
-    <strong>Level: <span id="level">1</span></strong>
+    <div class="hud" aria-live="polite">
+      <strong>Score: <span id="score">0</span></strong>
+      <strong>Level: <span id="level">1</span></strong>
+      <span id="status">Arrows move · Up rotates · S holds</span>
+    </div>
     <script type="module" src="./js/main.js"></script>
   </body>
 </html>

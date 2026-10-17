@@ -21,9 +21,9 @@ import {
   rotateActivePiece
 } from '../src/js/game/engine.js'
 
-function createTestRandom(sequence) {
+function createTestRandom (sequence) {
   let index = 0
-  return () => sequence[index++ % sequence.length]
+  return () => sequence[index++ % sequence.length] / 7
 }
 
 test('empty board has the configured dimensions', () => {
