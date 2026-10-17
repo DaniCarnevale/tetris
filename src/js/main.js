@@ -12,6 +12,7 @@ import { createSoundManager } from './audio/soundManager.js'
 import { createLeaderboardService } from './leaderboard/leaderboardService.js'
 import { createAvatarService, validateAvatarFile } from './leaderboard/avatarService.js'
 import { canEditProfile, createAccountService, GUEST_PROFILE_NICKNAME } from './leaderboard/accountService.js'
+import { createSupabaseClient } from './leaderboard/supabaseClient.js'
 import {
   consumeProfileSetupPending,
   createProfileCardModel,
@@ -143,9 +144,10 @@ const boardContext = boardCanvas.getContext('2d')
 const nextContext = nextCanvas.getContext('2d')
 const savedContext = savedCanvas.getContext('2d')
 const soundManager = createSoundManager()
-const leaderboardService = createLeaderboardService()
-const avatarService = createAvatarService()
-const accountService = createAccountService()
+const supabaseClient = createSupabaseClient()
+const leaderboardService = createLeaderboardService({ supabaseClient })
+const avatarService = createAvatarService({ supabaseClient })
+const accountService = createAccountService({ supabaseClient })
 
 boardCanvas.width = BLOCK_SIZE * BOARD_WIDTH
 boardCanvas.height = BLOCK_SIZE * BOARD_HEIGHT
