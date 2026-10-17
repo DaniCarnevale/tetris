@@ -36,9 +36,10 @@ function getAudioContextConstructor () {
   return window.AudioContext || window.webkitAudioContext || null
 }
 
-function scheduleTone (context, frequency, startTime, duration, type, volume) {
+function scheduleTone (context, frequency, startTime, duration, type, volume, activeNodes = null) {
   const oscillator = context.createOscillator()
   const gain = context.createGain()
+  const node = { oscillator, gain }
 
   oscillator.type = type
   oscillator.frequency.setValueAtTime(frequency, startTime)
@@ -49,6 +50,13 @@ function scheduleTone (context, frequency, startTime, duration, type, volume) {
   gain.connect(context.destination)
   oscillator.start(startTime)
   oscillator.stop(startTime + duration + 0.03)
+
+  if (activeNodes) {
+    activeNodes.add(node)
+    oscillator.onended = () => activeNodes.delete(node)
+  }
+
+  return node
 }
 
 export function createSoundManager () {
@@ -57,6 +65,8 @@ export function createSoundManager () {
   let musicEnabled = true
   let musicVolume = 0.5
   let musicTimer = null
+  let musicRunId = 0
+  const musicNodes = new Set()
 
   function createContext () {
     const AudioContextConstructor = getAudioContextConstructor()
@@ -72,9 +82,9 @@ export function createSoundManager () {
     return createContext()
   }
 
-  function scheduleMusicLoop () {
+  function scheduleMusicLoop (runId) {
     musicTimer = null
-    if (!musicEnabled || musicVolume <= 0) return
+    if (runId !== musicRunId || !musicEnabled || musicVolume <= 0) return
 
     const audioContext = createContext()
     if (!audioContext) return
@@ -82,10 +92,37 @@ export function createSoundManager () {
     const startTime = audioContext.currentTime + 0.03
     let offset = 0
     MUSIC_SEQUENCE.forEach((note) => {
-      scheduleTone(audioContext, note.frequency, startTime + offset, note.duration, 'triangle', 0.025 * musicVolume)
+      scheduleTone(audioContext, note.frequency, startTime + offset, note.duration, 'triangle', 0.025 * musicVolume, musicNodes)
       offset += note.duration
     })
-    musicTimer = window.setTimeout(scheduleMusicLoop, (offset + 0.05) * 1000)
+    musicTimer = window.setTimeout(() => scheduleMusicLoop(runId), (offset + 0.05) * 1000)
+  }
+
+  function startMusicLoop () {
+    if (musicTimer !== null || !musicEnabled || musicVolume <= 0) return
+    musicRunId += 1
+    scheduleMusicLoop(musicRunId)
+  }
+
+  function stopMusicPlayback () {
+    musicRunId += 1
+
+    if (musicTimer !== null) window.clearTimeout(musicTimer)
+    musicTimer = null
+
+    if (!context) return
+
+    const stopTime = context.currentTime + 0.01
+    musicNodes.forEach(({ oscillator, gain }) => {
+      try {
+        gain.gain.cancelScheduledValues(context.currentTime)
+        gain.gain.setValueAtTime(0.0001, context.currentTime)
+        oscillator.stop(stopTime)
+      } catch {
+        // A note can finish between the cancellation loop and the stop call.
+      }
+    })
+    musicNodes.clear()
   }
 
   function playLineClear (lines) {
@@ -125,21 +162,21 @@ export function createSoundManager () {
   return {
     unlock () {
       const audioContext = createContext()
-      if (musicEnabled && musicTimer === null) scheduleMusicLoop()
+      if (musicEnabled && musicTimer === null) startMusicLoop()
       return audioContext
     },
     playLineClear,
     playLevelUp,
     playGameOver,
     playMusic () {
-      if (musicTimer === null) scheduleMusicLoop()
+      startMusicLoop()
     },
     stopMusic () {
-      if (musicTimer !== null) window.clearTimeout(musicTimer)
-      musicTimer = null
+      stopMusicPlayback()
     },
     setEnabled (value) {
       enabled = Boolean(value)
+      if (!enabled) stopMusicPlayback()
     },
     isEnabled () {
       return enabled
