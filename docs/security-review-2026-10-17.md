@@ -23,6 +23,8 @@ La aplicación no contiene secretos privados trackeados. La publishable key de S
 | Historial Git | PASS — sin `.env`, certificados, claves privadas ni tokens reales |
 | Sinks peligrosos en `src` | PASS — sin `innerHTML`, `eval`, `new Function` ni `console.log` |
 | RLS / Storage | PASS — verificado en el proyecto Supabase `piztcrckudupfljkizfa` |
+| Auth / emails | PASS — `anon` y `authenticated` no tienen privilegios sobre `auth.users` ni `auth.identities` |
+| API pública de scores | PASS — el ranking responde sólo con campos públicos; `player_id` devuelve `permission denied` |
 | Headers en producción | PASS — `HEAD https://tetris2mk.netlify.app/` respondió 200 con los headers esperados |
 
 ## Hardening aplicado
@@ -31,17 +33,19 @@ La aplicación no contiene secretos privados trackeados. La publishable key de S
 - Los usuarios anónimos ya no pueden subir, reemplazar o borrar avatares aunque intenten saltarse la interfaz.
 - Las funciones `security definer` de Storage usan `search_path = ''` y referencias calificadas para reducir riesgos de resolución de objetos.
 - Se eliminó la función SQL antigua `can_upload_avatar()` que ya no era necesaria.
+- La tabla pública `scores` aplica privilegios por columna: no expone `player_id`, `id` ni `start_level`; `avatar_upload_limits` no es consultable por roles públicos.
+- La interfaz sólo muestra `Google conectado`; el email no se muestra en el ranking ni en la UI pública.
 - Netlify incorpora `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, HSTS y CSP en modo report-only mediante `netlify.toml`; se verificó directamente en producción.
 
-Migración: `supabase/migrations/005_security_hardening.sql`
-Aplicada y verificada en Supabase mediante `pg_policies` y `pg_proc`.
+Migraciones: `supabase/migrations/005_security_hardening.sql`, `supabase/migrations/006_privacy_hardening.sql`
+Aplicadas y verificadas en Supabase mediante `pg_policies`, `pg_proc`, privilegios de columnas y llamadas REST públicas.
 
 ## Riesgos residuales / decisiones de producto
 
 1. El bucket `avatars` es público porque las imágenes se muestran en el ranking y durante la partida. Cualquiera con la URL puede leerlas; no se almacenan documentos privados allí.
 2. Las puntuaciones se generan en el cliente. Un usuario técnicamente avanzado puede falsificar un score; para anti-cheat real hace falta un backend o validación server-side.
 3. La CSP está en `Report-Only` para observar compatibilidad con el badge de Netlify antes de pasarla a enforcement.
-4. El ranking es público por diseño y sólo expone nickname, score, nivel, líneas, stage, avatar público y fecha; no expone emails.
+4. El ranking es público por diseño y sólo expone nickname, score, nivel, líneas, stage, avatar público y fecha; no expone emails ni UUIDs internos.
 
 ## Recomendaciones operativas
 
