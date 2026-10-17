@@ -38,38 +38,44 @@ test('the game locks document scrolling only while a game is active', () => {
 
 test('piece stats use a compact visual model in the game cockpit', () => {
   assert.deepEqual(getPieceStatsLayout({ width: 1440 }), {
-    orientation: 'sidebar',
+    orientation: 'cartesian',
     showLongLabels: false
   })
   assert.deepEqual(getPieceStatsLayout({ width: 390 }), {
-    orientation: 'sidebar',
+    orientation: 'cartesian',
     showLongLabels: false
   })
 })
 
-test('piece stats use horizontal meters above each silhouette', () => {
-  assert.match(mainSource, /fill\.style\.width = `\$\{row\.width\}%`/)
-  assert.doesNotMatch(mainSource, /fill\.style\.height = `\$\{row\.width\}%`/)
-  assert.match(stylesheet, /body\.is-game-active \.piece-stat-track \{[\s\S]*width: auto;[\s\S]*height: 4px;/)
-  assert.match(stylesheet, /body\.is-game-active \.piece-stat-fill \{[\s\S]*transition: width 260ms ease;/)
+test('piece stats use a positive-axis chart with vertical meters', () => {
+  assert.match(mainSource, /fill\.style\.height = `\$\{row\.height\}%`/)
+  assert.doesNotMatch(mainSource, /fill\.style\.width = `\$\{row\.width\}%`/)
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-track \{[\s\S]*height: 54px;[\s\S]*align-items: flex-end;/)
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-fill \{[\s\S]*transition: height 260ms ease;/)
 })
 
 test('piece stats render each tetromino as a unified silhouette below its fill', () => {
   assert.match(mainSource, /piece-stat-thumbnail/)
   assert.match(mainSource, /createElementNS/)
   assert.match(mainSource, /piece-stat-glyph/)
-  assert.match(mainSource, /item\.append\(meter, thumbnail\)/)
+  assert.match(mainSource, /item\.append\(meter, axis, thumbnail\)/)
   assert.doesNotMatch(mainSource, /label\.textContent = row\.shortLabel/)
   assert.match(stylesheet, /body\.is-game-active \.game-side-rail \.piece-stat-row \{[\s\S]*display: grid;/)
 })
 
-test('piece stat spacing keeps the meter and number compact', () => {
-  assert.match(stylesheet, /body\.is-game-active \.piece-stat-meter \{[\s\S]*display: flex;[\s\S]*gap: 6px;/)
+test('piece stat spacing keeps the number above the axis', () => {
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-meter \{[\s\S]*position: relative;[\s\S]*height: 54px;/)
   assert.match(stylesheet, /body\.is-game-active \.piece-stat-track \{[\s\S]*margin: 0;/)
-  assert.match(stylesheet, /body\.is-game-active \.piece-stat-count \{[\s\S]*margin: 0;[\s\S]*text-align: left;/)
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-count \{[\s\S]*text-align: center;/)
 })
 
-test('piece stat cards use a readable two-column side rail', () => {
-  assert.match(stylesheet, /body\.is-game-active \.game-side-rail \.piece-stats-list \{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/)
-  assert.match(stylesheet, /body\.is-game-active \.game-side-rail \.piece-stat-row \{[\s\S]*grid-template-rows: auto 23px;/)
+test('piece stat cards use one compact positive-axis row', () => {
+  assert.match(stylesheet, /body\.is-game-active \.game-side-rail \.piece-stats-list \{[\s\S]*grid-template-columns: repeat\(7, minmax\(0, 1fr\)\);/)
+  assert.match(stylesheet, /body\.is-game-active \.game-side-rail \.piece-stat-row \{[\s\S]*grid-template-rows: 54px 1px 28px;/)
+})
+
+test('previews stay compact instead of stretching to the board height', () => {
+  assert.match(stylesheet, /body\.is-game-active \.board-cockpit \{[\s\S]*align-items: start;/)
+  assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \{[\s\S]*align-self: start;/)
+  assert.match(stylesheet, /body\.is-game-active \.cockpit-preview \.preview-stage \{[\s\S]*flex: 0 0 108px;/)
 })

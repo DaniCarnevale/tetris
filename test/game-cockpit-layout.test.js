@@ -11,6 +11,8 @@ test('game cockpit removes repeated copy and broken restart controls', () => {
   assert.doesNotMatch(html, /La pieza translúcida muestra dónde caerá\./)
   assert.doesNotMatch(html, /id="pauseButton"/)
   assert.doesNotMatch(html, /id="restartButton"/)
+  assert.doesNotMatch(html, /id="controlHint"/)
+  assert.doesNotMatch(html, /Espacio rotar · ↓ bajar · P pausar/)
 })
 
 test('game cockpit keeps the focus path around the board', () => {
@@ -21,10 +23,10 @@ test('game cockpit keeps the focus path around the board', () => {
   assert.match(html, /id="recordScore"/)
 })
 
-test('piece stats use a compact meter above each tetromino thumbnail', () => {
-  assert.match(source, /fill\.style\.width = `\$\{row\.width\}%`/)
-  assert.match(source, /item\.append\(meter, thumbnail\)/)
-  assert.doesNotMatch(source, /fill\.style\.height = `\$\{row\.width\}%`/)
+test('piece stats use a compact vertical meter above each tetromino thumbnail', () => {
+  assert.match(source, /fill\.style\.height = `\$\{row\.height\}%`/)
+  assert.match(source, /item\.append\(meter, axis, thumbnail\)/)
+  assert.doesNotMatch(source, /fill\.style\.width = `\$\{row\.width\}%`/)
   assert.doesNotMatch(source, /item\.append\(thumbnail, track, count\)/)
 })
 

@@ -1712,15 +1712,6 @@ canvas {
   }
 }
 
-.board-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 13px;
-  color: #72809a;
-  font-size: 0.68rem;
-}
-
 .legend-dot {
   width: 6px;
   height: 6px;
@@ -2375,10 +2366,6 @@ canvas {
     grid-template-columns: 1fr;
   }
 
-  .board-footer {
-    flex-wrap: wrap;
-  }
-
   #board {
     height: min(610px, calc(100vh - 240px));
   }
@@ -2491,10 +2478,6 @@ canvas {
 
   #board {
     height: min(500px, calc(100vh - 240px));
-  }
-
-  .board-footer {
-    font-size: 0.62rem;
   }
 
   .settings-panel-inner {
@@ -2617,13 +2600,15 @@ body.is-game-active .board-cockpit {
   flex: 1 1 auto;
   grid-template-columns: minmax(104px, 128px) minmax(250px, 1fr) minmax(104px, 128px);
   gap: 12px;
-  align-items: stretch;
+  align-items: start;
 }
 
 body.is-game-active .cockpit-preview {
   display: flex;
   min-width: 0;
   min-height: 0;
+  align-self: start;
+  height: fit-content;
   padding: 11px;
   flex-direction: column;
   border-radius: 15px;
@@ -2646,8 +2631,9 @@ body.is-game-active .preview-heading h2 {
 }
 
 body.is-game-active .cockpit-preview .preview-stage {
-  min-height: 92px;
-  flex: 1 1 auto;
+  min-height: 108px;
+  height: 108px;
+  flex: 0 0 108px;
   border-color: rgba(148, 163, 184, 0.12);
   background:
     linear-gradient(rgba(148, 163, 184, 0.025) 1px, transparent 1px),
@@ -2688,18 +2674,6 @@ body.is-game-active #board {
   height: min(650px, 100%);
   max-width: 100%;
   max-height: 100%;
-}
-
-body.is-game-active .board-footer {
-  display: flex;
-  justify-content: center;
-  margin-top: 6px;
-  color: #7d8da9;
-  font-size: 0.6rem;
-}
-
-body.is-game-active .board-footer .board-status {
-  margin: 0;
 }
 
 body.is-game-active .profile-menu-shell {
@@ -2804,7 +2778,7 @@ body.is-game-active .profile-menu-item small {
 body.is-game-active .game-side-rail .piece-stats-card {
   display: flex;
   min-height: 0;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   padding: 12px;
   flex-direction: column;
   border-radius: 15px;
@@ -2816,68 +2790,89 @@ body.is-game-active .game-side-rail .piece-stats-card .card-heading {
 }
 
 body.is-game-active .game-side-rail .piece-stats-list {
+  position: relative;
   display: grid;
   min-height: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 7px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
 }
 
 body.is-game-active .game-side-rail .piece-stat-row {
   display: grid;
   min-width: 0;
-  min-height: 50px;
-  grid-template-rows: auto 23px;
-  gap: 5px;
-  padding: 7px 7px 5px;
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 10px;
-  background: rgba(5, 9, 18, 0.34);
+  min-height: 83px;
+  grid-template-rows: 54px 1px 28px;
+  gap: 0;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 body.is-game-active .piece-stat-meter {
-  display: flex;
+  position: relative;
+  display: block;
+  height: 54px;
   min-width: 0;
-  align-items: center;
-  gap: 6px;
 }
 
 body.is-game-active .piece-stat-count {
-  min-width: 1.1em;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1;
   margin: 0;
   color: #eef7ff;
   font-size: 0.64rem;
   font-variant-numeric: tabular-nums;
-  text-align: left;
+  text-align: center;
 }
 
 body.is-game-active .piece-stat-track {
   display: flex;
-  width: auto;
-  height: 4px;
-  min-width: 0;
+  width: 7px;
+  height: 54px;
   margin: 0;
-  flex: 1 1 auto;
-  align-items: stretch;
-  border: 0;
-  border-radius: 99px;
-  background: rgba(148, 163, 184, 0.12);
+  margin-inline: auto;
+  align-items: flex-end;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-bottom-color: rgba(226, 235, 249, 0.52);
+  border-radius: 5px 5px 2px 2px;
+  background: rgba(148, 163, 184, 0.08);
 }
 
 body.is-game-active .piece-stat-fill {
   display: block;
-  width: 0;
-  height: 100%;
-  max-width: 100%;
-  border-radius: inherit;
+  width: 100%;
+  height: 0;
+  max-height: 100%;
+  border-radius: 3px 3px 1px 1px;
   box-shadow: 0 0 10px currentColor;
-  transition: width 260ms ease;
+  transition: height 260ms ease;
+}
+
+body.is-game-active .piece-stat-axis {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(226, 235, 249, 0.52), transparent);
 }
 
 body.is-game-active .piece-stat-thumbnail {
+  display: grid;
   width: 100%;
-  height: 23px;
+  height: 28px;
   flex: 0 0 auto;
+  place-items: center;
   justify-self: center;
+}
+
+body.is-game-active .piece-stat-glyph {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 body.is-game-active .game-side-rail .controls-card {
@@ -2913,7 +2908,7 @@ body.is-game-active .game-side-rail .control-row {
   }
 
   body.is-game-active .game-side-rail .piece-stats-list {
-    gap: 5px;
+    gap: 4px;
   }
 }
 
@@ -2955,20 +2950,28 @@ body.is-game-active .game-side-rail .control-row {
   }
 
   body.is-game-active .game-side-rail .piece-stats-list {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 4px;
   }
 
   body.is-game-active .game-side-rail .piece-stat-row {
     min-height: 0;
-    grid-template-rows: auto 17px;
-    gap: 2px;
-    padding: 4px 3px 2px;
+    grid-template-rows: 42px 1px 22px;
+    gap: 0;
+    padding: 0 1px;
     border-radius: 7px;
   }
 
+  body.is-game-active .piece-stat-meter {
+    height: 42px;
+  }
+
+  body.is-game-active .piece-stat-track {
+    height: 42px;
+  }
+
   body.is-game-active .piece-stat-thumbnail {
-    height: 17px;
+    height: 22px;
   }
 
   body.is-game-active .piece-stat-count {
@@ -3009,6 +3012,8 @@ body.is-game-active .game-side-rail .control-row {
 
   body.is-game-active .cockpit-preview .preview-stage {
     min-height: 65px;
+    height: 65px;
+    flex-basis: 65px;
   }
 
   body.is-game-active .cockpit-preview .preview-stage canvas {
@@ -3096,6 +3101,8 @@ body.is-game-active .game-side-rail .control-row {
 
   body.is-game-active .cockpit-preview .preview-stage {
     min-height: 54px;
+    height: 54px;
+    flex-basis: 54px;
   }
 
   body.is-game-active .cockpit-preview .preview-stage canvas {

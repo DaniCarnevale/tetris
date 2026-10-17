@@ -76,7 +76,7 @@ export function getPieceStatsView (stats = {}) {
     rows: PIECE_STATS_META.map((piece, index) => ({
       ...piece,
       count: counts[index],
-      width: Math.round((counts[index] / max) * 100)
+      height: Math.round((counts[index] / max) * 100)
     }))
   }
 }
