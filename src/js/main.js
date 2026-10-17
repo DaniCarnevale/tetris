@@ -9,6 +9,7 @@ import { createGame, holdActivePiece, moveActivePiece, resetGame, rotateActivePi
 import { canReturnToStartScreen, GAME_OVER_ANIMATION_MS, getGameOverSummary } from './game/gameFlow.js'
 import { getBackdropForLevel, getStage, STAGES } from './game/stages.js'
 import { createSoundManager } from './audio/soundManager.js'
+import { createLeaderboardService } from './leaderboard/leaderboardService.js'
 import {
   createControls,
   findActionByCode,
@@ -24,6 +25,7 @@ import '../styles/style.css'
 
 const CONTROLS_STORAGE_KEY = 'tetris.controls'
 const SOUND_STORAGE_KEY = 'tetris.sound.enabled'
+const SCORE_FORMATTER = new Intl.NumberFormat('es-AR')
 const ACTION_LABELS = {
   moveLeft: 'mover a la izquierda',
   moveRight: 'mover a la derecha',
@@ -67,6 +69,8 @@ const startSceneDescription = document.querySelector('#startSceneDescription')
 const startHint = document.querySelector('#startHint')
 const startGameButton = document.querySelector('#startGameButton')
 const startSettingsButton = document.querySelector('#startSettingsButton')
+const leaderboardButton = document.querySelector('#leaderboardButton')
+const playerNickname = document.querySelector('#playerNickname')
 const stageArt = document.querySelector('#stageArt')
 const boardCanvas = document.querySelector('#board')
 const nextCanvas = document.querySelector('.next')
@@ -89,6 +93,15 @@ const resumeButton = document.querySelector('#resumeButton')
 const gameOverOverlay = document.querySelector('#gameOverOverlay')
 const gameOverDialog = document.querySelector('.game-over-dialog')
 const gameOverSummary = document.querySelector('#gameOverSummary')
+const gameOverSaveStatus = document.querySelector('#gameOverSaveStatus')
+const gameOverLeaderboardButton = document.querySelector('#gameOverLeaderboardButton')
+const gameLeaderboardButton = document.querySelector('#gameLeaderboardButton')
+const leaderboardBackdrop = document.querySelector('#leaderboardBackdrop')
+const leaderboardPanel = document.querySelector('#leaderboardPanel')
+const leaderboardClose = document.querySelector('#leaderboardClose')
+const leaderboardStatus = document.querySelector('#leaderboardStatus')
+const leaderboardList = document.querySelector('#leaderboardList')
+const leaderboardRefresh = document.querySelector('#leaderboardRefresh')
 const settingsToggle = document.querySelector('#settingsToggle')
 const openSettingsLink = document.querySelector('#openSettingsLink')
 const settingsClose = document.querySelector('#settingsClose')
@@ -103,6 +116,7 @@ const boardContext = boardCanvas.getContext('2d')
 const nextContext = nextCanvas.getContext('2d')
 const savedContext = savedCanvas.getContext('2d')
 const soundManager = createSoundManager()
+const leaderboardService = createLeaderboardService()
 
 boardCanvas.width = BLOCK_SIZE * BOARD_WIDTH
 boardCanvas.height = BLOCK_SIZE * BOARD_HEIGHT
@@ -127,6 +141,7 @@ let listeningAction = null
 let lastRenderedLevel = 0
 let gameOverAnimationFinished = false
 let gameOverTimer = null
+let leaderboardSaveRequest = 0
 
 function loadControls () {
   try {
@@ -433,6 +448,104 @@ function showSettingsFeedback (message, isError = false) {
   settingsFeedback.classList.toggle('is-error', isError)
 }
 
+function savePlayerNickname () {
+  const profile = leaderboardService.setNickname(playerNickname.value)
+  playerNickname.value = profile.nickname
+  return profile
+}
+
+function renderLeaderboard (entries) {
+  leaderboardList.replaceChildren()
+
+  if (entries.length === 0) {
+    const empty = document.createElement('li')
+    empty.className = 'leaderboard-empty'
+    empty.textContent = 'Todavía no hay puntuaciones. Sé el primero en entrar al ranking.'
+    leaderboardList.append(empty)
+    return
+  }
+
+  entries.forEach((entry, index) => {
+    const row = document.createElement('li')
+    const details = document.createElement('div')
+    const nickname = document.createElement('span')
+    const meta = document.createElement('span')
+    const score = document.createElement('strong')
+
+    row.className = `leaderboard-row${index === 0 ? ' is-top' : ''}`
+    nickname.className = 'leaderboard-player'
+    nickname.textContent = entry.nickname
+    meta.className = 'leaderboard-meta'
+    meta.textContent = `Nivel ${entry.level} · ${entry.lines} líneas`
+    score.className = 'leaderboard-score'
+    score.textContent = SCORE_FORMATTER.format(entry.score)
+    details.append(nickname, meta)
+    row.append(details, score)
+    leaderboardList.append(row)
+  })
+}
+
+async function refreshLeaderboard () {
+  leaderboardStatus.textContent = 'Cargando puntuaciones...'
+  const result = await leaderboardService.getLeaderboard()
+  renderLeaderboard(result.entries)
+
+  if (result.source === 'online') {
+    leaderboardStatus.textContent = 'Ranking histórico · mejores puntuaciones'
+    return
+  }
+
+  leaderboardStatus.textContent = leaderboardService.isOnline()
+    ? 'Sin conexión al ranking. Mostrando puntuaciones de este dispositivo.'
+    : 'Modo invitado · ranking guardado en este dispositivo'
+}
+
+function openLeaderboard () {
+  leaderboardPanel.hidden = false
+  leaderboardBackdrop.hidden = false
+  leaderboardPanel.setAttribute('aria-hidden', 'false')
+  refreshLeaderboard()
+  leaderboardClose.focus()
+}
+
+function closeLeaderboard () {
+  leaderboardPanel.hidden = true
+  leaderboardBackdrop.hidden = true
+  leaderboardPanel.setAttribute('aria-hidden', 'true')
+
+  if (!gameOverOverlay.hidden) gameOverLeaderboardButton.focus()
+  else if (gameScreen.hidden) leaderboardButton.focus()
+  else gameLeaderboardButton.focus()
+}
+
+async function submitGameScore () {
+  const requestId = ++leaderboardSaveRequest
+  const currentLevel = getCurrentLevel(game.score, game.startLevel).level
+  gameOverSaveStatus.className = 'game-over-save-status'
+  gameOverSaveStatus.textContent = 'Guardando puntuación...'
+
+  const result = await leaderboardService.submitScore({
+    score: game.score,
+    level: currentLevel,
+    lines: game.lines,
+    stageId: game.stageId,
+    startLevel: game.startLevel
+  })
+
+  if (requestId !== leaderboardSaveRequest) return
+
+  if (result.source === 'online') {
+    gameOverSaveStatus.classList.add('is-success')
+    gameOverSaveStatus.textContent = 'Puntuación guardada en el ranking histórico.'
+    return
+  }
+
+  gameOverSaveStatus.classList.add('is-warning')
+  gameOverSaveStatus.textContent = leaderboardService.isOnline()
+    ? 'Sin conexión: guardada en este dispositivo.'
+    : 'Modo invitado: guardada en este dispositivo.'
+}
+
 function openSettings () {
   settingsPanel.hidden = false
   settingsBackdrop.hidden = false
@@ -490,6 +603,7 @@ function showGameOverOverlay () {
   gameOverOverlay.setAttribute('aria-hidden', 'false')
   gameOverOverlay.classList.add('is-active')
   gameOverDialog.focus()
+  submitGameScore()
 
   gameOverTimer = window.setTimeout(() => {
     gameOverAnimationFinished = true
@@ -610,6 +724,7 @@ function update (time = 0) {
 
 function startGame () {
   const startLevel = Number(startLevelSelect.value)
+  savePlayerNickname()
   hideGameOverOverlay()
   game = createGame({ startLevel, startingStage: selectedStage })
   gameStarted = true
@@ -625,6 +740,7 @@ function startGame () {
 
 renderStagePicker()
 selectStage(selectedStage)
+playerNickname.value = leaderboardService.getProfile().nickname
 soundManager.setEnabled(loadSoundSetting())
 renderSoundToggle()
 renderControlLabels()
@@ -634,6 +750,12 @@ window.requestAnimationFrame(update)
 startLevelSelect.addEventListener('change', updateStartScene)
 startGameButton.addEventListener('click', startGame)
 startSettingsButton.addEventListener('click', openSettings)
+leaderboardButton.addEventListener('click', openLeaderboard)
+gameLeaderboardButton.addEventListener('click', openLeaderboard)
+gameOverLeaderboardButton.addEventListener('click', openLeaderboard)
+leaderboardClose.addEventListener('click', closeLeaderboard)
+leaderboardBackdrop.addEventListener('click', closeLeaderboard)
+leaderboardRefresh.addEventListener('click', refreshLeaderboard)
 pauseButton.addEventListener('click', togglePauseGame)
 resumeButton.addEventListener('click', togglePauseGame)
 settingsToggle.addEventListener('click', openSettings)
@@ -680,6 +802,11 @@ document.addEventListener('keydown', (event) => {
 
   if (!settingsPanel.hidden) {
     if (event.code === 'Escape') closeSettings()
+    return
+  }
+
+  if (!leaderboardPanel.hidden) {
+    if (event.code === 'Escape') closeLeaderboard()
     return
   }
 

@@ -1,3 +1,5 @@
+/* global localStorage */
+
 import { createClient } from '@supabase/supabase-js'
 
 import { createLeaderboardEntry, sortLeaderboard } from './leaderboardModel.js'

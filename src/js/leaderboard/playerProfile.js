@@ -1,3 +1,5 @@
+/* global localStorage */
+
 import { normalizeNickname } from './leaderboardModel.js'
 
 export const PLAYER_PROFILE_STORAGE_KEY = 'tetris.player.profile'
