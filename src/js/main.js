@@ -10,6 +10,7 @@ import { canReturnToStartScreen, GAME_OVER_ANIMATION_MS, getGameOverSummary } fr
 import { shouldAutoPause } from './game/focusPause.js'
 import { getBackdropForLevel, getStage, STAGES } from './game/stages.js'
 import { createLineClearAnimation, getLineClearProgress, isLineClearAnimationActive } from './game/lineClearAnimation.js'
+import { getGameLayoutMode, getGameViewportState, getPieceStatsLayout } from './game/layout.js'
 import { getPieceStatsView } from './game/pieceStats.js'
 import { createSoundManager } from './audio/soundManager.js'
 import { createLeaderboardService } from './leaderboard/leaderboardService.js'
@@ -248,6 +249,19 @@ let profileEditingEnabled = false
 let currentAccount = { status: 'guest', isAnonymous: true }
 let persistedProfile = null
 let lastRenderedPieceStats = ''
+
+function syncGameViewport () {
+  const viewport = window.visualViewport
+  const width = viewport?.width ?? window.innerWidth
+  const height = viewport?.height ?? window.innerHeight
+  const viewportState = getGameViewportState(gameStarted)
+  const pieceStatsLayout = getPieceStatsLayout({ width, height })
+
+  document.body.classList.toggle('is-game-active', viewportState.isGameActive)
+  document.body.dataset.gameLayout = getGameLayoutMode({ width, height })
+  document.body.dataset.pieceStatsOrientation = pieceStatsLayout.orientation
+  document.body.dataset.pieceStatsLabels = pieceStatsLayout.showLongLabels ? 'long' : 'short'
+}
 
 function loadUserSettings () {
   try {
@@ -641,9 +655,9 @@ function renderPieceStats () {
     track.className = 'piece-stat-track'
     fill.className = 'piece-stat-fill'
     dot.style.backgroundColor = row.color
-    fill.style.width = `${row.width}%`
+    fill.style.height = `${row.width}%`
     fill.style.backgroundColor = row.color
-    label.textContent = `${row.shortLabel} · ${row.label}`
+    label.textContent = row.shortLabel
     count.textContent = String(row.count)
     track.setAttribute('role', 'progressbar')
     track.setAttribute('aria-label', `${row.label}: ${row.count}`)
@@ -1277,6 +1291,7 @@ function returnToStartScreen (keyCode) {
   gameStarted = false
   gameScreen.hidden = true
   startScreen.hidden = false
+  syncGameViewport()
   startHint.textContent = 'Listo para jugar.'
   updateStartScene()
   startGameButton.focus()
@@ -1287,6 +1302,7 @@ function restartGame () {
   hideGameOverOverlay()
   game = resetGame(game)
   gameStarted = true
+  syncGameViewport()
   dropCounter = 0
   lastTime = performance.now()
   soundManager.unlock()
@@ -1391,6 +1407,7 @@ function startGame () {
   hideGameOverOverlay()
   game = createGame({ startLevel, startingStage: selectedStage })
   gameStarted = true
+  syncGameViewport()
   lastRenderedLevel = 0
   startScreen.hidden = true
   gameScreen.hidden = false
@@ -1410,11 +1427,14 @@ persistedProfile = { ...initialProfile }
 playerNickname.value = initialProfile.nickname
 renderProfileAvatar(initialProfile)
 applyUserSettings(userSettings)
+syncGameViewport()
 draw()
 syncRemoteProfile().catch(() => {})
 window.requestAnimationFrame(update)
 
 startLevelSelect.addEventListener('change', updateStartScene)
+window.addEventListener('resize', syncGameViewport)
+window.visualViewport?.addEventListener('resize', syncGameViewport)
 startGameButton.addEventListener('click', startGame)
 avatarInput.addEventListener('change', handleAvatarSelection)
 avatarRemoveButton.addEventListener('click', removeAvatar)

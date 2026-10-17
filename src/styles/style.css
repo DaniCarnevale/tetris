@@ -2271,3 +2271,495 @@ canvas {
     padding: 24px 18px 32px;
   }
 }
+
+/* During a match the screen becomes a compact cockpit: all primary information
+   stays in the viewport and the page itself never becomes a scrolling surface. */
+body.is-game-active {
+  height: 100dvh;
+  padding: 14px 24px;
+  overflow: hidden;
+}
+
+body.is-game-active .game-shell {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+}
+
+body.is-game-active .game-header {
+  flex: 0 0 auto;
+  margin-bottom: 12px;
+}
+
+body.is-game-active .game-layout {
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-areas:
+    'left board right'
+    'stats stats stats';
+  grid-template-columns: minmax(168px, 190px) minmax(300px, 1fr) minmax(196px, 220px);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: stretch;
+}
+
+body.is-game-active .game-layout > .side-column:first-child {
+  grid-area: left;
+}
+
+body.is-game-active .game-layout > .board-card {
+  grid-area: board;
+}
+
+body.is-game-active .game-layout > .side-column:nth-child(3) {
+  grid-area: right;
+}
+
+body.is-game-active .game-layout > .piece-stats-card {
+  grid-area: stats;
+}
+
+body.is-game-active .side-column {
+  min-height: 0;
+  gap: 10px;
+  align-content: start;
+  grid-template-rows: auto auto;
+}
+
+body.is-game-active .info-card {
+  min-height: 0;
+  padding: 12px;
+  border-radius: 15px;
+}
+
+body.is-game-active .card-heading {
+  margin-bottom: 10px;
+}
+
+body.is-game-active .preview-stage {
+  min-height: 76px;
+}
+
+body.is-game-active .preview-stage canvas {
+  width: 76px;
+  height: 76px;
+}
+
+body.is-game-active .card-note {
+  display: none;
+}
+
+body.is-game-active .stat-grid {
+  gap: 6px;
+}
+
+body.is-game-active .stat-item {
+  padding: 9px;
+}
+
+body.is-game-active .stat-item span {
+  margin-bottom: 3px;
+  font-size: 0.6rem;
+}
+
+body.is-game-active .stat-item strong {
+  font-size: 1.15rem;
+}
+
+body.is-game-active .level-progress {
+  margin-top: 9px;
+}
+
+body.is-game-active .control-list {
+  gap: 6px;
+}
+
+body.is-game-active .control-row {
+  font-size: 0.66rem;
+}
+
+body.is-game-active .board-card {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+
+body.is-game-active .board-toolbar {
+  margin-bottom: 6px;
+}
+
+body.is-game-active .board-stage {
+  min-height: 0;
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+body.is-game-active #board {
+  width: auto;
+  height: min(650px, 100%);
+  max-height: 100%;
+}
+
+body.is-game-active .board-footer {
+  margin-top: 6px;
+  font-size: 0.62rem;
+}
+
+body.is-game-active .piece-stats-card {
+  display: grid;
+  min-height: 92px;
+  grid-template-columns: minmax(130px, 0.55fr) minmax(0, 1.45fr);
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+}
+
+body.is-game-active .piece-stats-card .card-heading {
+  margin: 0;
+}
+
+body.is-game-active .piece-stats-list {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(34px, 1fr));
+  gap: 6px;
+}
+
+body.is-game-active .piece-stat-row {
+  display: grid;
+  height: 70px;
+  min-width: 0;
+  grid-template-rows: auto 1fr;
+  gap: 5px;
+  padding: 7px 5px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.08), rgba(5, 9, 18, 0.2));
+}
+
+body.is-game-active .piece-stat-heading {
+  gap: 4px;
+  font-size: 0.62rem;
+}
+
+body.is-game-active .piece-stat-label {
+  justify-content: center;
+  gap: 4px;
+}
+
+body.is-game-active .piece-stat-dot {
+  width: 17px;
+  height: 17px;
+  margin-right: 0;
+  border-radius: 6px;
+  box-shadow: 0 0 10px currentColor;
+}
+
+body.is-game-active .piece-stat-track {
+  display: flex;
+  height: auto;
+  min-height: 0;
+  align-items: end;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 6px;
+  background:
+    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    rgba(5, 9, 18, 0.32);
+  background-size: 100% 8px;
+}
+
+body.is-game-active .piece-stat-fill {
+  width: 100%;
+  min-height: 0;
+  border-radius: 4px;
+  box-shadow: 0 0 12px currentColor;
+  transition: height 260ms ease;
+}
+
+@media (max-width: 1060px) {
+  body.is-game-active {
+    padding-inline: 14px;
+  }
+
+  body.is-game-active .game-layout {
+    grid-template-columns: minmax(148px, 170px) minmax(280px, 1fr) minmax(176px, 194px);
+  }
+
+  body.is-game-active .piece-stats-card {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 820px) {
+  body.is-game-active {
+    padding: 10px 10px;
+  }
+
+  body.is-game-active .game-header {
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  body.is-game-active .brand-lockup {
+    gap: 9px;
+  }
+
+  body.is-game-active .brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 1rem;
+  }
+
+  body.is-game-active h1 {
+    font-size: 1.55rem;
+  }
+
+  body.is-game-active .header-actions {
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+
+  body.is-game-active .player-chip-copy,
+  body.is-game-active .game-badge,
+  body.is-game-active .header-actions .button > span:not(.button-icon),
+  body.is-game-active .header-actions .button > kbd {
+    display: none;
+  }
+
+  body.is-game-active .player-chip {
+    flex-basis: auto;
+    padding: 4px;
+  }
+
+  body.is-game-active .header-actions .button {
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0 8px;
+  }
+
+  body.is-game-active .game-layout {
+    grid-template-areas:
+      'left board right'
+      'stats stats stats';
+    grid-template-columns: minmax(86px, 100px) minmax(0, 1fr) minmax(86px, 100px);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 7px;
+  }
+
+  body.is-game-active .side-column {
+    gap: 7px;
+  }
+
+  body.is-game-active .info-card {
+    padding: 9px;
+    border-radius: 12px;
+  }
+
+  body.is-game-active .card-heading {
+    gap: 5px;
+    margin-bottom: 7px;
+  }
+
+  body.is-game-active .card-heading h2 {
+    font-size: 0.72rem;
+  }
+
+  body.is-game-active .preview-stage {
+    min-height: 68px;
+    border-radius: 9px;
+  }
+
+  body.is-game-active .preview-stage canvas {
+    width: 62px;
+    height: 62px;
+  }
+
+  body.is-game-active .stat-grid {
+    gap: 4px;
+  }
+
+  body.is-game-active .stat-item {
+    padding: 6px 4px;
+    text-align: center;
+  }
+
+  body.is-game-active .stat-item span {
+    font-size: 0.52rem;
+  }
+
+  body.is-game-active .stat-item strong {
+    font-size: 0.92rem;
+  }
+
+  body.is-game-active .control-list {
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+
+  body.is-game-active .control-row {
+    display: grid;
+    gap: 3px;
+    justify-items: center;
+    font-size: 0.55rem;
+  }
+
+  body.is-game-active .control-row > span:last-child {
+    gap: 2px;
+  }
+
+  body.is-game-active .control-row .key-chip-small {
+    min-width: 21px;
+    min-height: 20px;
+    padding: 2px 4px;
+    font-size: 0.55rem;
+  }
+
+  body.is-game-active .piece-stats-card {
+    min-height: 78px;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px;
+  }
+
+  body.is-game-active .piece-stats-card .card-heading h2 {
+    font-size: 0.68rem;
+  }
+
+  body.is-game-active .piece-stats-list {
+    gap: 3px;
+  }
+
+  body.is-game-active .piece-stat-row {
+    height: 58px;
+    gap: 3px;
+    padding: 4px 2px;
+    border-radius: 7px;
+  }
+
+  body.is-game-active .piece-stat-heading {
+    font-size: 0.56rem;
+  }
+
+  body.is-game-active .piece-stat-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 4px;
+  }
+
+  body.is-game-active .piece-stat-count {
+    font-size: 0.58rem;
+  }
+
+  body.is-game-active .board-footer {
+    gap: 5px;
+    margin-top: 4px;
+    font-size: 0.56rem;
+  }
+
+  body.is-game-active #board {
+    height: min(610px, 100%);
+  }
+}
+
+@media (max-width: 560px) {
+  body.is-game-active {
+    padding: 8px 6px;
+  }
+
+  body.is-game-active .brand-mark {
+    display: none;
+  }
+
+  body.is-game-active h1 {
+    font-size: 1.28rem;
+  }
+
+  body.is-game-active .eyebrow {
+    font-size: 0.52rem;
+  }
+
+  body.is-game-active .game-layout {
+    grid-template-columns: minmax(72px, 78px) minmax(0, 1fr) minmax(72px, 78px);
+    gap: 5px;
+  }
+
+  body.is-game-active .side-column {
+    gap: 5px;
+  }
+
+  body.is-game-active .info-card {
+    padding: 7px 5px;
+  }
+
+  body.is-game-active .card-kicker {
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+  }
+
+  body.is-game-active .card-heading h2 {
+    font-size: 0.62rem;
+  }
+
+  body.is-game-active .next-indicator,
+  body.is-game-active .key-chip {
+    font-size: 0.56rem;
+  }
+
+  body.is-game-active .preview-stage {
+    min-height: 60px;
+  }
+
+  body.is-game-active .preview-stage canvas {
+    width: 54px;
+    height: 54px;
+  }
+
+  body.is-game-active .controls-card {
+    display: none;
+  }
+
+  body.is-game-active .stat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  body.is-game-active .level-progress {
+    height: 3px;
+    margin-top: 5px;
+  }
+
+  body.is-game-active .board-toolbar .board-status {
+    display: none;
+  }
+
+  body.is-game-active #board {
+    height: min(500px, 100%);
+  }
+
+  body.is-game-active .board-footer > span:first-child {
+    display: none;
+  }
+
+  body.is-game-active .piece-stats-card {
+    min-height: 68px;
+    grid-template-columns: 82px minmax(0, 1fr);
+  }
+
+  body.is-game-active .piece-stats-card .card-heading {
+    display: block;
+  }
+
+  body.is-game-active .piece-stats-card .next-indicator {
+    display: block;
+    margin-top: 4px;
+  }
+
+  body.is-game-active .piece-stat-row {
+    height: 50px;
+  }
+
+  body.is-game-active .piece-stat-track {
+    background-size: 100% 6px;
+  }
+}

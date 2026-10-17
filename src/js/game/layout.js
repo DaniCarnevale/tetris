@@ -10,3 +10,10 @@ export function getGameViewportState (isGameActive) {
     shouldLockScroll: Boolean(isGameActive)
   }
 }
+
+export function getPieceStatsLayout () {
+  return {
+    orientation: 'horizontal',
+    showLongLabels: false
+  }
+}
