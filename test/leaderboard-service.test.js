@@ -61,6 +61,7 @@ test('submits only a server-verified run result online', async () => {
           error: null
         }
       }
+    }
   }
   const service = createLeaderboardService({
     storage,

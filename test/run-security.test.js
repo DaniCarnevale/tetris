@@ -19,9 +19,10 @@ test('seeded runs reproduce the same piece sequence', () => {
 })
 
 test('run actions accept only canonical gameplay commands and enforce a cap', () => {
-  const actions = normalizeRunActions(['left', 'rotate', 'hold', 'down', 'pause', 'score', 'right'])
+  const actions = normalizeRunActions(['left', 'rotate', 'hold', 'down', 'right'])
 
   assert.deepEqual(actions, ['left', 'rotate', 'hold', 'down', 'right'])
+  assert.equal(normalizeRunActions(['left', 'pause', 'right']), null)
   assert.equal(normalizeRunActions(Array(MAX_RUN_ACTIONS + 1).fill('down')), null)
 })
 

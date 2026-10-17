@@ -45,6 +45,7 @@ export function createLeaderboardService ({
         storage
       })
     },
+    startRun: (details) => startRun({ client, online, details }),
     submitScore: (details) => submitScore({ client, online, details, profileStorage, storage }),
     subscribeToLeaderboard: (onInsert) => subscribeToLeaderboard({ client, online, onInsert })
   }
@@ -97,6 +98,45 @@ async function getLeaderboard ({ client, online, limit, stageId, startLevel, sto
   }
 }
 
+async function startRun ({ client, online, details = {} }) {
+  const startLevel = Number(details.startLevel)
+  const stageId = typeof details.stageId === 'string' ? details.stageId : 'fresh'
+
+  if (!online) {
+    return { source: 'local', runId: null, seed: null, error: null }
+  }
+
+  try {
+    const user = await ensureAnonymousUser(client)
+    if (!client.functions?.invoke) throw new Error('secure_run_unavailable')
+
+    const { data, error } = await client.functions.invoke('start-run', {
+      body: { stageId, startLevel }
+    })
+    if (error) throw error
+
+    const seed = Number(data?.seed)
+    if (typeof data?.runId !== 'string' || !Number.isInteger(seed) || seed < 0) {
+      throw new Error('invalid_run_response')
+    }
+
+    return {
+      source: 'online',
+      runId: data.runId,
+      seed,
+      playerId: user.id,
+      error: null
+    }
+  } catch (error) {
+    return {
+      source: 'local',
+      runId: null,
+      seed: null,
+      error: getErrorMessage(error)
+    }
+  }
+}
+
 async function submitScore ({ client, online, details, profileStorage, storage }) {
   const profile = loadGuestProfile(profileStorage)
   const entry = createLeaderboardEntry({ ...details, nickname: profile.nickname, avatarPath: profile.avatarPath })
@@ -107,21 +147,24 @@ async function submitScore ({ client, online, details, profileStorage, storage }
   }
 
   try {
-    const user = await ensureAnonymousUser(client)
-    const { error } = await client.from('scores').insert({
-      player_id: user.id,
-      nickname: entry.nickname,
-      score: entry.score,
-      level: entry.level,
-      lines: entry.lines,
-      stage_id: entry.stageId,
-      avatar_path: entry.avatarPath,
-      start_level: entry.startLevel
-    })
+    if (!details?.run?.runId || !Array.isArray(details.actions) || !client.functions?.invoke) {
+      throw new Error('secure_run_required')
+    }
 
+    const { data, error } = await client.functions.invoke('submit-score', {
+      body: {
+        runId: details.run.runId,
+        actions: details.actions
+      }
+    })
     if (error) throw error
 
-    return { ...entry, source: 'online', error: null }
+    const serverEntry = data?.entry
+    if (!serverEntry || !Number.isInteger(Number(serverEntry.score))) {
+      throw new Error('invalid_score_response')
+    }
+
+    return { ...entry, ...mapRemoteEntry(serverEntry), source: 'online', error: null }
   } catch (error) {
     saveLocalEntry(entry, storage)
     return { ...entry, source: 'local', error: getErrorMessage(error) }
