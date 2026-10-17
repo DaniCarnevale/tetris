@@ -142,6 +142,7 @@ let lastRenderedLevel = 0
 let gameOverAnimationFinished = false
 let gameOverTimer = null
 let leaderboardSaveRequest = 0
+let leaderboardUnsubscribe = () => {}
 
 function loadControls () {
   try {
@@ -491,7 +492,9 @@ async function refreshLeaderboard () {
   renderLeaderboard(result.entries)
 
   if (result.source === 'online') {
-    leaderboardStatus.textContent = 'Ranking histórico · mejores puntuaciones'
+    leaderboardStatus.textContent = leaderboardService.isOnline()
+      ? 'Ranking histórico · actualizado en vivo'
+      : 'Ranking histórico · mejores puntuaciones'
     return
   }
 
@@ -504,11 +507,17 @@ function openLeaderboard () {
   leaderboardPanel.hidden = false
   leaderboardBackdrop.hidden = false
   leaderboardPanel.setAttribute('aria-hidden', 'false')
+  leaderboardUnsubscribe()
+  leaderboardUnsubscribe = leaderboardService.subscribeToLeaderboard(() => {
+    if (!leaderboardPanel.hidden) refreshLeaderboard()
+  })
   refreshLeaderboard()
   leaderboardClose.focus()
 }
 
 function closeLeaderboard () {
+  leaderboardUnsubscribe()
+  leaderboardUnsubscribe = () => {}
   leaderboardPanel.hidden = true
   leaderboardBackdrop.hidden = true
   leaderboardPanel.setAttribute('aria-hidden', 'true')
