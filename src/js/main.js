@@ -660,7 +660,7 @@ function renderPieceStats () {
     glyphPath.setAttribute('fill', row.color)
     thumbnail.setAttribute('role', 'img')
     thumbnail.setAttribute('aria-label', row.label)
-    fill.style.width = `${row.width}%`
+    fill.style.height = `${row.width}%`
     fill.style.backgroundColor = row.color
     count.textContent = String(row.count)
     track.setAttribute('role', 'progressbar')

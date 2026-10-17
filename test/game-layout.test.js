@@ -47,10 +47,11 @@ test('piece stats use a compact visual model in the game cockpit', () => {
   })
 })
 
-test('piece stats use horizontal fills in the active cockpit', () => {
-  assert.match(mainSource, /fill\.style\.width = `\$\{row\.width\}%`/)
-  assert.doesNotMatch(mainSource, /fill\.style\.height = `\$\{row\.width\}%`/)
-  assert.match(stylesheet, /body\.is-game-active \.piece-stat-track \{[\s\S]*height: 6px;/)
+test('piece stats use vertical fills beside each silhouette', () => {
+  assert.match(mainSource, /fill\.style\.height = `\$\{row\.width\}%`/)
+  assert.doesNotMatch(mainSource, /fill\.style\.width = `\$\{row\.width\}%`/)
+  assert.match(stylesheet, /\.piece-stat-track \{[\s\S]*width: 6px;[\s\S]*height: 24px;/)
+  assert.match(stylesheet, /\.piece-stat-track \{[\s\S]*align-items: flex-end;/)
 })
 
 test('piece stats render each tetromino as a unified silhouette beside its fill', () => {
@@ -59,5 +60,5 @@ test('piece stats render each tetromino as a unified silhouette beside its fill'
   assert.match(mainSource, /piece-stat-glyph/)
   assert.match(mainSource, /item\.append\(thumbnail, track, count\)/)
   assert.doesNotMatch(mainSource, /label\.textContent = row\.shortLabel/)
-  assert.match(stylesheet, /grid-template-columns: 30px minmax\(0, 1fr\) auto/)
+  assert.match(stylesheet, /grid-template-columns: 30px 6px minmax\(0, 1fr\)/)
 })
