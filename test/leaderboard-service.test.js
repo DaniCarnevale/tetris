@@ -41,3 +41,42 @@ test('empty or broken local scores return a safe empty ranking', async () => {
   assert.deepEqual(ranking.entries, [])
   assert.equal(ranking.error, null)
 })
+
+test('realtime subscription is a safe no-op without Supabase', () => {
+  const service = createLeaderboardService()
+  let updates = 0
+
+  const unsubscribe = service.subscribeToLeaderboard(() => { updates += 1 })
+
+  unsubscribe()
+  assert.equal(updates, 0)
+})
+
+test('realtime subscription refreshes the ranking and removes its channel', () => {
+  let callback
+  let removedChannel
+  const channel = {
+    on: (_event, _filter, handler) => {
+      callback = handler
+      return channel
+    },
+    subscribe: () => channel
+  }
+  const supabaseClient = {
+    channel: () => channel,
+    removeChannel: (currentChannel) => { removedChannel = currentChannel }
+  }
+  const service = createLeaderboardService({
+    supabaseClient,
+    supabaseUrl: 'https://example.supabase.co',
+    supabaseKey: 'public-key'
+  })
+  let updates = 0
+
+  const unsubscribe = service.subscribeToLeaderboard(() => { updates += 1 })
+  callback({})
+  unsubscribe()
+
+  assert.equal(updates, 1)
+  assert.equal(removedChannel, channel)
+})
