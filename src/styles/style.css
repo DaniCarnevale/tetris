@@ -2435,15 +2435,17 @@ body.is-game-active .piece-stats-card .card-heading {
 
 body.is-game-active .piece-stats-list {
   display: grid;
-  grid-template-columns: repeat(7, minmax(34px, 1fr));
+  grid-template-columns: repeat(7, max-content);
   gap: 7px;
+  justify-content: space-between;
 }
 
 body.is-game-active .piece-stat-row {
   display: flex;
   height: auto;
   min-width: 0;
-  padding: 8px;
+  width: max-content;
+  padding: 6px 5px;
   border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 12px;
   background: rgba(5, 9, 18, 0.34);
