@@ -203,6 +203,91 @@ body {
   font-weight: 800;
 }
 
+.profile-setup-section {
+  margin: 0 0 24px;
+  padding: 16px;
+  border: 1px solid rgba(113, 183, 255, 0.14);
+  border-radius: 18px;
+  background: rgba(7, 11, 21, 0.22);
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.profile-setup-section.is-priority {
+  border-color: rgba(156, 245, 91, 0.42);
+  background: rgba(156, 245, 91, 0.045);
+  box-shadow: 0 0 0 3px rgba(156, 245, 91, 0.06), 0 16px 34px rgba(0, 0, 0, 0.12);
+}
+
+.profile-setup-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 15px;
+}
+
+.profile-setup-heading .field-label {
+  margin-bottom: 4px;
+}
+
+.profile-setup-heading p {
+  margin: 0;
+  color: #71809a;
+  font-size: 0.66rem;
+  line-height: 1.4;
+}
+
+.profile-setup-icon {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(156, 245, 91, 0.3);
+  border-radius: 9px;
+  color: var(--accent);
+  background: rgba(156, 245, 91, 0.08);
+  font-size: 0.75rem;
+}
+
+.profile-setup-prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 10px 11px;
+  border: 1px solid rgba(156, 245, 91, 0.22);
+  border-radius: 12px;
+  color: #c9f5b2;
+  background: rgba(156, 245, 91, 0.06);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.profile-setup-prompt-mark {
+  display: grid;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #0b180b;
+  background: var(--accent);
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+.profile-setup-prompt strong,
+.profile-setup-prompt span:last-child {
+  display: block;
+}
+
+.profile-setup-prompt strong {
+  margin-bottom: 2px;
+  color: #f0ffe9;
+  font-size: 0.68rem;
+}
+
 .select-wrap {
   position: relative;
 }
@@ -743,6 +828,75 @@ h2 {
 
 .header-actions {
   gap: 10px;
+}
+
+.player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 5px 10px 5px 5px;
+  border: 1px solid rgba(156, 245, 91, 0.2);
+  border-radius: 13px;
+  background: rgba(17, 23, 39, 0.66);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.player-chip-avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid rgba(156, 245, 91, 0.45);
+  border-radius: 10px;
+  color: #0a120d;
+  background: linear-gradient(135deg, #9cf55b, #71b7ff);
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.player-chip-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.player-chip-copy {
+  min-width: 0;
+  max-width: 108px;
+}
+
+.player-chip-copy span,
+.player-chip-copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-chip-copy span {
+  color: #71809a;
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.player-chip-copy strong {
+  display: block;
+  overflow: hidden;
+  color: #eff7ff;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-chip-copy small {
+  margin-top: 1px;
+  color: #8fbdff;
+  font-size: 0.56rem;
 }
 
 .game-badge,
@@ -1741,6 +1895,10 @@ canvas {
   .header-actions {
     justify-content: space-between;
     margin-top: 16px;
+  }
+
+  .header-actions .player-chip {
+    flex-basis: 100%;
   }
 
   .header-actions .game-badge {
