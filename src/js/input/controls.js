@@ -4,6 +4,7 @@ export const CONTROL_ACTIONS = [
   'softDrop',
   'rotate',
   'hold',
+  'pause',
   'restart'
 ]
 
@@ -13,6 +14,7 @@ export const DEFAULT_CONTROLS = Object.freeze({
   softDrop: 'ArrowDown',
   rotate: 'ArrowUp',
   hold: 'KeyS',
+  pause: 'KeyP',
   restart: 'Enter'
 })
 

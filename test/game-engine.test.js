@@ -18,8 +18,10 @@ import {
   holdActivePiece,
   moveActivePiece,
   resetGame,
-  rotateActivePiece
+  rotateActivePiece,
+  togglePause
 } from '../src/js/game/engine.js'
+import { getCurrentLevel } from '../src/js/managers/levelManager.js'
 
 function createTestRandom (sequence) {
   let index = 0
@@ -137,4 +139,29 @@ test('resetGame returns a fresh game with score, hold and board reset', () => {
   assert.equal(reset.heldPiece, null)
   assert.ok(reset.board.every((row) => row.every((cell) => cell === null)))
   assert.equal(reset.gameOver, false)
+})
+
+test('a game can start at a selected level with a stage base', () => {
+  const game = createGame({
+    random: createTestRandom([0, 1, 2]),
+    startLevel: 4,
+    startingStage: 'foundation'
+  })
+
+  assert.equal(game.startLevel, 4)
+  assert.equal(getCurrentLevel(game.score, game.startLevel).level, 4)
+  assert.ok(game.board.some((row) => row.some((cell) => cell !== null)))
+})
+
+test('pausing freezes movement until the game is resumed', () => {
+  const game = createGame({ random: createTestRandom([0, 1, 2]) })
+  const initialY = game.activePiece.position.y
+
+  assert.equal(togglePause(game), true)
+  moveActivePiece(game, 'down')
+  assert.equal(game.activePiece.position.y, initialY)
+
+  assert.equal(togglePause(game), false)
+  moveActivePiece(game, 'down')
+  assert.equal(game.activePiece.position.y, initialY + 1)
 })

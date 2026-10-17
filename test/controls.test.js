@@ -16,6 +16,7 @@ test('default controls expose every configurable gameplay action', () => {
 
   assert.deepEqual(Object.keys(controls), CONTROL_ACTIONS)
   assert.deepEqual(controls, DEFAULT_CONTROLS)
+  assert.equal(controls.pause, 'KeyP')
 })
 
 test('stored controls ignore invalid values and keep safe defaults', () => {

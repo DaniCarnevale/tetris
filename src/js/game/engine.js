@@ -1,15 +1,29 @@
-import { createBoard, clearCompletedRows, hasCollision, mergePiece } from './board.js'
+import { clearCompletedRows, hasCollision, mergePiece } from './board.js'
 import { clonePiece, randomPiece, rotateMatrix, spawnPiece } from './pieces.js'
+import { createStageBoard, getStage } from './stages.js'
+import { levels } from '../utils/levels.js'
 
-export function createGame ({ random = Math.random } = {}) {
+function normalizeStartLevel (startLevel) {
+  if (!Number.isInteger(startLevel)) return 1
+  return Math.max(1, Math.min(startLevel, levels.length))
+}
+
+export function createGame ({ random = Math.random, startLevel = 1, startingStage = 'fresh' } = {}) {
+  const normalizedStartLevel = normalizeStartLevel(startLevel)
+  const stage = getStage(startingStage)
+
   return {
-    board: createBoard(),
+    board: createStageBoard(stage.id),
     activePiece: spawnPiece(randomPiece(random)),
     nextPiece: randomPiece(random),
     heldPiece: null,
     holdUsed: false,
     score: 0,
+    startLevel: normalizedStartLevel,
+    stageId: stage.id,
+    paused: false,
     gameOver: false,
+    lastEvent: null,
     random
   }
 }
@@ -22,12 +36,19 @@ function lockActivePiece (game) {
   game.nextPiece = randomPiece(game.random)
   game.holdUsed = false
   game.gameOver = hasCollision(game.activePiece, game.board)
+  game.lastEvent = {
+    type: result.lines > 0 ? 'line-clear' : 'lock',
+    lines: result.lines,
+    points: result.points,
+    gameOver: game.gameOver
+  }
 
   return result.points
 }
 
 export function moveActivePiece (game, direction) {
-  if (game.gameOver) return 0
+  if (game.gameOver || game.paused) return 0
+  game.lastEvent = null
 
   if (direction === 'left' || direction === 'right') {
     const offset = direction === 'left' ? -1 : 1
@@ -50,7 +71,7 @@ export function moveActivePiece (game, direction) {
 }
 
 export function rotateActivePiece (game) {
-  if (game.gameOver) return false
+  if (game.gameOver || game.paused) return false
 
   const previousShape = game.activePiece.shape
   game.activePiece.shape = rotateMatrix(previousShape)
@@ -64,7 +85,7 @@ export function rotateActivePiece (game) {
 }
 
 export function holdActivePiece (game) {
-  if (game.gameOver || game.holdUsed) return false
+  if (game.gameOver || game.paused || game.holdUsed) return false
 
   const currentPiece = clonePiece(game.activePiece)
 
@@ -84,5 +105,15 @@ export function holdActivePiece (game) {
 }
 
 export function resetGame (game, { random = game.random } = {}) {
-  return createGame({ random })
+  return createGame({
+    random,
+    startLevel: game.startLevel,
+    startingStage: game.stageId
+  })
+}
+
+export function togglePause (game) {
+  if (game.gameOver) return game.paused
+  game.paused = !game.paused
+  return game.paused
 }
