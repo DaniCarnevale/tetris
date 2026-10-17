@@ -1,6 +1,7 @@
 import { clearCompletedRows, getCompletedRows, hasCollision, mergePiece } from './board.js'
 import { clonePiece, randomPiece, rotateMatrix, spawnPiece } from './pieces.js'
 import { createStageBoard, getStage } from './stages.js'
+import { createPieceStats, recordPieceDrop } from './pieceStats.js'
 import { levels } from '../utils/levels.js'
 
 function normalizeStartLevel (startLevel) {
@@ -13,11 +14,12 @@ export function createGame ({ random = Math.random, startLevel = 1, startingStag
   const stage = getStage(startingStage)
 
   return {
-    board: createStageBoard(stage.id),
+    board: createStageBoard(stage.id, random),
     activePiece: spawnPiece(randomPiece(random)),
     nextPiece: randomPiece(random),
     heldPiece: null,
     holdUsed: false,
+    pieceStats: createPieceStats(),
     score: 0,
     lines: 0,
     startLevel: normalizedStartLevel,
@@ -31,6 +33,7 @@ export function createGame ({ random = Math.random, startLevel = 1, startingStag
 
 function lockActivePiece (game) {
   mergePiece(game.activePiece, game.board)
+  game.pieceStats = recordPieceDrop(game.pieceStats, game.activePiece.id)
   const clearedRows = getCompletedRows(game.board)
   const result = clearCompletedRows(game.board)
   game.score += result.points
