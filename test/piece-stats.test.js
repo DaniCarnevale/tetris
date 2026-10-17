@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 
 import {
   createPieceStats,
+  getPieceGlyphPath,
   getPieceStatsView,
   recordPieceDrop
 } from '../src/js/game/pieceStats.js'
@@ -16,13 +17,24 @@ test('piece stats start with one counter per tetromino', () => {
   assert.ok(view.rows.every((row) => row.count === 0 && row.width === 0))
 })
 
-test('piece stats expose the tetromino shape for a visual thumbnail', () => {
+test('piece stats expose the tetromino geometry for its silhouette', () => {
   const view = getPieceStatsView(createPieceStats())
   const square = view.rows.find((row) => row.id === 'o')
   const line = view.rows.find((row) => row.id === 'i')
 
   assert.deepEqual(square.shape, [[1, 1], [1, 1]])
   assert.deepEqual(line.shape, [[1, 1, 1, 1]])
+})
+
+test('piece stats expose one unified outline path per tetromino', () => {
+  const view = getPieceStatsView(createPieceStats())
+  const line = view.rows.find((row) => row.id === 'i')
+  const square = view.rows.find((row) => row.id === 'o')
+
+  assert.equal(line.glyphPath.match(/M /g)?.length, 1)
+  assert.equal(square.glyphPath.match(/M /g)?.length, 1)
+  assert.match(line.glyphPath, /0 0.*4 0.*4 1.*0 1.*Z/)
+  assert.match(getPieceGlyphPath([[1, 1, 1, 1]]), /^M /)
 })
 
 test('piece stats count locked pieces and scale bars against the most used type', () => {

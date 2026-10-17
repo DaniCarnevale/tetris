@@ -53,8 +53,11 @@ test('piece stats use horizontal fills in the active cockpit', () => {
   assert.match(stylesheet, /body\.is-game-active \.piece-stat-track \{[\s\S]*height: 6px;/)
 })
 
-test('piece stats render each tetromino as a miniature shape', () => {
+test('piece stats render each tetromino as a unified silhouette beside its fill', () => {
   assert.match(mainSource, /piece-stat-thumbnail/)
-  assert.match(mainSource, /row\.shape\.forEach/)
-  assert.match(stylesheet, /\.piece-stat-thumbnail \{[\s\S]*grid-template-columns/)
+  assert.match(mainSource, /createElementNS/)
+  assert.match(mainSource, /piece-stat-glyph/)
+  assert.match(mainSource, /item\.append\(thumbnail, track, count\)/)
+  assert.doesNotMatch(mainSource, /label\.textContent = row\.shortLabel/)
+  assert.match(stylesheet, /grid-template-columns: 30px minmax\(0, 1fr\) auto/)
 })
