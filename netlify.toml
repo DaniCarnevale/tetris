@@ -1,0 +1,9 @@
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    Content-Security-Policy-Report-Only = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; img-src 'self' data: blob: https://piztcrckudupfljkizfa.supabase.co; media-src 'self'; connect-src 'self' https://piztcrckudupfljkizfa.supabase.co wss://piztcrckudupfljkizfa.supabase.co; style-src 'self'; script-src 'self'; font-src 'self'; form-action 'self' https://accounts.google.com https://piztcrckudupfljkizfa.supabase.co"
