@@ -74,7 +74,8 @@ test('realtime subscription refreshes the ranking and removes its channel', () =
   let updates = 0
 
   const unsubscribe = service.subscribeToLeaderboard(() => { updates += 1 })
-  callback({})
+  const realtimePayload = {}
+  callback(realtimePayload)
   unsubscribe()
 
   assert.equal(updates, 1)

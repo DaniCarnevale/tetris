@@ -44,7 +44,7 @@ function subscribeToLeaderboard ({ client, online, onInsert }) {
       .subscribe()
 
     return () => {
-      void client.removeChannel(channel)
+      client.removeChannel(channel)
     }
   } catch {
     return () => {}

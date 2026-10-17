@@ -26,3 +26,17 @@ create policy "Players can submit their own scores"
   for insert
   to authenticated
   with check (auth.uid() = player_id);
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'scores'
+  ) then
+    alter publication supabase_realtime add table public.scores;
+  end if;
+end
+$$;

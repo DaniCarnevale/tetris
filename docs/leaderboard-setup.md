@@ -10,3 +10,5 @@ La app funciona como invitado y guarda un ranking local si Supabase no está con
 6. Reiniciar Vite con `npm run dev`.
 
 La app crea una sesión anónima para cada jugador y asocia el nickname a sus puntuaciones. El login con Google se puede sumar más adelante vinculando esa sesión invitada, sin cambiar el esquema de `scores`.
+
+El ranking usa Supabase Realtime cuando el proyecto está configurado: la tabla se suscribe a nuevos inserts por WebSocket mientras está abierta y cierra el canal al salir, sin mantener conexiones innecesarias durante la partida.
