@@ -48,6 +48,10 @@
             <span class="start-panel-number">01</span>
           </div>
 
+          <label class="field-label" for="playerNickname">Nickname</label>
+          <input class="text-input" id="playerNickname" type="text" maxlength="16" autocomplete="nickname" placeholder="Tu nombre en el ranking" aria-describedby="playerNicknameHint" />
+          <p class="field-hint" id="playerNicknameHint">Jugás como invitado. Podés cambiarlo cuando quieras.</p>
+
           <label class="field-label" for="startLevel">Comenzar desde el nivel</label>
           <div class="select-wrap">
             <select id="startLevel" aria-describedby="startLevelHint">
@@ -80,6 +84,10 @@
               <span class="button-icon" aria-hidden="true">⚙</span>
               <span>Configurar teclas y sonido</span>
             </button>
+            <button class="button button-quiet" id="leaderboardButton" type="button">
+              <span class="button-icon" aria-hidden="true">↗</span>
+              <span>Ver ranking histórico</span>
+            </button>
           </div>
           <p class="start-hint" id="startHint">Listo para jugar.</p>
         </section>
@@ -102,6 +110,10 @@
             <span class="status-dot" id="stateDot" aria-hidden="true"></span>
             <span id="stateLabel">En partida</span>
           </div>
+          <button class="button button-secondary" id="gameLeaderboardButton" type="button">
+            <span class="button-icon" aria-hidden="true">↗</span>
+            <span>Ranking</span>
+          </button>
           <button class="button button-secondary" id="pauseButton" type="button" aria-pressed="false">
             <span class="button-icon" aria-hidden="true">Ⅱ</span>
             <span id="pauseButtonLabel">Pausar</span>
@@ -187,6 +199,8 @@
                 <p class="card-kicker">PARTIDA TERMINADA</p>
                 <h2 id="gameOverTitle">Game over</h2>
                 <p class="game-over-summary" id="gameOverSummary">Puntuación 0 · Nivel 1</p>
+                <p class="game-over-save-status" id="gameOverSaveStatus" aria-live="polite">Guardando puntuación...</p>
+                <button class="button button-secondary game-over-ranking-button" id="gameOverLeaderboardButton" type="button">Ver ranking</button>
                 <p class="game-over-hint"><kbd class="key-chip game-over-key">↵</kbd> Presioná cualquier tecla para volver al inicio</p>
               </div>
             </div>
@@ -231,6 +245,22 @@
         </aside>
       </section>
     </main>
+
+    <button class="settings-backdrop" id="leaderboardBackdrop" type="button" aria-label="Cerrar ranking" hidden></button>
+    <aside class="leaderboard-panel" id="leaderboardPanel" aria-labelledby="leaderboardTitle" aria-hidden="true" hidden>
+      <div class="leaderboard-panel-inner">
+        <div class="settings-header leaderboard-header">
+          <div>
+            <p class="card-kicker">PUNTUACIONES DESTACADAS</p>
+            <h2 id="leaderboardTitle">Ranking histórico</h2>
+          </div>
+          <button class="close-button" id="leaderboardClose" type="button" aria-label="Cerrar ranking">×</button>
+        </div>
+        <p class="settings-intro" id="leaderboardStatus">Cargando puntuaciones...</p>
+        <ol class="leaderboard-list" id="leaderboardList" aria-live="polite"></ol>
+        <button class="button button-secondary leaderboard-refresh" id="leaderboardRefresh" type="button">Actualizar ranking</button>
+      </div>
+    </aside>
 
     <button class="settings-backdrop" id="settingsBackdrop" type="button" aria-label="Cerrar configuración" hidden></button>
     <aside class="settings-panel" id="settingsPanel" aria-labelledby="settingsTitle" aria-hidden="true" hidden>

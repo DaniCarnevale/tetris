@@ -127,6 +127,18 @@ test('moving down locks a piece, clears rows, and advances to a cloned next piec
   assert.notEqual(game.activePiece.shape, game.nextPiece.shape)
 })
 
+test('game tracks total cleared lines for the leaderboard', () => {
+  const game = createGame({ random: createTestRandom([0, 0, 1]) })
+  game.activePiece = createPiece({ shape: [[1]], color: '#fff' })
+  game.activePiece.position = { x: 0, y: BOARD_HEIGHT - 1 }
+  game.board[BOARD_HEIGHT - 1].fill('#locked')
+  game.board[BOARD_HEIGHT - 1][0] = null
+
+  moveActivePiece(game, 'down')
+
+  assert.equal(game.lines, 1)
+})
+
 test('resetGame returns a fresh game with score, hold and board reset', () => {
   const game = createGame({ random: createTestRandom([0, 1, 2]) })
   game.score = 500

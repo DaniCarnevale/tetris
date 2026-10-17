@@ -19,6 +19,7 @@ export function createGame ({ random = Math.random, startLevel = 1, startingStag
     heldPiece: null,
     holdUsed: false,
     score: 0,
+    lines: 0,
     startLevel: normalizedStartLevel,
     stageId: stage.id,
     paused: false,
@@ -32,6 +33,7 @@ function lockActivePiece (game) {
   mergePiece(game.activePiece, game.board)
   const result = clearCompletedRows(game.board)
   game.score += result.points
+  game.lines += result.lines
   game.activePiece = spawnPiece(clonePiece(game.nextPiece))
   game.nextPiece = randomPiece(game.random)
   game.holdUsed = false
