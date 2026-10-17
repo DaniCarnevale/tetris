@@ -24,6 +24,10 @@ function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous
         linkIdentity: async (payload) => {
           calls.linkIdentity = payload
           return { data: { url: 'https://accounts.google.test/authorize' }, error: null }
+        },
+        signOut: async (options) => {
+          calls.signOut = options
+          return { error: null }
         }
       },
       from: () => table
@@ -68,6 +72,18 @@ test('exposes the signed-in Google account state', async () => {
     isAnonymous: false,
     error: null
   })
+})
+
+test('signs out only the current browser session', async () => {
+  const { client, calls } = createAccountClient()
+  const service = createAccountService({
+    supabaseClient: client,
+    supabaseUrl: 'https://example.supabase.co',
+    supabaseKey: 'public-key'
+  })
+
+  assert.deepEqual(await service.signOut(), { source: 'online', error: null })
+  assert.deepEqual(calls.signOut, { scope: 'local' })
 })
 
 test('only a signed-in Google account can edit nickname and avatar', () => {

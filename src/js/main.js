@@ -89,6 +89,7 @@ const accountHint = document.querySelector('#accountHint')
 const accountFeedback = document.querySelector('#accountFeedback')
 const googleSignInButton = document.querySelector('#googleSignInButton')
 const googleSignInLabel = document.querySelector('#googleSignInLabel')
+const accountSignOutButton = document.querySelector('#accountSignOutButton')
 const profileSetupSection = document.querySelector('#profileSetupSection')
 const profileSetupPrompt = document.querySelector('#profileSetupPrompt')
 const profileSetupPromptText = document.querySelector('#profileSetupPromptText')
@@ -640,7 +641,10 @@ function renderAccountState (account) {
     ? 'Tu ranking, nickname y avatar están asociados a Google.'
     : 'Modo guest: vinculá Google para personalizar tu nickname y avatar.'
   googleSignInLabel.textContent = isSignedIn ? 'Google conectado' : 'Vincular Google'
+  googleSignInButton.hidden = isSignedIn
   googleSignInButton.disabled = isSignedIn
+  accountSignOutButton.hidden = !isSignedIn
+  accountSignOutButton.disabled = false
   accountFeedback.textContent = account.error
     ? account.error
     : isSignedIn
@@ -653,6 +657,25 @@ function renderAccountState (account) {
     avatarFeedback.textContent = 'Perfil guest fijo · vinculá Google para personalizarlo.'
     avatarFeedback.classList.remove('is-error')
   }
+}
+
+async function disconnectGoogle () {
+  accountSignOutButton.disabled = true
+  accountFeedback.classList.remove('is-error')
+  accountFeedback.textContent = 'Cerrando sesión...'
+
+  const result = await accountService.signOut()
+  if (result.source === 'online') {
+    profileSetupPrompt.hidden = true
+    profileSetupSection.classList.remove('is-priority')
+    await syncRemoteProfile()
+    accountFeedback.textContent = 'Sesión cerrada. Estás jugando como guest.'
+    return
+  }
+
+  accountSignOutButton.disabled = false
+  accountFeedback.classList.add('is-error')
+  accountFeedback.textContent = result.error ?? 'No se pudo cerrar la sesión.'
 }
 
 async function syncRemoteProfile () {
@@ -1026,6 +1049,7 @@ startGameButton.addEventListener('click', startGame)
 avatarInput.addEventListener('change', handleAvatarSelection)
 avatarRemoveButton.addEventListener('click', removeAvatar)
 googleSignInButton.addEventListener('click', connectGoogle)
+accountSignOutButton.addEventListener('click', disconnectGoogle)
 playerNickname.addEventListener('input', () => {
   if (!profileEditingEnabled) {
     playerNickname.value = GUEST_PROFILE_NICKNAME
