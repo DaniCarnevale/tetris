@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Salta al atardecer</title>
+  <desc id="desc">Silueta del cerro San Bernardo y arquitectura colonial bajo una luz dorada.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#321e57"/><stop offset=".5" stop-color="#cf6f6a"/><stop offset="1" stop-color="#f4b95f"/></linearGradient>
+    <linearGradient id="hill" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#3a315d"/><stop offset=".5" stop-color="#a86666"/><stop offset="1" stop-color="#171c35"/></linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/><circle cx="380" cy="240" r="100" fill="#ffe7a5" opacity=".35"/>
+  <path d="M0 680 180 510l180 90 220-260 210 210 190-150 240 210 220-200 170 220v280H0z" fill="url(#hill)"/>
+  <path d="M0 760c300-100 480-80 720 8s510 80 880-30v162H0z" fill="#090f1d" opacity=".92"/>
+  <g fill="#0b1323"><path d="M0 730h160v-95h70v95h55v-130h120v130h54v-80h90v80h100v-145h130v145h80v-92h95v92h120v-115h125v115h120v-70h90v70h200v170H0z"/></g>
+  <g fill="#f7c75b" opacity=".8"><rect x="190" y="680" width="8" height="16"/><rect x="350" y="620" width="9" height="16"/><rect x="700" y="615" width="9" height="18"/><rect x="1080" y="650" width="9" height="16"/><rect x="1330" y="690" width="8" height="14"/></g>
+  <path d="M0 790c280-72 560-55 800 10s520 68 800-20" fill="none" stroke="#9cf55b" stroke-opacity=".28" stroke-width="4"/>
+</svg>

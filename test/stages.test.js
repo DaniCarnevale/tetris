@@ -21,6 +21,24 @@ test('backgrounds progress with difficulty without removing the level system', (
   assert.equal(getBackdropForLevel(9).id, 'patagonia')
 })
 
+test('each level has its own background scene', () => {
+  const ids = Array.from({ length: 10 }, (_, index) => getBackdropForLevel(index + 1).id)
+
+  assert.deepEqual(ids, [
+    'buenos-aires',
+    'rosario',
+    'humahuaca',
+    'salta',
+    'cordoba',
+    'iguazu',
+    'mendoza',
+    'mar-del-plata',
+    'patagonia',
+    'perito-moreno'
+  ])
+  assert.equal(new Set(ids).size, 10)
+})
+
 test('line clear sound sequences become richer from one to four lines', () => {
   assert.equal(getLineClearSequence(1).length, 1)
   assert.equal(getLineClearSequence(2).length, 2)
