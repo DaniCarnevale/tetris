@@ -1346,7 +1346,7 @@ function restartGame () {
   gameStarted = false
   activeRun = null
   runActions = []
-  void startGame()
+  startGame()
 }
 
 function togglePauseGame () {
