@@ -562,7 +562,7 @@ function showAvatarFeedback (message, isError = false) {
 async function handleAvatarSelection () {
   if (!profileEditingEnabled) {
     avatarInput.value = ''
-    showAvatarFeedback('Modo guest: vinculá Google para personalizar tu avatar.', true)
+    showAvatarFeedback('Modo guest: iniciá sesión con Google para personalizar tu avatar.', true)
     return
   }
 
@@ -602,7 +602,7 @@ async function handleAvatarSelection () {
 
 async function removeAvatar () {
   if (!profileEditingEnabled) {
-    showAvatarFeedback('Modo guest: vinculá Google para personalizar tu avatar.', true)
+    showAvatarFeedback('Modo guest: iniciá sesión con Google para personalizar tu avatar.', true)
     return
   }
 
@@ -641,8 +641,8 @@ function renderAccountState (account) {
   accountStatus.textContent = isSignedIn ? (account.email ?? 'Google conectado') : 'Guest'
   accountHint.textContent = isSignedIn
     ? 'Tu ranking, nickname y avatar están asociados a Google.'
-    : 'Modo guest: vinculá Google para personalizar tu nickname y avatar.'
-  googleSignInLabel.textContent = isSignedIn ? 'Google conectado' : 'Vincular Google'
+    : 'Modo guest: iniciá sesión con Google para personalizar tu nickname y avatar.'
+  googleSignInLabel.textContent = isSignedIn ? 'Google conectado' : 'Continuar con Google'
   googleSignInButton.hidden = isSignedIn
   googleSignInButton.disabled = isSignedIn
   accountSignOutButton.hidden = !isSignedIn
@@ -656,7 +656,7 @@ function renderAccountState (account) {
 
   if (!editable) {
     playerNickname.value = GUEST_PROFILE_NICKNAME
-    avatarFeedback.textContent = 'Perfil guest fijo · vinculá Google para personalizarlo.'
+    avatarFeedback.textContent = 'Perfil guest fijo · iniciá sesión con Google para personalizarlo.'
     avatarFeedback.classList.remove('is-error')
   }
 }
