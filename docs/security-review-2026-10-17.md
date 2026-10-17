@@ -1,12 +1,12 @@
 # Revisión de seguridad — Tetris
 
 Fecha: 2026-10-17
-Rama revisada: `develop`
-Integración verificada: `c18ed17`
+Rama revisada: `security/anti-cheat-leaderboard`
+Integración verificada: `da32d60` + funciones Edge desplegadas en `piztcrckudupfljkizfa`
 
 ## Resultado
 
-**PASS CON HARDENING APLICADO**
+**PASS CON HARDENING APLICADO — LEADERBOARD SERVER-AUTHORITATIVE**
 
 La aplicación no contiene secretos privados trackeados. La publishable key de Supabase y el Client ID de Google son datos públicos esperables en un frontend. No se encontraron `service_role` keys, OAuth secrets, tokens Netlify ni claves privadas.
 
@@ -16,8 +16,8 @@ La aplicación no contiene secretos privados trackeados. La publishable key de S
 |---|---|
 | Build | PASS — `npm run build` |
 | Lint | PASS — `npm run lint` |
-| Tests | PASS — 57/57 |
-| Cobertura | PASS — 90.42% líneas, 81.07% branches, 92.12% funciones |
+| Tests | PASS — 102/102 con `--experimental-test-isolation=none` |
+| Cobertura | PASS — 94.75% líneas, 82.10% branches, 93.90% funciones |
 | Dependencias de producción | PASS — `npm audit --omit=dev`: 0 vulnerabilidades |
 | Secretos trackeados | PASS — 0 rutas sensibles y 0 valores privados detectados |
 | Historial Git | PASS — sin `.env`, certificados, claves privadas ni tokens reales |
@@ -26,6 +26,7 @@ La aplicación no contiene secretos privados trackeados. La publishable key de S
 | Auth / emails | PASS — `anon` y `authenticated` no tienen privilegios sobre `auth.users` ni `auth.identities` |
 | API pública de scores | PASS — el ranking responde sólo con campos públicos; `player_id` devuelve `permission denied` |
 | Headers en producción | PASS — `HEAD https://tetris2mk.netlify.app/` respondió 200 con los headers esperados |
+| Replay server-authoritative | PASS — `run-security.test.js` 10/10; funciones `start-run` y `submit-score` activas |
 
 ## Hardening aplicado
 
@@ -38,6 +39,9 @@ La aplicación no contiene secretos privados trackeados. La publishable key de S
 - El trigger de rate limit convierte explícitamente `storage.objects.owner_id` (`text`) a `uuid` antes de guardarlo en `avatar_upload_limits`; esto corrige el `42804 datatype mismatch` detectado al subir.
 - La interfaz sólo muestra `Google conectado`; el email no se muestra en el ranking ni en la UI pública.
 - Netlify incorpora `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, HSTS y CSP en modo report-only mediante `netlify.toml`; se verificó directamente en producción.
+- `scores` ya no acepta `insert`, `update` ni `delete` desde `anon`/`authenticated`; sólo la función SQL de finalización ejecutada por `service_role` puede insertar un resultado.
+- Cada partida obtiene una semilla y un `run_id` del servidor, expira a los 45 minutos, se limita a 20 inicios por hora y sólo puede finalizarse una vez.
+- `submit-score` ignora score, nivel y líneas enviados por el navegador: reproduce la partida desde la semilla y la lista acotada de acciones, exige game over y persiste únicamente el resultado calculado.
 
 Migraciones: `supabase/migrations/005_security_hardening.sql`, `supabase/migrations/006_privacy_hardening.sql`, `supabase/migrations/007_fix_avatar_upsert_rls.sql`, `supabase/migrations/008_fix_avatar_rate_limit_types.sql`
 Aplicadas y verificadas en Supabase mediante `pg_policies`, `pg_proc`, privilegios de columnas y llamadas REST públicas.
@@ -45,7 +49,7 @@ Aplicadas y verificadas en Supabase mediante `pg_policies`, `pg_proc`, privilegi
 ## Riesgos residuales / decisiones de producto
 
 1. El bucket `avatars` es público porque las imágenes se muestran en el ranking y durante la partida. Cualquiera con la URL puede leerlas; no se almacenan documentos privados allí.
-2. Las puntuaciones se generan en el cliente. Un usuario técnicamente avanzado puede falsificar un score; para anti-cheat real hace falta un backend o validación server-side.
+2. La validación evita falsificar score/nivel/líneas mediante un insert o payload directo. No pretende detectar automatización de teclado, bots que jueguen partidas válidas o manipulación del cliente antes del envío; para eso haría falta telemetría/attestation adicional.
 3. La CSP está en `Report-Only` para observar compatibilidad con el badge de Netlify antes de pasarla a enforcement.
 4. El ranking es público por diseño y sólo expone nickname, score, nivel, líneas, stage, avatar público y fecha; no expone emails ni UUIDs internos.
 
