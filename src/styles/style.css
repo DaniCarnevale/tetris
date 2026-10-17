@@ -645,6 +645,17 @@ select:focus {
   color: #ff9cad;
 }
 
+.profile-save-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: -3px 0 18px;
+}
+
+.profile-save-button {
+  width: 100%;
+  min-height: 44px;
+}
+
 .stage-label-row {
   display: flex;
   align-items: baseline;

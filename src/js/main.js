@@ -18,6 +18,7 @@ import { createSupabaseClient } from './leaderboard/supabaseClient.js'
 import {
   consumeProfileSetupPending,
   createProfileCardModel,
+  hasProfileChanges,
   markProfileSetupPending
 } from './leaderboard/profilePresentation.js'
 import { createProfileAccessModel } from './leaderboard/profileView.js'
@@ -135,6 +136,7 @@ const accountFeedback = document.querySelector('#accountFeedback')
 const googleSignInButton = document.querySelector('#googleSignInButton')
 const googleSignInLabel = document.querySelector('#googleSignInLabel')
 const accountSignOutButton = document.querySelector('#accountSignOutButton')
+const saveProfileButton = document.querySelector('#saveProfileButton')
 const profileSetupSection = document.querySelector('#profileSetupSection')
 const profileSetupPrompt = document.querySelector('#profileSetupPrompt')
 const profileSetupPromptText = document.querySelector('#profileSetupPromptText')
@@ -228,6 +230,7 @@ let leaderboardUnsubscribe = () => {}
 let temporaryAvatarPreviewUrl = null
 let profileEditingEnabled = false
 let currentAccount = { status: 'guest', isAnonymous: true }
+let persistedProfile = null
 let lastRenderedPieceStats = ''
 
 function loadControls () {
@@ -628,12 +631,43 @@ function showSettingsFeedback (message, isError = false) {
   settingsFeedback.classList.toggle('is-error', isError)
 }
 
-function savePlayerNickname () {
+function getProfileDraft () {
+  const profile = leaderboardService.getProfile()
+  return {
+    nickname: playerNickname.value,
+    avatarPath: profile.avatarPath
+  }
+}
+
+function updateProfileSaveState () {
+  const hasChanges = profileEditingEnabled && persistedProfile !== null && hasProfileChanges(getProfileDraft(), persistedProfile)
+  saveProfileButton.hidden = !hasChanges
+  saveProfileButton.disabled = !hasChanges
+  saveProfileButton.setAttribute('aria-hidden', String(!hasChanges))
+}
+
+async function saveProfileChanges () {
   if (!profileEditingEnabled) return setGuestProfile()
+
+  saveProfileButton.disabled = true
+  accountFeedback.classList.remove('is-error')
+  accountFeedback.textContent = 'Guardando cambios...'
 
   const profile = leaderboardService.setNickname(playerNickname.value)
   playerNickname.value = profile.nickname
-  accountService.saveProfile(profile).catch(() => {})
+  const result = await accountService.saveProfile(profile)
+
+  if (result.source === 'online') {
+    persistedProfile = { ...profile }
+    accountFeedback.textContent = 'Cambios guardados.'
+  } else {
+    accountFeedback.classList.add('is-error')
+    accountFeedback.textContent = result.error ?? 'No se pudieron guardar los cambios.'
+  }
+
+  renderGameProfile(profile, 'Google conectado')
+  renderStartProfileAccess(profile, currentAccount)
+  updateProfileSaveState()
   return profile
 }
 
@@ -651,6 +685,7 @@ function setProfileEditingEnabled (enabled) {
   avatarRemoveButton.disabled = !enabled
   avatarUploadButton.classList.toggle('is-disabled', !enabled)
   avatarUploadButton.setAttribute('aria-disabled', String(!enabled))
+  updateProfileSaveState()
 }
 
 function setGuestProfile () {
@@ -659,7 +694,9 @@ function setGuestProfile () {
     avatarPath: null
   })
   playerNickname.value = profile.nickname
+  persistedProfile = { ...profile }
   renderProfileAvatar(profile)
+  updateProfileSaveState()
   return profile
 }
 
@@ -747,9 +784,16 @@ async function handleAvatarSelection () {
   avatarInput.value = ''
 
   if (result.source === 'online') {
-    renderProfileAvatar(leaderboardService.getProfile(), result.url)
-    accountService.saveProfile(leaderboardService.getProfile()).catch(() => {})
-    showAvatarFeedback('Avatar guardado. Se reemplazó el anterior.')
+    const profile = leaderboardService.getProfile()
+    renderProfileAvatar(profile, result.url)
+    const saveResult = await accountService.saveProfile(profile)
+    if (saveResult.source === 'online') {
+      persistedProfile = { ...profile }
+      showAvatarFeedback('Avatar guardado. Se reemplazó el anterior.')
+    } else {
+      showAvatarFeedback(saveResult.error ?? 'Avatar cargado, pero no se pudo sincronizar el perfil.', true)
+    }
+    updateProfileSaveState()
     return
   }
 
@@ -777,9 +821,16 @@ async function removeAvatar () {
 
   const result = await avatarService.removeAvatar()
   if (result.source === 'online') {
-    renderProfileAvatar()
-    accountService.saveProfile(leaderboardService.getProfile()).catch(() => {})
-    showAvatarFeedback('Avatar eliminado.')
+    const profile = leaderboardService.getProfile()
+    renderProfileAvatar(profile)
+    const saveResult = await accountService.saveProfile(profile)
+    if (saveResult.source === 'online') {
+      persistedProfile = { ...profile }
+      showAvatarFeedback('Avatar eliminado.')
+    } else {
+      showAvatarFeedback(saveResult.error ?? 'Avatar eliminado, pero no se pudo sincronizar el perfil.', true)
+    }
+    updateProfileSaveState()
     return
   }
 
@@ -827,6 +878,8 @@ function renderAccountState (account) {
     avatarFeedback.textContent = 'Perfil guest fijo · iniciá sesión con Google para personalizarlo.'
     avatarFeedback.classList.remove('is-error')
   }
+
+  updateProfileSaveState()
 }
 
 function openProfilePanel () {
@@ -880,6 +933,7 @@ async function syncRemoteProfile () {
 
   if (remoteProfile.profile) {
     const profile = leaderboardService.setProfile(remoteProfile.profile)
+    persistedProfile = { ...profile }
     playerNickname.value = profile.nickname
     renderProfileAvatar(profile)
     if (profileSetupPending) {
@@ -888,7 +942,9 @@ async function syncRemoteProfile () {
     return
   }
 
-  await accountService.saveProfile(leaderboardService.getProfile())
+  const profile = leaderboardService.getProfile()
+  const saveResult = await accountService.saveProfile(profile)
+  if (saveResult.source === 'online') persistedProfile = { ...profile }
   if (profileSetupPending) {
     showProfileSetupPrompt('Elegí tu nickname y cargá una imagen para completar tu perfil.')
   }
@@ -1209,7 +1265,6 @@ function update (time = 0) {
 
 function startGame () {
   const startLevel = Number(startLevelSelect.value)
-  savePlayerNickname()
   hideGameOverOverlay()
   game = createGame({ startLevel, startingStage: selectedStage })
   gameStarted = true
@@ -1226,6 +1281,7 @@ function startGame () {
 renderStagePicker()
 selectStage(selectedStage)
 const initialProfile = leaderboardService.getProfile()
+persistedProfile = { ...initialProfile }
 playerNickname.value = initialProfile.nickname
 renderProfileAvatar(initialProfile)
 soundManager.setEnabled(loadSoundSetting())
@@ -1239,6 +1295,7 @@ startLevelSelect.addEventListener('change', updateStartScene)
 startGameButton.addEventListener('click', startGame)
 avatarInput.addEventListener('change', handleAvatarSelection)
 avatarRemoveButton.addEventListener('click', removeAvatar)
+saveProfileButton.addEventListener('click', saveProfileChanges)
 googleSignInButton.addEventListener('click', connectGoogle)
 accountSignOutButton.addEventListener('click', disconnectGoogle)
 playerNickname.addEventListener('input', () => {
@@ -1247,6 +1304,7 @@ playerNickname.addEventListener('input', () => {
     return
   }
   avatarInitials.textContent = getInitials(playerNickname.value)
+  updateProfileSaveState()
 })
 startSettingsButton.addEventListener('click', openSettings)
 leaderboardButton.addEventListener('click', openLeaderboard)
