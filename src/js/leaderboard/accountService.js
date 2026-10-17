@@ -145,4 +145,3 @@ function getDefaultRedirectTo () {
 function getErrorMessage (error) {
   return error instanceof Error ? error.message : String(error?.message ?? error ?? 'Error desconocido')
 }
-
