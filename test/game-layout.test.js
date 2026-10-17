@@ -68,3 +68,8 @@ test('piece stat spacing keeps the silhouette group compact and intentional', ()
   assert.match(stylesheet, /\.piece-stat-track \{[\s\S]*margin-left: 8px;/)
   assert.match(stylesheet, /\.piece-stat-count \{[\s\S]*margin-left: 4px;[\s\S]*text-align: left;/)
 })
+
+test('piece stat cards wrap their contents without trailing empty space', () => {
+  assert.match(stylesheet, /body\.is-game-active \.piece-stats-list \{[\s\S]*grid-template-columns: repeat\(7, max-content\);[\s\S]*justify-content: space-between;/)
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-row \{[\s\S]*width: max-content;/)
+})
