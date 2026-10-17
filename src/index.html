@@ -109,140 +109,136 @@
           <div>
             <p class="eyebrow">ARCADE / CLÁSICO</p>
             <h1>MK TETRIS</h1>
-            <p class="brand-subtitle">Ordená el caos, una línea a la vez.</p>
           </div>
-        </div>
-
-        <div class="header-actions">
-          <button class="player-chip player-chip-button" id="gameProfile" type="button" aria-label="Perfil del jugador" aria-controls="profilePanel">
-            <div class="player-chip-avatar" aria-hidden="true">
-              <img id="gameProfileAvatarImage" alt="" hidden />
-              <span id="gameProfileInitials">GU</span>
-            </div>
-            <div class="player-chip-copy">
-              <span>JUGADOR</span>
-              <strong id="gameProfileNickname">Guest</strong>
-              <small id="gameProfileAccount">Invitado</small>
-            </div>
-          </button>
-          <div class="game-badge" aria-live="polite">
-            <span class="status-dot" id="stateDot" aria-hidden="true"></span>
-            <span id="stateLabel">En partida</span>
-          </div>
-          <button class="button button-secondary" id="gameLeaderboardButton" type="button">
-            <span class="button-icon" aria-hidden="true">↗</span>
-            <span>Ranking</span>
-          </button>
-          <button class="button button-secondary" id="pauseButton" type="button" aria-pressed="false">
-            <span class="button-icon" aria-hidden="true">Ⅱ</span>
-            <span id="pauseButtonLabel">Pausar</span>
-            <kbd class="key-chip key-chip-small" id="pauseKey">P</kbd>
-          </button>
-          <button class="button button-secondary" id="settingsToggle" type="button" aria-controls="settingsPanel" aria-expanded="false">
-            <span class="button-icon" aria-hidden="true">⚙</span>
-            <span>Configuración</span>
-          </button>
         </div>
       </header>
 
       <section class="game-layout" aria-label="Partida de Tetris">
-        <aside class="side-column" aria-label="Ficha reservada y estadísticas">
-          <section class="info-card preview-card">
-            <div class="card-heading">
-              <div>
-                <p class="card-kicker">RESERVA</p>
-                <h2>Ficha guardada</h2>
-              </div>
-              <kbd class="key-chip" id="holdKey">S</kbd>
+        <section class="game-main-column" aria-label="Zona de juego">
+          <section class="scoreboard-card stats-card" aria-label="Marcador de la partida">
+            <div class="score-primary">
+              <span>Puntaje</span>
+              <strong id="score">0</strong>
             </div>
-            <div class="preview-stage">
-              <canvas class="saved" aria-label="Ficha guardada"></canvas>
-              <span class="empty-preview" id="heldEmpty">Todavía no guardaste una ficha</span>
+            <div class="score-stat">
+              <span>Nivel</span>
+              <strong id="level">1</strong>
             </div>
-            <p class="card-note">Guardá una pieza para usarla más tarde.</p>
-          </section>
-
-          <section class="info-card stats-card" aria-label="Estadísticas de la partida">
-            <div class="card-heading">
-              <div>
-                <p class="card-kicker">MARCADOR</p>
-                <h2>Tu partida</h2>
-              </div>
-              <span class="stat-symbol" aria-hidden="true">↗</span>
+            <div class="score-stat score-record">
+              <span id="recordStageLabel">Récord · Stage actual</span>
+              <strong id="recordScore">—</strong>
             </div>
-            <div class="stat-grid">
-              <div class="stat-item">
-                <span>Puntuación</span>
-                <strong id="score">0</strong>
-              </div>
-              <div class="stat-item">
-                <span>Nivel</span>
-                <strong id="level">1</strong>
-              </div>
+            <div class="score-state" aria-live="polite">
+              <span class="status-dot" id="stateDot" aria-hidden="true"></span>
+              <span id="status">En partida</span>
             </div>
             <div class="level-progress" aria-label="Progreso del nivel">
               <span id="levelProgress"></span>
             </div>
           </section>
-        </aside>
 
-        <section class="board-card" aria-label="Tablero principal">
-          <div class="board-toolbar">
-            <div>
-              <p class="card-kicker">PARTIDA ACTUAL</p>
-              <p class="board-status" id="status" aria-live="polite">En juego · prepará tu próxima jugada</p>
-            </div>
-            <button class="button button-ghost" id="restartButton" type="button">
-              <span>Nueva partida</span>
-              <kbd class="key-chip key-chip-small" id="restartKey">Enter</kbd>
-            </button>
-          </div>
-          <div class="board-stage">
-            <canvas id="board" aria-label="Tablero de Tetris"></canvas>
-            <div class="pause-overlay" id="pauseOverlay" hidden>
-              <div class="pause-dialog">
-                <span class="pause-mark" aria-hidden="true">Ⅱ</span>
-                <p class="card-kicker">MOMENTO DE RESPIRAR</p>
-                <h2>Juego en pausa</h2>
-                <p>Tu tablero queda exactamente donde lo dejaste.</p>
-                <button class="button button-primary" id="resumeButton" type="button">Continuar partida</button>
-              </div>
-            </div>
-            <div class="game-over-overlay" id="gameOverOverlay" hidden aria-hidden="true">
-              <div class="game-over-dialog" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle" tabindex="-1">
-                <div class="game-over-signal" aria-hidden="true">
-                  <span></span>
-                  <span></span>
-                  <span></span>
+          <div class="board-cockpit">
+            <section class="info-card preview-card cockpit-preview hold-preview" aria-label="Ficha reservada">
+              <div class="preview-heading">
+                <div>
+                  <p class="card-kicker">RESERVA</p>
+                  <h2>Guardada</h2>
                 </div>
-                <p class="card-kicker">PARTIDA TERMINADA</p>
-                <h2 id="gameOverTitle">Game over</h2>
-                <p class="game-over-summary" id="gameOverSummary">Puntuación 0 · Nivel 1</p>
-                <p class="game-over-save-status" id="gameOverSaveStatus" aria-live="polite">Guardando puntuación...</p>
-                <button class="button button-secondary game-over-ranking-button" id="gameOverLeaderboardButton" type="button">Ver ranking</button>
-                <p class="game-over-hint"><kbd class="key-chip game-over-key">↵</kbd> Presioná cualquier tecla para volver al inicio</p>
+                <kbd class="key-chip" id="holdKey">S</kbd>
               </div>
-            </div>
-          </div>
-          <div class="board-footer">
-            <span><span class="legend-dot" aria-hidden="true"></span> La pieza translúcida muestra dónde caerá.</span>
-            <span id="controlHint">↑ rotar · ↓ bajar · P pausar</span>
+              <div class="preview-stage">
+                <canvas class="saved" aria-label="Ficha guardada"></canvas>
+                <span class="empty-preview" id="heldEmpty">Vacía</span>
+              </div>
+            </section>
+
+            <section class="board-card" aria-label="Tablero principal">
+              <div class="board-stage">
+                <canvas id="board" aria-label="Tablero de Tetris"></canvas>
+                <div class="pause-overlay" id="pauseOverlay" hidden>
+                  <div class="pause-dialog">
+                    <span class="pause-mark" aria-hidden="true">Ⅱ</span>
+                    <p class="card-kicker">MOMENTO DE RESPIRAR</p>
+                    <h2>Juego en pausa</h2>
+                    <p>Tu tablero queda exactamente donde lo dejaste.</p>
+                    <button class="button button-primary" id="resumeButton" type="button">Continuar partida</button>
+                  </div>
+                </div>
+                <div class="game-over-overlay" id="gameOverOverlay" hidden aria-hidden="true">
+                  <div class="game-over-dialog" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle" tabindex="-1">
+                    <div class="game-over-signal" aria-hidden="true">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                    <p class="card-kicker">PARTIDA TERMINADA</p>
+                    <h2 id="gameOverTitle">Game over</h2>
+                    <p class="game-over-summary" id="gameOverSummary">Puntuación 0 · Nivel 1</p>
+                    <p class="game-over-save-status" id="gameOverSaveStatus" aria-live="polite">Guardando puntuación...</p>
+                    <button class="button button-secondary game-over-ranking-button" id="gameOverLeaderboardButton" type="button">Ver ranking</button>
+                    <p class="game-over-hint"><kbd class="key-chip game-over-key">↵</kbd> Presioná cualquier tecla para volver al inicio</p>
+                  </div>
+                </div>
+              </div>
+              <div class="board-footer">
+                <span class="board-status" id="controlHint">↑ rotar · ↓ bajar · P pausar</span>
+              </div>
+            </section>
+
+            <section class="info-card preview-card cockpit-preview next-card" aria-label="Próxima ficha">
+              <div class="preview-heading">
+                <div>
+                  <p class="card-kicker">PRÓXIMA</p>
+                  <h2>Siguiente</h2>
+                </div>
+                <span class="next-indicator" aria-hidden="true">01</span>
+              </div>
+              <div class="preview-stage">
+                <canvas class="next" aria-label="Próxima ficha"></canvas>
+              </div>
+            </section>
           </div>
         </section>
 
-        <aside class="side-column" aria-label="Próxima ficha y controles">
-          <section class="info-card preview-card next-card">
+        <aside class="game-side-rail" aria-label="Perfil, estadísticas y controles">
+          <section class="profile-menu-shell">
+            <button class="player-chip player-chip-button game-profile-button" id="gameProfile" type="button" aria-label="Abrir menú del jugador" aria-controls="gameProfileMenu" aria-expanded="false" aria-haspopup="menu">
+              <div class="player-chip-avatar" aria-hidden="true">
+                <img id="gameProfileAvatarImage" alt="" hidden />
+                <span id="gameProfileInitials">GU</span>
+              </div>
+              <div class="player-chip-copy">
+                <span>JUGADOR</span>
+                <strong id="gameProfileNickname">Guest</strong>
+                <small id="gameProfileAccount">Invitado</small>
+              </div>
+              <span class="profile-menu-chevron" aria-hidden="true">⌄</span>
+            </button>
+            <div class="profile-menu" id="gameProfileMenu" role="menu" aria-label="Opciones del jugador" hidden>
+              <button class="profile-menu-item" id="profileMenuProfile" type="button" role="menuitem">
+                <span aria-hidden="true">◉</span>
+                <span><strong>Perfil</strong><small>Nickname y avatar</small></span>
+              </button>
+              <button class="profile-menu-item" id="gameLeaderboardButton" type="button" role="menuitem">
+                <span aria-hidden="true">↗</span>
+                <span><strong>Ranking</strong><small>Mejores puntuaciones</small></span>
+              </button>
+              <button class="profile-menu-item" id="settingsToggle" type="button" role="menuitem" aria-controls="settingsPanel" aria-expanded="false">
+                <span aria-hidden="true">⚙</span>
+                <span><strong>Configuración</strong><small>Teclas, audio e interfaz</small></span>
+              </button>
+            </div>
+          </section>
+
+          <section class="info-card piece-stats-card" aria-labelledby="pieceStatsTitle">
             <div class="card-heading">
               <div>
-                <p class="card-kicker">PRÓXIMA</p>
-                <h2>Próxima ficha</h2>
+                <p class="card-kicker">DISTRIBUCIÓN</p>
+                <h2 id="pieceStatsTitle">Fichas colocadas</h2>
               </div>
-              <span class="next-indicator" aria-hidden="true">01</span>
+              <span class="next-indicator" id="pieceStatsTotal">0 fichas</span>
             </div>
-            <div class="preview-stage">
-              <canvas class="next" aria-label="Próxima ficha"></canvas>
-            </div>
-            <p class="card-note">Mirá la siguiente para anticipar tu jugada.</p>
+            <div class="piece-stats-list" id="pieceStatsList" aria-live="polite"></div>
           </section>
 
           <section class="info-card controls-card" aria-label="Controles actuales">
@@ -262,16 +258,6 @@
             </div>
           </section>
         </aside>
-        <section class="info-card piece-stats-card" aria-labelledby="pieceStatsTitle">
-          <div class="card-heading">
-            <div>
-              <p class="card-kicker">DISTRIBUCIÓN</p>
-              <h2 id="pieceStatsTitle">Fichas colocadas</h2>
-            </div>
-            <span class="next-indicator" id="pieceStatsTotal">0 fichas</span>
-          </div>
-          <div class="piece-stats-list" id="pieceStatsList" aria-live="polite"></div>
-        </section>
       </section>
     </main>
 
