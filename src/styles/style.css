@@ -35,8 +35,10 @@ canvas {
 }
 
 #board {
-  width: min(100%, 280px);
-  height: auto;
+  width: auto;
+  height: min(600px, calc(100vh - 220px));
+  max-width: 100%;
+  aspect-ratio: 14 / 30;
 }
 
 .saved,

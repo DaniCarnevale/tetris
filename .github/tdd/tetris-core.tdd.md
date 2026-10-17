@@ -46,5 +46,6 @@ Journeys and acceptance criteria were derived from the existing gameplay code an
 
 ## Known gaps
 
-- Browser interaction and responsive layout are verified manually against the local Vite server; no screenshot baseline existed before this task, so visual regression is reported as inconclusive rather than as a pass.
+- Browser smoke test: `http://127.0.0.1:5173/` loaded at the available 606x613 viewport, exposed all three canvas labels, exercised left, rotate and hold controls, and reported no console errors or warnings. The layout fit without vertical overflow (`bodyScrollHeight = bodyClientHeight = 613`).
+- No committed screenshot baseline existed before this task, and the browser harness did not expose alternate viewport controls, so a three-breakpoint visual comparison is reported as inconclusive rather than as a pass.
 - The current gameplay intentionally preserves the existing board dimensions and scoring table.
