@@ -60,3 +60,10 @@ test('unknown piece ids do not create accidental statistics', () => {
   assert.deepEqual(recordPieceDrop(stats, 'unknown'), stats)
   assert.equal(getPieceStatsView(stats).total, 0)
 })
+
+test('piece glyphs tolerate disconnected shapes while preserving each outline', () => {
+  const path = getPieceGlyphPath([[1, 0, 1]])
+
+  assert.equal((path.match(/M /g) ?? []).length, 2)
+  assert.match(path, /Z/)
+})

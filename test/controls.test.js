@@ -35,6 +35,7 @@ test('stored controls ignore invalid values and keep safe defaults', () => {
 test('invalid storage payload falls back to defaults', () => {
   assert.deepEqual(readStoredControls('not-json'), DEFAULT_CONTROLS)
   assert.deepEqual(readStoredControls('null'), DEFAULT_CONTROLS)
+  assert.deepEqual(readStoredControls(), DEFAULT_CONTROLS)
 })
 
 test('updating a known action returns a new controls object', () => {
@@ -56,4 +57,15 @@ test('key labels turn browser codes into friendly UI text', () => {
   assert.equal(getKeyLabel('ArrowDown'), '↓')
   assert.equal(getKeyLabel('Space'), 'Espacio')
   assert.equal(getKeyLabel('KeyS'), 'S')
+  assert.equal(getKeyLabel('Digit7'), '7')
+  assert.equal(getKeyLabel('F1'), 'F1')
+})
+
+test('invalid control updates restore a normalized controls object', () => {
+  const controls = createControls({ rotate: 'KeyR' })
+
+  assert.deepEqual(updateControl(controls, 'unknown', 'KeyX'), controls)
+  assert.deepEqual(updateControl(controls, 'rotate', ''), controls)
+  assert.deepEqual(updateControl(controls, 'rotate', 42), controls)
+  assert.equal(createControls({ hold: '' }).hold, DEFAULT_CONTROLS.hold)
 })

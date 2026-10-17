@@ -166,7 +166,8 @@ test('loads and persists gameplay settings for a signed-in account', async () =>
       controls: { pause: 'Space' },
       sound_enabled: false,
       music_enabled: true,
-      music_volume: 0.35
+      music_volume: 0.35,
+      soft_drop_multiplier: 4
     }
   })
   const service = createAccountService({
@@ -189,7 +190,8 @@ test('loads and persists gameplay settings for a signed-in account', async () =>
       },
       soundEnabled: false,
       musicEnabled: true,
-      musicVolume: 0.35
+      musicVolume: 0.35,
+      softDropMultiplier: 4
     },
     error: null
   })
@@ -198,7 +200,8 @@ test('loads and persists gameplay settings for a signed-in account', async () =>
     controls: { pause: 'KeyP' },
     soundEnabled: true,
     musicEnabled: false,
-    musicVolume: 0.8
+    musicVolume: 0.8,
+    softDropMultiplier: 8
   })
 
   assert.equal(result.source, 'online')
@@ -216,8 +219,133 @@ test('loads and persists gameplay settings for a signed-in account', async () =>
       },
       sound_enabled: true,
       music_enabled: false,
-      music_volume: 0.8
+      music_volume: 0.8,
+      soft_drop_multiplier: 8
     },
     options: { onConflict: 'player_id' }
   })
+})
+
+function signedInClient (overrides = {}) {
+  const user = { id: 'user-1', email: 'dani@example.com', is_anonymous: false }
+  return {
+    auth: {
+      getSession: async () => ({ data: { session: { user } }, error: null }),
+      signInAnonymously: async () => ({ data: { user }, error: null }),
+      signInWithOAuth: async () => ({ data: { url: 'https://oauth.test' }, error: null }),
+      signOut: async () => ({ error: null }),
+      ...overrides.auth
+    },
+    from: () => ({
+      select: () => ({
+        eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) })
+      }),
+      upsert: async () => ({ error: null })
+    }),
+    ...overrides
+  }
+}
+
+function onlineService (client) {
+  return createAccountService({
+    supabaseClient: client,
+    supabaseUrl: 'https://example.supabase.co',
+    supabaseKey: 'public-key'
+  })
+}
+
+test('handles offline, guest and authentication failure states', async () => {
+  const offline = createAccountService()
+  assert.equal(offline.isOnline(), false)
+  assert.equal((await offline.getAccountState()).status, 'offline')
+  assert.equal((await offline.connectGoogle()).source, 'offline')
+  assert.equal((await offline.signOut()).source, 'offline')
+  assert.equal((await offline.loadProfile()).source, 'offline')
+  assert.equal((await offline.saveProfile({})).source, 'offline')
+  assert.equal((await offline.loadSettings()).source, 'offline')
+  assert.equal((await offline.saveSettings({})).source, 'offline')
+
+  const guest = onlineService(createAccountClient().client)
+  assert.equal((await guest.getAccountState()).status, 'guest')
+  assert.equal((await guest.loadProfile()).source, 'guest')
+  assert.equal((await guest.loadSettings()).source, 'guest')
+  assert.equal((await guest.saveSettings({})).source, 'guest')
+
+  const noEmail = onlineService(signedInClient())
+  const state = await noEmail.getAccountState()
+  assert.equal(state.email, 'dani@example.com')
+
+  const broken = onlineService({ auth: { getSession: async () => ({ data: null, error: new Error('session down') }) } })
+  assert.deepEqual(await broken.getAccountState(), {
+    source: 'offline',
+    status: 'offline',
+    userId: null,
+    email: null,
+    isAnonymous: true,
+    error: 'session down'
+  })
+})
+
+test('handles Google and sign-out failures without throwing', async () => {
+  const alreadySignedIn = onlineService(signedInClient())
+  assert.deepEqual(await alreadySignedIn.connectGoogle(), { source: 'online', url: null, error: null })
+
+  const oauthClient = createAccountClient({ oauthData: null }).client
+  oauthClient.auth.signInWithOAuth = async () => ({ data: null, error: new Error('oauth down') })
+  assert.equal((await onlineService(oauthClient).connectGoogle()).error, 'oauth down')
+
+  const signOutClient = signedInClient({ auth: { signOut: async () => ({ error: new Error('sign out failed') }) } })
+  assert.equal((await onlineService(signOutClient).signOut()).error, 'sign out failed')
+})
+
+test('handles profile and settings load/save failures and missing optional RPC', async () => {
+  const noData = onlineService(signedInClient())
+  assert.equal((await noData.loadProfile()).profile, null)
+  assert.equal((await noData.loadSettings()).settings.controls.pause, 'KeyP')
+
+  const noRpcClient = signedInClient()
+  delete noRpcClient.rpc
+  const noRpcResult = await onlineService(noRpcClient).saveProfile({ nickname: 'Ana' })
+  assert.equal(noRpcResult.source, 'online')
+
+  const profileErrorClient = signedInClient()
+  profileErrorClient.from = () => ({
+    select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: { message: 'profile read failed' } }) }) }),
+    upsert: async () => ({ error: { message: 'profile write failed' } })
+  })
+  const profileErrorService = onlineService(profileErrorClient)
+  assert.equal((await profileErrorService.loadProfile()).error, 'profile read failed')
+  assert.equal((await profileErrorService.saveProfile({})).error, 'profile write failed')
+
+  const rpcErrorClient = signedInClient()
+  rpcErrorClient.rpc = async () => ({ error: { message: 'sync failed' } })
+  assert.equal((await onlineService(rpcErrorClient).saveProfile({})).error, 'sync failed')
+
+  const settingsErrorClient = signedInClient()
+  settingsErrorClient.from = () => ({
+    select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: { message: 'settings read failed' } }) }) }),
+    upsert: async () => ({ error: { message: 'settings write failed' } })
+  })
+  const settingsErrorService = onlineService(settingsErrorClient)
+  assert.equal((await settingsErrorService.loadSettings()).error, 'settings read failed')
+  assert.equal((await settingsErrorService.saveSettings({})).error, 'settings write failed')
+})
+
+test('uses the browser origin as the OAuth redirect when available', async () => {
+  const previousWindow = globalThis.window
+  globalThis.window = { location: { origin: 'https://tetris.example' } }
+
+  try {
+    const { client, calls } = createAccountClient()
+    const service = createAccountService({
+      supabaseClient: client,
+      supabaseUrl: 'https://example.supabase.co',
+      supabaseKey: 'public-key'
+    })
+    await service.connectGoogle()
+    assert.equal(calls.signInWithOAuth.options.redirectTo, 'https://tetris.example')
+  } finally {
+    if (previousWindow === undefined) delete globalThis.window
+    else globalThis.window = previousWindow
+  }
 })

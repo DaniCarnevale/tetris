@@ -20,3 +20,13 @@ test('signed-in profile access exposes the editable profile hub', () => {
     signedIn: true
   })
 })
+
+test('profile access falls back to Guest when a signed-in nickname is empty', () => {
+  assert.deepEqual(createProfileAccessModel({ status: 'signed-in' }, { nickname: '   ' }), {
+    name: 'Guest',
+    status: 'Mi perfil',
+    title: 'Abrir el perfil de Guest',
+    signedIn: true
+  })
+  assert.equal(createProfileAccessModel().signedIn, false)
+})

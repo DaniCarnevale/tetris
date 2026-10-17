@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test",
+    "test": "node --test --experimental-test-isolation=none",
+    "test:coverage": "node --experimental-test-coverage --test --experimental-test-isolation=none --test-coverage-include=src/**/*.js --test-coverage-lines=100 --test-coverage-functions=100",
     "lint": "standard \"src/**/*.js\" \"test/**/*.js\""
   },
   "devDependencies": {

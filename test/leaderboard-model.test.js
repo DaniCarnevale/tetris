@@ -60,3 +60,26 @@ test('limits leaderboard results and ignores invalid entries', () => {
 
   assert.deepEqual(sortLeaderboard(entries, 1).map((entry) => entry.nickname), ['C'])
 })
+
+test('normalizes invalid numeric, stage, level and avatar values', () => {
+  const entry = createLeaderboardEntry({
+    nickname: null,
+    score: 'not-a-number',
+    level: -4,
+    lines: -1,
+    stageId: '',
+    startLevel: 99,
+    avatarPath: ''
+  })
+
+  assert.deepEqual(entry, {
+    nickname: 'Jugador',
+    score: 0,
+    level: 1,
+    lines: 0,
+    stageId: 'fresh',
+    startLevel: 10,
+    avatarPath: null,
+    createdAt: entry.createdAt
+  })
+})

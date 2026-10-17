@@ -178,6 +178,9 @@ test('a game can start at a selected level with a stage base', () => {
   assert.equal(game.startLevel, 4)
   assert.equal(getCurrentLevel(game.score, game.startLevel).level, 4)
   assert.ok(game.board.some((row) => row.some((cell) => cell !== null)))
+  assert.equal(createGame({ startLevel: 0 }).startLevel, 1)
+  assert.equal(createGame({ startLevel: 99 }).startLevel, 10)
+  assert.equal(createGame({ startLevel: 'bad' }).startLevel, 1)
 })
 
 test('pausing freezes movement until the game is resumed', () => {
@@ -191,4 +194,50 @@ test('pausing freezes movement until the game is resumed', () => {
   assert.equal(togglePause(game), false)
   moveActivePiece(game, 'down')
   assert.equal(game.activePiece.position.y, initialY + 1)
+})
+
+test('horizontal movement returns to the previous position after a collision', () => {
+  const game = createGame({ random: createTestRandom([0, 1, 2]) })
+  game.activePiece.position.x = 0
+  const initialX = game.activePiece.position.x
+
+  moveActivePiece(game, 'left')
+  assert.equal(game.activePiece.position.x, initialX)
+
+  moveActivePiece(game, 'right')
+  assert.equal(game.activePiece.position.x, initialX + 1)
+
+  game.activePiece.position.x = BOARD_WIDTH - game.activePiece.shape[0].length
+  moveActivePiece(game, 'right')
+  assert.equal(game.activePiece.position.x, BOARD_WIDTH - game.activePiece.shape[0].length)
+})
+
+test('ignored engine commands respect paused and game-over states', () => {
+  const game = createGame({ random: createTestRandom([0, 1, 2]) })
+
+  assert.equal(moveActivePiece(game, 'invalid'), 0)
+  assert.equal(rotateActivePiece(game), true)
+
+  game.paused = true
+  assert.equal(moveActivePiece(game, 'down'), 0)
+  assert.equal(rotateActivePiece(game), false)
+  assert.equal(holdActivePiece(game), false)
+
+  game.paused = false
+  game.gameOver = true
+  assert.equal(moveActivePiece(game, 'down'), 0)
+  assert.equal(rotateActivePiece(game), false)
+  assert.equal(holdActivePiece(game), false)
+  assert.equal(togglePause(game), false)
+})
+
+test('holding a piece swaps with the existing held piece on a later turn', () => {
+  const game = createGame({ random: createTestRandom([0, 1, 2, 3]) })
+
+  assert.equal(holdActivePiece(game), true)
+  const firstHeldShape = clonePiece(game.heldPiece).shape
+  game.holdUsed = false
+
+  assert.equal(holdActivePiece(game), true)
+  assert.deepEqual(game.activePiece.shape, firstHeldShape)
 })

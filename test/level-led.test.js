@@ -47,3 +47,10 @@ test('level ten uses a stronger steady red glow than the transient LED states', 
   assert.match(stylesheet, /#board\.is-level-led-steady[\s\S]*0 0 56px rgba\(var\(--level-led-color\), 0\.62\)/)
   assert.match(stylesheet, /\.stats-card\.is-level-led-steady[\s\S]*0 0 56px rgba\(var\(--level-led-color\), 0\.62\)/)
 })
+
+test('level LED normalization clamps invalid, fractional and out-of-range levels', () => {
+  assert.equal(getLevelLedFeedback('invalid').pulseDurationMs, 1800)
+  assert.equal(getLevelLedFeedback(0).pulseDurationMs, 1800)
+  assert.equal(getLevelLedFeedback(11).mode, 'steady')
+  assert.equal(getLevelLedFeedback(2.9).pulseDurationMs, 1620)
+})

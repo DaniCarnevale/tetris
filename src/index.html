@@ -89,7 +89,7 @@
 
           <div class="start-actions">
             <button class="button button-primary" id="startGameButton" type="button">
-              <span>Empezar juego</span>
+              <span id="startGameButtonLabel">Empezar juego</span>
               <span class="button-arrow" aria-hidden="true">→</span>
             </button>
             <button class="button button-quiet" id="leaderboardButton" type="button">
@@ -387,8 +387,17 @@
         </div>
         <p class="settings-intro">Elegí tus teclas y audio. Con Google, la configuración queda asociada a tu cuenta; como invitado se guarda en este navegador.</p>
 
-        <div class="settings-section-label">Teclas</div>
-        <div class="bindings-list">
+        <details class="settings-section" open>
+          <summary class="settings-section-summary">
+            <div class="settings-section-heading">
+            <div>
+              <span class="settings-section-label">01 · Teclas</span>
+              <h3 id="settingsKeysTitle">Controles de juego</h3>
+            </div>
+            <span class="settings-section-icon" aria-hidden="true">⌘</span>
+            </div>
+          </summary>
+          <div class="bindings-list">
           <div class="binding-row"><div><strong>Mover a la izquierda</strong><span>Desplazá la ficha</span></div><button class="binding-button" type="button" data-binding="moveLeft"><kbd class="control-key" data-control-label="moveLeft">←</kbd><span>Editar</span></button></div>
           <div class="binding-row"><div><strong>Mover a la derecha</strong><span>Desplazá la ficha</span></div><button class="binding-button" type="button" data-binding="moveRight"><kbd class="control-key" data-control-label="moveRight">→</kbd><span>Editar</span></button></div>
           <div class="binding-row"><div><strong>Bajar rápido</strong><span>Acelerá la caída</span></div><button class="binding-button" type="button" data-binding="softDrop"><kbd class="control-key" data-control-label="softDrop">↓</kbd><span>Editar</span></button></div>
@@ -396,22 +405,57 @@
           <div class="binding-row"><div><strong>Guardar ficha</strong><span>Mandala a la reserva</span></div><button class="binding-button" type="button" data-binding="hold"><kbd class="control-key" data-control-label="hold">S</kbd><span>Editar</span></button></div>
           <div class="binding-row"><div><strong>Pausar partida</strong><span>Detené el ritmo sin perder el tablero</span></div><button class="binding-button" type="button" data-binding="pause"><kbd class="control-key" data-control-label="pause">P</kbd><span>Editar</span></button></div>
           <div class="binding-row"><div><strong>Reiniciar partida</strong><span>Disponible al perder</span></div><button class="binding-button" type="button" data-binding="restart"><kbd class="control-key" data-control-label="restart">Enter</kbd><span>Editar</span></button></div>
-        </div>
+          </div>
+        </details>
 
-        <div class="settings-section-label sound-section-label">Sonido</div>
-        <div class="sound-setting">
+        <details class="settings-section">
+          <summary class="settings-section-summary">
+            <div class="settings-section-heading">
+            <div>
+              <span class="settings-section-label">02 · Juego</span>
+              <h3 id="settingsGameTitle">Velocidad de caída</h3>
+            </div>
+            <span class="settings-section-icon" aria-hidden="true">↓</span>
+            </div>
+          </summary>
+          <div class="game-setting">
+            <div><strong>Bajar rápido</strong><span>Elegí cuánto avanza la ficha cada vez que usás esa tecla.</span></div>
+            <label class="setting-select" for="softDropMultiplier">
+              <span class="sr-only">Multiplicador de caída rápida</span>
+              <select id="softDropMultiplier">
+                <option value="1">×1 · Normal</option>
+                <option value="2">×2 · Rápida</option>
+                <option value="4">×4 · Muy rápida</option>
+                <option value="8">×8 · Instantánea</option>
+              </select>
+            </label>
+          </div>
+        </details>
+
+        <details class="settings-section">
+          <summary class="settings-section-summary">
+            <div class="settings-section-heading">
+            <div>
+              <span class="settings-section-label">03 · Sonido</span>
+              <h3 id="settingsSoundTitle">Audio de la partida</h3>
+            </div>
+            <span class="settings-section-icon" aria-hidden="true">♪</span>
+            </div>
+          </summary>
+          <div class="sound-setting">
           <div><strong>Feedback de juego</strong><span>Líneas, niveles y fin de partida</span></div>
           <button class="sound-toggle is-on" id="soundToggle" type="button" aria-pressed="true"><span class="sound-toggle-dot"></span><span id="soundToggleLabel">Activado</span></button>
-        </div>
+          </div>
 
-        <div class="sound-setting music-setting">
+          <div class="sound-setting music-setting">
           <div><strong>Música de fondo</strong><span id="musicVolumeLabel">50%</span></div>
           <button class="sound-toggle is-on" id="musicToggle" type="button" aria-pressed="true"><span class="sound-toggle-dot"></span><span id="musicToggleLabel">Activada</span></button>
           <label class="volume-control" for="musicVolume">
             <span class="sr-only">Volumen de la música</span>
             <input id="musicVolume" type="range" min="0" max="100" step="5" value="50" />
           </label>
-        </div>
+          </div>
+        </details>
 
         <p class="settings-feedback" id="settingsFeedback" aria-live="polite">Podés usar Escape para cancelar.</p>
         <button class="button button-secondary reset-controls" id="resetControls" type="button">Restaurar controles originales</button>

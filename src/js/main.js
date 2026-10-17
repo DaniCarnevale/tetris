@@ -39,6 +39,7 @@ import {
   readStoredControls,
   updateControl
 } from './input/controls.js'
+import { createInputBuffer, drainInputActions, enqueueInputAction, getHeldInputAction, releaseInputAction } from './input/inputState.js'
 import buenosAiresArt from '../assets/backgrounds/buenos-aires.svg'
 import rosarioArt from '../assets/backgrounds/rosario.svg'
 import humahuacaArt from '../assets/backgrounds/humahuaca.svg'
@@ -53,6 +54,7 @@ import '../styles/style.css'
 
 const CONTROLS_STORAGE_KEY = 'tetris.controls'
 const SOUND_STORAGE_KEY = 'tetris.sound.enabled'
+const HORIZONTAL_REPEAT_MS = 72
 const SCORE_FORMATTER = new Intl.NumberFormat('es-AR')
 const ACTION_LABELS = {
   moveLeft: 'mover a la izquierda',
@@ -62,6 +64,15 @@ const ACTION_LABELS = {
   hold: 'guardar la ficha',
   pause: 'pausar la partida',
   restart: 'reiniciar la partida'
+}
+const GAME_INPUT_ACTIONS = {
+  moveLeft: 'left',
+  moveRight: 'right',
+  softDrop: 'down',
+  rotate: 'rotate',
+  hold: 'hold',
+  pause: 'pause',
+  restart: 'restart'
 }
 const BACKGROUND_ART = {
   'buenos-aires': buenosAiresArt,
@@ -126,6 +137,7 @@ const startSceneLabel = document.querySelector('#startSceneLabel')
 const startSceneDescription = document.querySelector('#startSceneDescription')
 const startHint = document.querySelector('#startHint')
 const startGameButton = document.querySelector('#startGameButton')
+const startGameButtonLabel = document.querySelector('#startGameButtonLabel')
 const startSettingsButton = document.querySelector('#startSettingsButton')
 const leaderboardButton = document.querySelector('#leaderboardButton')
 const profileAccessButton = document.querySelector('#profileAccessButton')
@@ -200,6 +212,7 @@ const musicToggle = document.querySelector('#musicToggle')
 const musicToggleLabel = document.querySelector('#musicToggleLabel')
 const musicVolumeInput = document.querySelector('#musicVolume')
 const musicVolumeLabel = document.querySelector('#musicVolumeLabel')
+const softDropMultiplierInput = document.querySelector('#softDropMultiplier')
 const gameProfile = document.querySelector('#gameProfile')
 const gameProfileAvatarImage = document.querySelector('#gameProfileAvatarImage')
 const gameProfileInitials = document.querySelector('#gameProfileInitials')
@@ -220,6 +233,10 @@ const leaderboardService = createLeaderboardService({ supabaseClient })
 const avatarService = createAvatarService({ supabaseClient })
 const accountService = createAccountService({ supabaseClient })
 
+// Warm the auth session while the start screen is visible so starting a game
+// only waits for the authoritative run creation, not for guest sign-in too.
+leaderboardService.prepareSession().catch(() => {})
+
 boardCanvas.width = BLOCK_SIZE * BOARD_WIDTH
 boardCanvas.height = BLOCK_SIZE * BOARD_HEIGHT
 boardContext.scale(BLOCK_SIZE, BLOCK_SIZE)
@@ -238,8 +255,9 @@ let controls = userSettings.controls
 let selectedStage = 'fresh'
 let gameStarted = false
 let dropCounter = 0
+let horizontalRepeatCounter = 0
 let lastTime = 0
-let latestInput = null
+const inputBuffer = createInputBuffer()
 let listeningAction = null
 let lastRenderedLevel = 0
 let gameOverAnimationFinished = false
@@ -287,6 +305,7 @@ function loadUserSettings () {
 
 function getCurrentSettings () {
   return createUserSettings({
+    ...userSettings,
     controls,
     soundEnabled: soundManager.isEnabled(),
     musicEnabled: soundManager.isMusicEnabled(),
@@ -317,6 +336,7 @@ function applyUserSettings (settings) {
   soundManager.setEnabled(userSettings.soundEnabled)
   soundManager.setMusicEnabled(userSettings.musicEnabled)
   soundManager.setMusicVolume(userSettings.musicVolume)
+  renderSoftDropSettings()
   renderSoundToggle()
   renderMusicSettings()
   renderControlLabels()
@@ -342,6 +362,19 @@ function renderMusicSettings () {
 
 function saveMusicSetting () {
   persistUserSettings()
+}
+
+function renderSoftDropSettings () {
+  softDropMultiplierInput.value = String(userSettings.softDropMultiplier)
+}
+
+function saveSoftDropSetting () {
+  userSettings = createUserSettings({
+    ...getCurrentSettings(),
+    softDropMultiplier: Number(softDropMultiplierInput.value)
+  })
+  persistUserSettings()
+  renderSoftDropSettings()
 }
 
 function hexToRgb (hex) {
@@ -1388,29 +1421,57 @@ function runGameAction (action, actionType = null) {
   return result
 }
 
-function handleInput () {
-  if (latestInput === null) return
+function handleSoftDrop () {
+  for (let step = 0; step < userSettings.softDropMultiplier; step += 1) {
+    if (game.gameOver || game.paused) break
+    runGameAction(() => moveActivePiece(game, 'down'), 'down')
+  }
+}
 
-  if (latestInput === 'pause') {
-    togglePauseGame()
-    latestInput = null
+function handleInput (deltaTime) {
+  const actions = drainInputActions(inputBuffer)
+
+  for (const action of actions) {
+    if (action === 'pause') {
+      togglePauseGame()
+      continue
+    }
+
+    if (game.gameOver || game.paused) break
+
+    switch (action) {
+      case 'rotate':
+        runGameAction(() => rotateActivePiece(game), 'rotate')
+        break
+      case 'hold':
+        runGameAction(() => holdActivePiece(game), 'hold')
+        break
+      case 'left':
+      case 'right':
+        runGameAction(() => moveActivePiece(game, action), action)
+        break
+      case 'down':
+        handleSoftDrop()
+        break
+    }
+  }
+
+  if (!gameStarted || game.gameOver || game.paused) {
+    horizontalRepeatCounter = 0
     return
   }
 
-  if (game.gameOver || game.paused) return
+  const heldHorizontalAction = getHeldInputAction(inputBuffer, ['left', 'right'])
+  if (heldHorizontalAction === null) {
+    horizontalRepeatCounter = 0
+    return
+  }
 
-  switch (latestInput) {
-    case 'rotate':
-      runGameAction(() => rotateActivePiece(game), 'rotate')
-      break
-    case 'hold':
-      runGameAction(() => holdActivePiece(game), 'hold')
-      break
-    case 'left':
-    case 'right':
-    case 'down':
-      runGameAction(() => moveActivePiece(game, latestInput), latestInput)
-      break
+  horizontalRepeatCounter += deltaTime
+  while (horizontalRepeatCounter >= HORIZONTAL_REPEAT_MS) {
+    runGameAction(() => moveActivePiece(game, heldHorizontalAction), heldHorizontalAction)
+    horizontalRepeatCounter -= HORIZONTAL_REPEAT_MS
+    if (game.gameOver) break
   }
 }
 
@@ -1425,8 +1486,7 @@ function update (time = 0) {
   const deltaTime = Math.min(time - lastTime, 1000)
   lastTime = time
 
-  handleInput()
-  latestInput = null
+  handleInput(deltaTime)
 
   if (gameStarted && !game.gameOver && !game.paused) {
     const currentLevel = getCurrentLevel(game.score, game.startLevel)
@@ -1446,26 +1506,38 @@ async function startGame () {
   const startLevel = Number(startLevelSelect.value)
   const requestId = ++runStartRequest
   startGameButton.disabled = true
+  startGameButton.classList.add('is-loading')
+  startGameButton.setAttribute('aria-busy', 'true')
+  startGameButtonLabel.textContent = 'Preparando partida…'
+  startHint.textContent = 'Validando una partida segura…'
   hideGameOverOverlay()
-  const run = await leaderboardService.startRun({ stageId: selectedStage, startLevel })
-  if (requestId !== runStartRequest) return
+  try {
+    const run = await leaderboardService.startRun({ stageId: selectedStage, startLevel })
+    if (requestId !== runStartRequest) return
 
-  activeRun = run.source === 'online' ? run : null
-  runActions = []
-  const random = run.source === 'online' ? createSeededRandom(run.seed) : Math.random
-  game = createGame({ random, startLevel, startingStage: selectedStage })
-  gameStarted = true
-  syncGameViewport()
-  lastRenderedLevel = 0
-  startScreen.hidden = true
-  gameScreen.hidden = false
-  soundManager.unlock()
-  soundManager.playMusic()
-  updateStageArt(startLevel)
-  lastTime = performance.now()
-  startHint.textContent = `Stage ${getStage(selectedStage).name} · nivel ${startLevel}. Buena suerte.`
-  startGameButton.disabled = false
-  draw()
+    activeRun = run.source === 'online' ? run : null
+    runActions = []
+    const random = run.source === 'online' ? createSeededRandom(run.seed) : Math.random
+    game = createGame({ random, startLevel, startingStage: selectedStage })
+    gameStarted = true
+    syncGameViewport()
+    lastRenderedLevel = 0
+    startScreen.hidden = true
+    gameScreen.hidden = false
+    soundManager.unlock()
+    soundManager.playMusic()
+    updateStageArt(startLevel)
+    lastTime = performance.now()
+    startHint.textContent = `Stage ${getStage(selectedStage).name} · nivel ${startLevel}. Buena suerte.`
+    draw()
+  } finally {
+    if (requestId === runStartRequest) {
+      startGameButton.disabled = false
+      startGameButton.classList.remove('is-loading')
+      startGameButton.removeAttribute('aria-busy')
+      startGameButtonLabel.textContent = 'Empezar juego'
+    }
+  }
 }
 
 renderStagePicker()
@@ -1539,6 +1611,7 @@ musicVolumeInput.addEventListener('input', () => {
 musicVolumeInput.addEventListener('change', () => {
   saveMusicSetting()
 })
+softDropMultiplierInput.addEventListener('change', saveSoftDropSetting)
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) pauseOnFocusLoss()
@@ -1601,13 +1674,10 @@ document.addEventListener('keydown', (event) => {
   if (!action) return
 
   event.preventDefault()
-  latestInput = {
-    moveLeft: 'left',
-    moveRight: 'right',
-    softDrop: 'down',
-    rotate: 'rotate',
-    hold: 'hold',
-    pause: 'pause',
-    restart: 'restart'
-  }[action]
+  enqueueInputAction(inputBuffer, GAME_INPUT_ACTIONS[action], { repeat: event.repeat })
+})
+
+document.addEventListener('keyup', (event) => {
+  const action = findActionByCode(controls, event.code)
+  if (action) releaseInputAction(inputBuffer, GAME_INPUT_ACTIONS[action])
 })

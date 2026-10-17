@@ -55,3 +55,23 @@ test('detects an edited nickname or avatar against the saved profile', () => {
   assert.equal(hasProfileChanges({ nickname: 'Daniel', avatarPath: 'user/avatar.webp' }, savedProfile), true)
   assert.equal(hasProfileChanges({ nickname: 'Dani', avatarPath: null }, savedProfile), true)
 })
+
+test('builds initials for multi-word profiles and tolerates storage failures', () => {
+  assert.deepEqual(createProfileCardModel({ nickname: 'Maria Sol' }), {
+    nickname: 'Maria Sol',
+    initials: 'MS',
+    avatarPath: null,
+    accountLabel: 'Invitado'
+  })
+
+  const failingStorage = {
+    getItem: () => { throw new Error('read failed') },
+    setItem: () => { throw new Error('write failed') },
+    removeItem: () => { throw new Error('remove failed') }
+  }
+
+  assert.equal(consumeProfileSetupPending(failingStorage), false)
+  assert.doesNotThrow(() => markProfileSetupPending(failingStorage))
+  assert.doesNotThrow(() => markProfileSetupPending(null))
+  assert.equal(consumeProfileSetupPending(null), false)
+})

@@ -43,7 +43,7 @@ La aplicación no contiene secretos privados trackeados. La publishable key de S
 - Cada partida obtiene una semilla y un `run_id` del servidor, expira a los 45 minutos, se limita a 20 inicios por hora y sólo puede finalizarse una vez.
 - `submit-score` ignora score, nivel y líneas enviados por el navegador: reproduce la partida desde la semilla y la lista acotada de acciones, exige game over y persiste únicamente el resultado calculado.
 
-Migraciones: `supabase/migrations/005_security_hardening.sql`, `supabase/migrations/006_privacy_hardening.sql`, `supabase/migrations/007_fix_avatar_upsert_rls.sql`, `supabase/migrations/008_fix_avatar_rate_limit_types.sql`, `supabase/migrations/009_profile_score_identity_sync.sql`, `supabase/migrations/010_secure_leaderboard_runs.sql`
+Migraciones: `supabase/migrations/005_security_hardening.sql`, `supabase/migrations/006_privacy_hardening.sql`, `supabase/migrations/007_fix_avatar_upsert_rls.sql`, `supabase/migrations/008_fix_avatar_rate_limit_types.sql`, `supabase/migrations/009_profile_score_identity_sync.sql`, `supabase/migrations/010_secure_leaderboard_runs.sql`, `supabase/migrations/011_soft_drop_settings.sql`, `supabase/migrations/012_atomic_start_game_run.sql`
 Aplicadas y verificadas en Supabase mediante `pg_policies`, `pg_proc`, privilegios de columnas y llamadas REST públicas.
 
 ## Riesgos residuales / decisiones de producto

@@ -16,9 +16,44 @@ export function createLeaderboardService ({
 } = {}) {
   const client = supabaseClient ?? createSupabaseClient(supabaseUrl, supabaseKey)
   const online = Boolean(client && supabaseUrl && supabaseKey)
+  let preparedUser = null
+  let preparePromise = null
+
+  if (online && typeof client.auth?.onAuthStateChange === 'function') {
+    client.auth.onAuthStateChange((_event, session) => {
+      const nextUserId = session?.user?.id ?? null
+      if (preparedUser && preparedUser.id !== nextUserId) {
+        preparedUser = null
+        preparePromise = null
+      }
+      if (!nextUserId) {
+        preparedUser = null
+        preparePromise = null
+      }
+    })
+  }
+
+  const prepareSession = () => {
+    if (!online) return Promise.resolve(null)
+    if (preparedUser) return Promise.resolve(preparedUser)
+    if (preparePromise) return preparePromise
+
+    preparePromise = ensureAnonymousUser(client)
+      .then((user) => {
+        preparedUser = user
+        return user
+      })
+      .catch((error) => {
+        preparePromise = null
+        throw error
+      })
+
+    return preparePromise
+  }
 
   return {
     isOnline: () => online,
+    prepareSession,
     getProfile: () => loadGuestProfile(profileStorage),
     setProfile: (profile) => {
       const currentProfile = loadGuestProfile(profileStorage)
@@ -45,7 +80,7 @@ export function createLeaderboardService ({
         storage
       })
     },
-    startRun: (details) => startRun({ client, online, details }),
+    startRun: (details) => startRun({ client, online, details, prepareSession }),
     submitScore: (details) => submitScore({ client, online, details, profileStorage, storage }),
     subscribeToLeaderboard: (onInsert) => subscribeToLeaderboard({ client, online, onInsert })
   }
@@ -98,7 +133,7 @@ async function getLeaderboard ({ client, online, limit, stageId, startLevel, sto
   }
 }
 
-async function startRun ({ client, online, details = {} }) {
+async function startRun ({ client, online, details = {}, prepareSession }) {
   const startLevel = Number(details.startLevel)
   const stageId = typeof details.stageId === 'string' ? details.stageId : 'fresh'
 
@@ -107,7 +142,7 @@ async function startRun ({ client, online, details = {} }) {
   }
 
   try {
-    const user = await ensureAnonymousUser(client)
+    const user = await prepareSession(client, online)
     if (!client.functions?.invoke) throw new Error('secure_run_unavailable')
 
     const { data, error } = await client.functions.invoke('start-run', {

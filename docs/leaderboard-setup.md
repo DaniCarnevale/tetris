@@ -4,12 +4,14 @@ La app funciona como **Guest** y permite jugar sin cuenta. El guest usa el nickn
 
 1. Crear un proyecto nuevo en Supabase.
 2. En Authentication, habilitar **Anonymous Sign-Ins**.
-3. Ejecutar en orden `supabase/migrations/001_leaderboard.sql` a `009_profile_score_identity_sync.sql` desde el SQL Editor.
+3. Ejecutar en orden las migraciones `supabase/migrations/001_leaderboard.sql` a `012_atomic_start_game_run.sql` desde el SQL Editor.
 4. Copiar `.env.example` a `.env.local`.
 5. Completar `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (la clave publicable/anon, nunca `service_role`).
 6. Reiniciar Vite con `npm run dev`.
 
-La app crea una sesión anónima para cada jugador y asocia sus puntuaciones al usuario guest. El botón de Google inicia una sesión OAuth permanente; esto permite entrar tanto a cuentas existentes como nuevas y evita conflictos cuando una identidad ya está asociada a otro usuario. Después del login se habilitan nickname y avatar personalizados.
+La app crea una sesión anónima para cada jugador y la precalienta mientras se muestra la pantalla inicial, para que el inicio sólo espere la creación segura del run. El botón de Google inicia una sesión OAuth permanente; esto permite entrar tanto a cuentas existentes como nuevas y evita conflictos cuando una identidad ya está asociada a otro usuario. Después del login se habilitan nickname y avatar personalizados.
+
+La Edge Function `start-run` valida el JWT y genera una semilla autoritativa. La migración `012_atomic_start_game_run.sql` ejecuta el rate limit, el cierre de runs abiertos y el insert en una única operación SQL transaccional, evitando viajes innecesarios y carreras entre pestañas.
 
 Los avatares de cuentas Google se guardan en el bucket `avatars`. Cada jugador puede tener un único archivo WebP de hasta 2,5 MB en una ruta fija. El bucket acepta JPG, PNG y WebP; la política de Storage y el trigger de rate limit restringen la ruta, el tamaño y una carga cada 30 segundos. Una nueva imagen reemplaza el archivo anterior.
 
@@ -26,4 +28,4 @@ El botón de Google usa `signInWithOAuth`, por lo que funciona con identidades G
 
 El ranking usa Supabase Realtime cuando el proyecto está configurado: la tabla se suscribe a nuevos inserts por WebSocket mientras está abierta y cierra el canal al salir, sin mantener conexiones innecesarias durante la partida.
 
-Los rankings quedan separados por stage y nivel inicial. La pantalla permite elegir un stage y un nivel concreto, o consultar todos los niveles dentro de ese stage. Las preferencias de controles, feedback, música y volumen se guardan en `player_settings` para cuentas Google; los invitados conservan un fallback local. Al guardar nickname o avatar, la función protegida `sync_profile_score_identity` actualiza los snapshots históricos de esa cuenta para que el ranking no conserve datos visuales viejos.
+Los rankings quedan separados por stage y nivel inicial. La pantalla permite elegir un stage y un nivel concreto, o consultar todos los niveles dentro de ese stage. Las preferencias de controles, feedback, música, volumen y multiplicador de caída rápida se guardan en `player_settings` para cuentas Google; los invitados conservan un fallback local. El multiplicador permitido es ×1, ×2, ×4 o ×8. Al guardar nickname o avatar, la función protegida `sync_profile_score_identity` actualiza los snapshots históricos de esa cuenta para que el ranking no conserve datos visuales viejos.

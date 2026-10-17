@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import { BOARD_HEIGHT, BOARD_WIDTH } from '../src/js/config/config.js'
-import { createStageBoard, getBackdropForLevel } from '../src/js/game/stages.js'
+import { createStageBoard, getBackdropForLevel, getStage } from '../src/js/game/stages.js'
 import { getLineClearSequence, getMusicSequence } from '../src/js/audio/soundManager.js'
 
 test('stage presets preserve board dimensions and provide a playable base', () => {
@@ -68,4 +68,13 @@ test('music has an original loop that can be reused across every level', () => {
   assert.ok(sequence.every((note) => note.duration >= 0.24))
   assert.ok(Math.max(...sequence.map((note) => note.frequency)) <= 880)
   assert.deepEqual(sequence, getMusicSequence(10))
+})
+
+test('stage generation clamps malformed randomness and unknown stage ids safely', () => {
+  assert.equal(getStage('missing').id, 'fresh')
+  assert.ok(createStageBoard('fresh', null).every((row) => row.every((cell) => cell === null)))
+  assert.doesNotThrow(() => createStageBoard('foundation', () => Number.NaN))
+  assert.doesNotThrow(() => createStageBoard('foundation', () => -1))
+  assert.doesNotThrow(() => createStageBoard('foundation', () => 2))
+  assert.equal(getBackdropForLevel(0).id, 'buenos-aires')
 })

@@ -30,3 +30,14 @@ test('line clear animation progress is clamped and expires at its duration', () 
   assert.equal(isLineClearAnimationActive(animation, 100 + LINE_CLEAR_ANIMATION_MS - 1), true)
   assert.equal(isLineClearAnimationActive(animation, 100 + LINE_CLEAR_ANIMATION_MS), false)
 })
+
+test('animation helpers reject empty rows and unknown timestamps safely', () => {
+  assert.equal(createLineClearAnimation(null), null)
+  assert.equal(createLineClearAnimation([]), null)
+
+  const animation = createLineClearAnimation([{ y: 2, cells: null }])
+  assert.deepEqual(animation.rows[0].cells, [])
+  assert.equal(getLineClearProgress(null, 0), 1)
+  assert.equal(getLineClearProgress(animation, Number.NaN), 1)
+  assert.equal(isLineClearAnimationActive(null, 0), false)
+})

@@ -29,6 +29,7 @@ class FakeOscillator {
     this.frequency = new FakeParam()
     this.stops = []
     this.onended = null
+    this.throwOnSecondStop = false
   }
 
   connect () {}
@@ -38,6 +39,7 @@ class FakeOscillator {
   }
 
   stop (time) {
+    if (this.throwOnSecondStop && this.stops.length > 0) throw new Error('already stopped')
     this.stops.push(time)
   }
 }
@@ -55,7 +57,7 @@ class FakeAudioContext {
 
   constructor () {
     this.currentTime = 10
-    this.state = 'running'
+    this.state = FakeAudioContext.initialState
     this.destination = {}
     this.oscillators = []
     FakeAudioContext.instances.push(this)
@@ -76,6 +78,8 @@ class FakeAudioContext {
     return Promise.resolve()
   }
 }
+
+FakeAudioContext.initialState = 'running'
 
 function createManagerForTest () {
   FakeAudioContext.instances = []
@@ -127,4 +131,92 @@ test('resuming music continues at the current note instead of restarting the loo
 
   const resumedLoop = context.oscillators.slice(14)
   assert.equal(resumedLoop[0].frequency.value, getMusicSequence()[1].frequency)
+})
+
+test('plays game feedback and supports browser audio fallbacks', () => {
+  const manager = createManagerForTest()
+  manager.unlock()
+  manager.playLineClear(4)
+  manager.playLevelUp()
+  manager.playGameOver()
+
+  const context = FakeAudioContext.instances[0]
+  assert.equal(context.oscillators.length, 26)
+  context.oscillators.forEach((oscillator) => oscillator.onended?.())
+
+  globalThis.window = {
+    AudioContext: null,
+    webkitAudioContext: FakeAudioContext,
+    setTimeout: () => 1,
+    clearTimeout: () => {}
+  }
+  const webkitManager = createSoundManager()
+  assert.ok(webkitManager.unlock())
+})
+
+test('handles browsers without Web Audio and suspended contexts', () => {
+  globalThis.window = {
+    AudioContext: null,
+    webkitAudioContext: null,
+    setTimeout: () => 1,
+    clearTimeout: () => {}
+  }
+  const unavailable = createSoundManager()
+  assert.equal(unavailable.unlock(), null)
+  unavailable.playLineClear(1)
+  unavailable.playLevelUp()
+  unavailable.playGameOver()
+  unavailable.playMusic()
+  unavailable.setEnabled(false)
+  assert.equal(unavailable.isEnabled(), false)
+
+  FakeAudioContext.instances = []
+  FakeAudioContext.initialState = 'suspended'
+  globalThis.window.AudioContext = FakeAudioContext
+  const suspended = createSoundManager()
+  suspended.unlock()
+  assert.equal(FakeAudioContext.instances[0].state, 'running')
+  FakeAudioContext.initialState = 'running'
+})
+
+test('resets the music loop through its timer and ignores stale callbacks', () => {
+  FakeAudioContext.instances = []
+  let timerCallback
+  let clearCalls = 0
+  globalThis.window = {
+    AudioContext: FakeAudioContext,
+    webkitAudioContext: null,
+    setTimeout: (callback) => { timerCallback = callback; return 7 },
+    clearTimeout: () => { clearCalls += 1 }
+  }
+  const manager = createSoundManager()
+  manager.unlock()
+  const context = FakeAudioContext.instances[0]
+  const firstCallback = timerCallback
+  firstCallback()
+  assert.equal(context.oscillators.length, 28)
+
+  context.currentTime = 100
+  context.oscillators.forEach((oscillator) => { oscillator.throwOnSecondStop = true })
+  manager.stopMusic()
+  const oscillatorCount = context.oscillators.length
+  firstCallback()
+  assert.equal(context.oscillators.length, oscillatorCount)
+  assert.ok(clearCalls > 0)
+})
+
+test('stops music immediately for disabled and invalid volume settings', () => {
+  const manager = createManagerForTest()
+  manager.setMusicVolume(2)
+  assert.equal(manager.getMusicVolume(), 1)
+  manager.setMusicVolume(-1)
+  assert.equal(manager.getMusicVolume(), 0)
+  manager.setMusicVolume('invalid')
+  assert.equal(manager.getMusicVolume(), 0.5)
+  manager.setMusicEnabled(false)
+  assert.equal(manager.isMusicEnabled(), false)
+  manager.setMusicEnabled(true)
+  manager.setEnabled(false)
+  manager.setEnabled(true)
+  assert.equal(manager.isEnabled(), true)
 })

@@ -143,7 +143,7 @@ async function loadSettings ({ client, online }) {
     if (user.is_anonymous) return createSettingsResult('guest')
     const { data, error } = await client
       .from(PLAYER_SETTINGS_TABLE)
-      .select('controls, sound_enabled, music_enabled, music_volume')
+      .select('controls, sound_enabled, music_enabled, music_volume, soft_drop_multiplier')
       .eq('player_id', user.id)
       .maybeSingle()
     if (error) throw error
@@ -153,7 +153,8 @@ async function loadSettings ({ client, online }) {
         controls: data.controls,
         soundEnabled: data.sound_enabled,
         musicEnabled: data.music_enabled,
-        musicVolume: data.music_volume
+        musicVolume: data.music_volume,
+        softDropMultiplier: data.soft_drop_multiplier
       })
       : createUserSettings())
   } catch (error) {
@@ -175,7 +176,8 @@ async function saveSettings ({ client, online, settings }) {
         controls: normalized.controls,
         sound_enabled: normalized.soundEnabled,
         music_enabled: normalized.musicEnabled,
-        music_volume: normalized.musicVolume
+        music_volume: normalized.musicVolume,
+        soft_drop_multiplier: normalized.softDropMultiplier
       }, { onConflict: 'player_id' })
     if (error) throw error
 
