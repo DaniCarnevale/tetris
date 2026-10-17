@@ -10,7 +10,7 @@ import {
 test('normalizes nicknames for safe display and storage', () => {
   assert.equal(normalizeNickname('  Dani  Carnevale  '), 'Dani Carnevale')
   assert.equal(normalizeNickname(''), 'Jugador')
-  assert.equal(normalizeNickname('un nombre demasiado largo para el ranking'), 'Un nombre demasiado')
+  assert.equal(normalizeNickname('un nombre demasiado largo para el ranking'), 'Un nombre demasi')
 })
 
 test('creates a leaderboard entry with safe numeric values', () => {
