@@ -345,15 +345,15 @@ select:focus {
 
 .button-primary {
   min-height: 48px;
-  border-color: rgba(156, 245, 91, 0.54);
-  color: #08100a;
-  background: var(--accent);
-  box-shadow: 0 10px 24px rgba(156, 245, 91, 0.16);
+  border-color: rgba(143, 187, 255, 0.62);
+  color: #08111f;
+  background: linear-gradient(135deg, #83baff, #9a9ff5);
+  box-shadow: 0 10px 24px rgba(113, 183, 255, 0.16);
 }
 
 .button-primary:hover {
-  border-color: #d5ffbc;
-  background: #b6ff84;
+  border-color: #c9ddff;
+  background: linear-gradient(135deg, #9bcbff, #b0b3ff);
 }
 
 .button-arrow {
