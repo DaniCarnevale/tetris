@@ -4,7 +4,7 @@ import { loadGuestProfile, saveGuestProfile } from './playerProfile.js'
 import { createSupabaseClient, ensureAnonymousUser, getEnvironmentValue } from './supabaseClient.js'
 
 export const AVATAR_BUCKET = 'avatars'
-export const AVATAR_MAX_BYTES = 2 * 1024 * 1024
+export const AVATAR_MAX_BYTES = 2.5 * 1024 * 1024
 export const AVATAR_UPLOAD_COOLDOWN_MS = 30 * 1000
 export const AVATAR_UPLOAD_STORAGE_KEY = 'tetris.avatar.last-upload'
 
@@ -52,7 +52,7 @@ export function validateAvatarFile (file) {
   }
 
   if (file.size > AVATAR_MAX_BYTES) {
-    return { valid: false, message: 'La imagen no puede superar los 2 MB.' }
+    return { valid: false, message: 'La imagen no puede superar los 2,5 MB.' }
   }
 
   return { valid: true, message: null }

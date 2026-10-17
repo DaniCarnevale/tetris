@@ -13,6 +13,11 @@ import { createLeaderboardService } from './leaderboard/leaderboardService.js'
 import { createAvatarService, validateAvatarFile } from './leaderboard/avatarService.js'
 import { canEditProfile, createAccountService, GUEST_PROFILE_NICKNAME } from './leaderboard/accountService.js'
 import {
+  consumeProfileSetupPending,
+  createProfileCardModel,
+  markProfileSetupPending
+} from './leaderboard/profilePresentation.js'
+import {
   createControls,
   findActionByCode,
   getKeyLabel,
@@ -84,6 +89,9 @@ const accountHint = document.querySelector('#accountHint')
 const accountFeedback = document.querySelector('#accountFeedback')
 const googleSignInButton = document.querySelector('#googleSignInButton')
 const googleSignInLabel = document.querySelector('#googleSignInLabel')
+const profileSetupSection = document.querySelector('#profileSetupSection')
+const profileSetupPrompt = document.querySelector('#profileSetupPrompt')
+const profileSetupPromptText = document.querySelector('#profileSetupPromptText')
 const stageArt = document.querySelector('#stageArt')
 const boardCanvas = document.querySelector('#board')
 const nextCanvas = document.querySelector('.next')
@@ -125,6 +133,11 @@ const resetControlsButton = document.querySelector('#resetControls')
 const restartButton = document.querySelector('#restartButton')
 const soundToggle = document.querySelector('#soundToggle')
 const soundToggleLabel = document.querySelector('#soundToggleLabel')
+const gameProfile = document.querySelector('#gameProfile')
+const gameProfileAvatarImage = document.querySelector('#gameProfileAvatarImage')
+const gameProfileInitials = document.querySelector('#gameProfileInitials')
+const gameProfileNickname = document.querySelector('#gameProfileNickname')
+const gameProfileAccount = document.querySelector('#gameProfileAccount')
 const boardContext = boardCanvas.getContext('2d')
 const nextContext = nextCanvas.getContext('2d')
 const savedContext = savedCanvas.getContext('2d')
@@ -506,6 +519,23 @@ function clearTemporaryAvatarPreview () {
   temporaryAvatarPreviewUrl = null
 }
 
+function renderGameProfile (profile = leaderboardService.getProfile(), accountLabel = null) {
+  const model = createProfileCardModel(
+    profile,
+    accountLabel ?? (profileEditingEnabled ? 'Google conectado' : 'Invitado')
+  )
+  const avatarUrl = avatarService.getAvatarUrl(model.avatarPath)
+
+  gameProfileAvatarImage.hidden = !avatarUrl
+  gameProfileAvatarImage.src = avatarUrl ?? ''
+  gameProfileAvatarImage.alt = avatarUrl ? `Avatar de ${model.nickname}` : ''
+  gameProfileInitials.hidden = Boolean(avatarUrl)
+  gameProfileInitials.textContent = model.initials
+  gameProfileNickname.textContent = model.nickname
+  gameProfileAccount.textContent = model.accountLabel
+  gameProfile.setAttribute('aria-label', `Perfil del jugador: ${model.nickname}`)
+}
+
 function renderProfileAvatar (profile = leaderboardService.getProfile(), url = null, temporary = false) {
   clearTemporaryAvatarPreview()
   const avatarUrl = url ?? avatarService.getAvatarUrl(profile.avatarPath)
@@ -518,6 +548,7 @@ function renderProfileAvatar (profile = leaderboardService.getProfile(), url = n
   avatarInitials.hidden = Boolean(avatarUrl)
   avatarInitials.textContent = getInitials(profile.nickname)
   avatarRemoveButton.hidden = !profile.avatarPath && !temporary
+  renderGameProfile(profile)
 }
 
 function showAvatarFeedback (message, isError = false) {
@@ -590,11 +621,20 @@ async function removeAvatar () {
   showAvatarFeedback(result.error ?? 'No se pudo eliminar el avatar.', true)
 }
 
+function showProfileSetupPrompt (message) {
+  profileSetupPromptText.textContent = message
+  profileSetupPrompt.hidden = false
+  profileSetupSection.classList.add('is-priority')
+  profileSetupSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  playerNickname.focus({ preventScroll: true })
+}
+
 function renderAccountState (account) {
   const isSignedIn = account.status === 'signed-in'
   const editable = canEditProfile(account)
 
   setProfileEditingEnabled(editable)
+  renderGameProfile(leaderboardService.getProfile(), isSignedIn ? 'Google conectado' : 'Invitado')
   accountStatus.textContent = isSignedIn ? (account.email ?? 'Google conectado') : 'Guest'
   accountHint.textContent = isSignedIn
     ? 'Tu ranking, nickname y avatar están asociados a Google.'
@@ -622,6 +662,7 @@ async function syncRemoteProfile () {
     setGuestProfile()
     return
   }
+  const profileSetupPending = consumeProfileSetupPending(localStorage)
   if (!accountService.isOnline()) return
 
   const remoteProfile = await accountService.loadProfile()
@@ -631,10 +672,16 @@ async function syncRemoteProfile () {
     const profile = leaderboardService.setProfile(remoteProfile.profile)
     playerNickname.value = profile.nickname
     renderProfileAvatar(profile)
+    if (profileSetupPending) {
+      showProfileSetupPrompt('Tu perfil fue recuperado. Podés ajustar tu nickname o avatar antes de empezar.')
+    }
     return
   }
 
   await accountService.saveProfile(leaderboardService.getProfile())
+  if (profileSetupPending) {
+    showProfileSetupPrompt('Elegí tu nickname y cargá una imagen para completar tu perfil.')
+  }
 }
 
 async function connectGoogle () {
@@ -644,6 +691,7 @@ async function connectGoogle () {
 
   const result = await accountService.connectGoogle()
   if (result.source === 'redirect' && result.url) {
+    markProfileSetupPending(localStorage)
     window.location.assign(result.url)
     return
   }

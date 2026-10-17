@@ -48,39 +48,56 @@
             <span class="start-panel-number">01</span>
           </div>
 
-          <label class="field-label" for="playerNickname">Nickname</label>
-          <input class="text-input" id="playerNickname" type="text" maxlength="16" autocomplete="nickname" placeholder="Vinculá Google para elegirlo" aria-describedby="playerNicknameHint" disabled />
-          <p class="field-hint" id="playerNicknameHint">Modo guest: vinculá Google para personalizar tu nickname.</p>
-
-          <div class="avatar-setting">
-            <div class="avatar-preview" id="avatarPreview" aria-hidden="true">
-              <img id="avatarPreviewImage" alt="" hidden />
-              <span id="avatarInitials">JU</span>
+          <div class="profile-setup-section" id="profileSetupSection">
+            <div class="profile-setup-heading">
+              <div>
+                <span class="field-label">Tu perfil</span>
+                <p>Personalizá cómo aparecés durante la partida.</p>
+              </div>
+              <span class="profile-setup-icon" aria-hidden="true">✦</span>
             </div>
-            <div class="avatar-copy">
-              <span class="field-label">Avatar</span>
-              <p>Una imagen chiquita para reconocerte en el ranking.</p>
-              <div class="avatar-actions">
-                <label class="button button-secondary avatar-upload-button is-disabled" id="avatarUploadButton" for="avatarInput" aria-disabled="true">Elegir imagen</label>
-                <input id="avatarInput" type="file" accept="image/jpeg,image/png,image/webp" hidden disabled />
-                <button class="avatar-remove-button" id="avatarRemoveButton" type="button" hidden disabled>Quitar</button>
+
+            <label class="field-label" for="playerNickname">Nickname</label>
+            <input class="text-input" id="playerNickname" type="text" maxlength="16" autocomplete="nickname" placeholder="Vinculá Google para elegirlo" aria-describedby="playerNicknameHint" disabled />
+            <p class="field-hint" id="playerNicknameHint">Modo guest: vinculá Google para personalizar tu nickname.</p>
+
+            <div class="avatar-setting">
+              <div class="avatar-preview" id="avatarPreview" aria-hidden="true">
+                <img id="avatarPreviewImage" alt="" hidden />
+                <span id="avatarInitials">JU</span>
+              </div>
+              <div class="avatar-copy">
+                <span class="field-label">Avatar</span>
+                <p>JPG, PNG o WebP · hasta 2,5 MB · aparece en el ranking y durante la partida.</p>
+                <div class="avatar-actions">
+                  <label class="button button-secondary avatar-upload-button is-disabled" id="avatarUploadButton" for="avatarInput" aria-disabled="true">Elegir imagen</label>
+                  <input id="avatarInput" type="file" accept="image/jpeg,image/png,image/webp" hidden disabled />
+                  <button class="avatar-remove-button" id="avatarRemoveButton" type="button" hidden disabled>Quitar</button>
+                </div>
+              </div>
+            </div>
+            <p class="field-hint avatar-feedback" id="avatarFeedback" aria-live="polite">Perfil guest fijo · vinculá Google para personalizarlo.</p>
+
+            <div class="account-setting">
+              <div class="account-copy">
+                <span class="account-eyebrow">CUENTA</span>
+                <strong id="accountStatus">Guest</strong>
+                <p id="accountHint">Modo guest: vinculá Google para personalizar tu nickname y avatar.</p>
+              </div>
+              <button class="google-button" id="googleSignInButton" type="button">
+                <span class="google-mark" aria-hidden="true">G</span>
+                <span id="googleSignInLabel">Vincular Google</span>
+              </button>
+            </div>
+            <p class="field-hint account-feedback" id="accountFeedback" aria-live="polite">Nickname y avatar bloqueados mientras jugás como guest.</p>
+            <div class="profile-setup-prompt" id="profileSetupPrompt" role="status" hidden>
+              <span class="profile-setup-prompt-mark" aria-hidden="true">✓</span>
+              <div>
+                <strong>Google vinculado</strong>
+                <span id="profileSetupPromptText">Completá tu nickname y avatar para reconocerte en la partida.</span>
               </div>
             </div>
           </div>
-          <p class="field-hint avatar-feedback" id="avatarFeedback" aria-live="polite">Perfil guest fijo · vinculá Google para personalizarlo.</p>
-
-          <div class="account-setting">
-            <div class="account-copy">
-              <span class="account-eyebrow">CUENTA</span>
-              <strong id="accountStatus">Guest</strong>
-              <p id="accountHint">Modo guest: vinculá Google para personalizar tu nickname y avatar.</p>
-            </div>
-            <button class="google-button" id="googleSignInButton" type="button">
-              <span class="google-mark" aria-hidden="true">G</span>
-              <span id="googleSignInLabel">Vincular Google</span>
-            </button>
-          </div>
-          <p class="field-hint account-feedback" id="accountFeedback" aria-live="polite">Nickname y avatar bloqueados mientras jugás como guest.</p>
 
           <label class="field-label" for="startLevel">Comenzar desde el nivel</label>
           <div class="select-wrap">
@@ -136,6 +153,17 @@
         </div>
 
         <div class="header-actions">
+          <div class="player-chip" id="gameProfile" aria-label="Perfil del jugador">
+            <div class="player-chip-avatar" aria-hidden="true">
+              <img id="gameProfileAvatarImage" alt="" hidden />
+              <span id="gameProfileInitials">GU</span>
+            </div>
+            <div class="player-chip-copy">
+              <span>JUGADOR</span>
+              <strong id="gameProfileNickname">Guest</strong>
+              <small id="gameProfileAccount">Invitado</small>
+            </div>
+          </div>
           <div class="game-badge" aria-live="polite">
             <span class="status-dot" id="stateDot" aria-hidden="true"></span>
             <span id="stateLabel">En partida</span>

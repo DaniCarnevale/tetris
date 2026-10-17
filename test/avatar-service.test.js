@@ -47,6 +47,7 @@ test('accepts supported image files within the configured size limit', () => {
     valid: true,
     message: null
   })
+  assert.equal(AVATAR_MAX_BYTES, 2.5 * 1024 * 1024)
 })
 
 test('rejects unsupported, empty and oversized files', () => {
