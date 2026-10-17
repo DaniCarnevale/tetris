@@ -31,6 +31,13 @@ test('creates a leaderboard entry with safe numeric values', () => {
   })
 })
 
+test('keeps the avatar path attached to a leaderboard entry', () => {
+  assert.equal(createLeaderboardEntry({
+    nickname: 'dani',
+    avatarPath: 'user-1/avatar.webp'
+  }).avatarPath, 'user-1/avatar.webp')
+})
+
 test('sorts leaderboard by score, then level and date', () => {
   const entries = [
     { nickname: 'B', score: 900, level: 4, createdAt: '2026-10-17T12:00:00.000Z' },
