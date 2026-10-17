@@ -640,25 +640,28 @@ function renderPieceStats () {
 
   view.rows.forEach((row) => {
     const item = document.createElement('div')
-    const heading = document.createElement('div')
-    const label = document.createElement('span')
     const thumbnail = document.createElement('span')
     const count = document.createElement('strong')
     const track = document.createElement('div')
     const fill = document.createElement('span')
+    const glyph = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    const glyphPath = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 
     item.className = 'piece-stat-row'
-    heading.className = 'piece-stat-heading'
-    label.className = 'piece-stat-label'
     thumbnail.className = 'piece-stat-thumbnail'
     count.className = 'piece-stat-count'
     track.className = 'piece-stat-track'
     fill.className = 'piece-stat-fill'
-    thumbnail.style.setProperty('--piece-columns', String(row.shape[0].length))
-    thumbnail.style.setProperty('--piece-color', row.color)
+    glyph.classList.add('piece-stat-glyph')
+    glyphPath.classList.add('piece-stat-glyph-path')
+    glyph.setAttribute('viewBox', `0 0 ${row.shape[0].length} ${row.shape.length}`)
+    glyph.setAttribute('aria-hidden', 'true')
+    glyphPath.setAttribute('d', row.glyphPath)
+    glyphPath.setAttribute('fill', row.color)
+    thumbnail.setAttribute('role', 'img')
+    thumbnail.setAttribute('aria-label', row.label)
     fill.style.width = `${row.width}%`
     fill.style.backgroundColor = row.color
-    label.textContent = row.shortLabel
     count.textContent = String(row.count)
     track.setAttribute('role', 'progressbar')
     track.setAttribute('aria-label', `${row.label}: ${row.count}`)
@@ -666,19 +669,10 @@ function renderPieceStats () {
     track.setAttribute('aria-valuemax', String(view.max))
     track.setAttribute('aria-valuenow', String(row.count))
 
-    row.shape.forEach((shapeRow) => {
-      shapeRow.forEach((cellValue) => {
-        const cell = document.createElement('span')
-        cell.className = 'piece-stat-cell'
-        if (cellValue) cell.classList.add('is-filled')
-        thumbnail.append(cell)
-      })
-    })
-
-    label.prepend(thumbnail)
-    heading.append(label, count)
+    glyph.append(glyphPath)
+    thumbnail.append(glyph)
     track.append(fill)
-    item.append(heading, track)
+    item.append(thumbnail, track, count)
     pieceStatsList.append(item)
   })
 }

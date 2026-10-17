@@ -17,7 +17,7 @@ test('piece stats start with one counter per tetromino', () => {
   assert.ok(view.rows.every((row) => row.count === 0 && row.width === 0))
 })
 
-test('piece stats expose the tetromino shape for a visual thumbnail', () => {
+test('piece stats expose the tetromino geometry for its silhouette', () => {
   const view = getPieceStatsView(createPieceStats())
   const square = view.rows.find((row) => row.id === 'o')
   const line = view.rows.find((row) => row.id === 'i')

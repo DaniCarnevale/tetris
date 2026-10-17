@@ -1280,59 +1280,42 @@ canvas {
 
 .piece-stat-row {
   display: grid;
-  gap: 5px;
-}
-
-.piece-stat-heading {
-  display: flex;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  color: var(--soft);
-  font-size: 0.65rem;
-}
-
-.piece-stat-label {
-  display: inline-flex;
-  align-items: center;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .piece-stat-thumbnail {
-  display: grid;
-  width: 28px;
-  height: 22px;
-  flex: 0 0 auto;
-  grid-template-columns: repeat(var(--piece-columns), minmax(0, 1fr));
-  grid-auto-rows: minmax(0, 1fr);
-  gap: 2px;
-  align-items: center;
+  display: block;
+  width: 30px;
+  height: 24px;
+  min-width: 0;
 }
 
-.piece-stat-cell {
+.piece-stat-glyph {
+  display: block;
   width: 100%;
   height: 100%;
-  min-width: 0;
-  visibility: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
+  overflow: visible;
 }
 
-.piece-stat-cell.is-filled {
-  visibility: visible;
-  background: var(--piece-color);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 2px 4px rgba(0, 0, 0, 0.2);
+.piece-stat-glyph-path {
+  stroke: rgba(255, 255, 255, 0.42);
+  stroke-linejoin: round;
+  stroke-width: 0.08;
 }
 
 .piece-stat-count {
+  grid-column: 3;
+  min-width: 1.1em;
   color: #eef7ff;
   font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .piece-stat-track {
+  grid-column: 2;
   height: 5px;
   overflow: hidden;
   border-radius: 99px;
@@ -2454,29 +2437,18 @@ body.is-game-active .piece-stat-row {
   display: grid;
   height: auto;
   min-width: 0;
-  grid-template-rows: auto auto;
-  gap: 8px;
-  padding: 8px 7px;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  gap: 7px;
+  padding: 8px;
   border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 12px;
   background: rgba(5, 9, 18, 0.34);
   transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
 }
 
-body.is-game-active .piece-stat-heading {
-  gap: 4px;
-  font-size: 0.62rem;
-}
-
-body.is-game-active .piece-stat-label {
-  justify-content: flex-start;
-  gap: 4px;
-}
-
 body.is-game-active .piece-stat-thumbnail {
-  width: 31px;
+  width: 30px;
   height: 22px;
-  gap: 2px;
 }
 
 body.is-game-active .piece-stat-track {
@@ -2648,19 +2620,15 @@ body.is-game-active .piece-stat-fill {
 
   body.is-game-active .piece-stat-row {
     height: 58px;
-    gap: 3px;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    gap: 4px;
     padding: 4px 2px;
     border-radius: 7px;
   }
 
-  body.is-game-active .piece-stat-heading {
-    font-size: 0.56rem;
-  }
-
   body.is-game-active .piece-stat-thumbnail {
-    width: 25px;
+    width: 22px;
     height: 18px;
-    gap: 1px;
   }
 
   body.is-game-active .piece-stat-count {
@@ -2775,9 +2743,22 @@ body.is-game-active .piece-stat-fill {
 
   body.is-game-active .piece-stat-row {
     height: 50px;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    gap: 3px;
+    padding-inline: 2px;
+  }
+
+  body.is-game-active .piece-stat-thumbnail {
+    width: 18px;
+    height: 16px;
+  }
+
+  body.is-game-active .piece-stat-count {
+    min-width: 1em;
+    font-size: 0.54rem;
   }
 
   body.is-game-active .piece-stat-track {
-    height: 5px;
+    height: 4px;
   }
 }
