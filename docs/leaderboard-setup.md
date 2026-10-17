@@ -1,6 +1,6 @@
 # Ranking histórico
 
-La app funciona como invitado y guarda un ranking local si Supabase no está configurado. Para habilitar el ranking histórico online:
+La app funciona como **Guest** y permite jugar sin cuenta. El guest usa el nickname fijo `Guest` y no puede cargar avatar; para personalizar el perfil hay que vincular Google. Si Supabase no está configurado, el ranking se guarda localmente. Para habilitar el ranking histórico online:
 
 1. Crear un proyecto nuevo en Supabase.
 2. En Authentication, habilitar **Anonymous Sign-Ins**.
@@ -9,9 +9,9 @@ La app funciona como invitado y guarda un ranking local si Supabase no está con
 5. Completar `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (la clave publicable/anon, nunca `service_role`).
 6. Reiniciar Vite con `npm run dev`.
 
-La app crea una sesión anónima para cada jugador y asocia el nickname a sus puntuaciones. El login con Google se puede sumar más adelante vinculando esa sesión invitada, sin cambiar el esquema de `scores`.
+La app crea una sesión anónima para cada jugador y asocia sus puntuaciones al usuario guest. El login con Google vincula esa misma sesión, sin cambiar el esquema de `scores`; recién después de esa vinculación se habilitan nickname y avatar personalizados.
 
-Los avatares se guardan en el bucket `avatars`. Cada jugador puede tener un único archivo WebP de hasta 2 MB en una ruta fija. El bucket acepta JPG, PNG y WebP; la política de Storage y el trigger de rate limit restringen la ruta, el tamaño y una carga cada 30 segundos. Una nueva imagen reemplaza el archivo anterior.
+Los avatares de cuentas Google se guardan en el bucket `avatars`. Cada jugador puede tener un único archivo WebP de hasta 2 MB en una ruta fija. El bucket acepta JPG, PNG y WebP; la política de Storage y el trigger de rate limit restringen la ruta, el tamaño y una carga cada 30 segundos. Una nueva imagen reemplaza el archivo anterior.
 
 ## Google SSO
 

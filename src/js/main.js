@@ -11,7 +11,7 @@ import { getBackdropForLevel, getStage, STAGES } from './game/stages.js'
 import { createSoundManager } from './audio/soundManager.js'
 import { createLeaderboardService } from './leaderboard/leaderboardService.js'
 import { createAvatarService, validateAvatarFile } from './leaderboard/avatarService.js'
-import { createAccountService } from './leaderboard/accountService.js'
+import { canEditProfile, createAccountService, GUEST_PROFILE_NICKNAME } from './leaderboard/accountService.js'
 import {
   createControls,
   findActionByCode,
@@ -74,6 +74,7 @@ const startSettingsButton = document.querySelector('#startSettingsButton')
 const leaderboardButton = document.querySelector('#leaderboardButton')
 const playerNickname = document.querySelector('#playerNickname')
 const avatarInput = document.querySelector('#avatarInput')
+const avatarUploadButton = document.querySelector('#avatarUploadButton')
 const avatarPreviewImage = document.querySelector('#avatarPreviewImage')
 const avatarInitials = document.querySelector('#avatarInitials')
 const avatarRemoveButton = document.querySelector('#avatarRemoveButton')
@@ -158,6 +159,7 @@ let gameOverTimer = null
 let leaderboardSaveRequest = 0
 let leaderboardUnsubscribe = () => {}
 let temporaryAvatarPreviewUrl = null
+let profileEditingEnabled = false
 
 function loadControls () {
   try {
@@ -465,6 +467,8 @@ function showSettingsFeedback (message, isError = false) {
 }
 
 function savePlayerNickname () {
+  if (!profileEditingEnabled) return setGuestProfile()
+
   const profile = leaderboardService.setNickname(playerNickname.value)
   playerNickname.value = profile.nickname
   accountService.saveProfile(profile).catch(() => {})
@@ -476,6 +480,25 @@ function getInitials (nickname) {
   if (words.length === 0) return 'JU'
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
   return `${words[0][0]}${words[words.length - 1][0]}`.toUpperCase()
+}
+
+function setProfileEditingEnabled (enabled) {
+  profileEditingEnabled = enabled
+  playerNickname.disabled = !enabled
+  avatarInput.disabled = !enabled
+  avatarRemoveButton.disabled = !enabled
+  avatarUploadButton.classList.toggle('is-disabled', !enabled)
+  avatarUploadButton.setAttribute('aria-disabled', String(!enabled))
+}
+
+function setGuestProfile () {
+  const profile = leaderboardService.setProfile({
+    nickname: GUEST_PROFILE_NICKNAME,
+    avatarPath: null
+  })
+  playerNickname.value = profile.nickname
+  renderProfileAvatar(profile)
+  return profile
 }
 
 function clearTemporaryAvatarPreview () {
@@ -503,6 +526,12 @@ function showAvatarFeedback (message, isError = false) {
 }
 
 async function handleAvatarSelection () {
+  if (!profileEditingEnabled) {
+    avatarInput.value = ''
+    showAvatarFeedback('Modo guest: vinculá Google para personalizar tu avatar.', true)
+    return
+  }
+
   const file = avatarInput.files?.[0]
   if (!file) return
 
@@ -538,6 +567,11 @@ async function handleAvatarSelection () {
 }
 
 async function removeAvatar () {
+  if (!profileEditingEnabled) {
+    showAvatarFeedback('Modo guest: vinculá Google para personalizar tu avatar.', true)
+    return
+  }
+
   const profile = leaderboardService.getProfile()
   if (!profile.avatarPath && temporaryAvatarPreviewUrl !== null) {
     renderProfileAvatar(profile)
@@ -558,25 +592,36 @@ async function removeAvatar () {
 
 function renderAccountState (account) {
   const isSignedIn = account.status === 'signed-in'
-  const isOffline = account.status === 'offline'
+  const editable = canEditProfile(account)
 
-  accountStatus.textContent = isSignedIn ? (account.email ?? 'Google conectado') : isOffline ? 'Modo local' : 'Modo invitado'
+  setProfileEditingEnabled(editable)
+  accountStatus.textContent = isSignedIn ? (account.email ?? 'Google conectado') : 'Guest'
   accountHint.textContent = isSignedIn
     ? 'Tu ranking, nickname y avatar están asociados a Google.'
-    : 'Vinculá Google para conservar tu ranking, nickname y avatar.'
+    : 'Modo guest: vinculá Google para personalizar tu nickname y avatar.'
   googleSignInLabel.textContent = isSignedIn ? 'Google conectado' : 'Vincular Google'
   googleSignInButton.disabled = isSignedIn
   accountFeedback.textContent = account.error
     ? account.error
     : isSignedIn
       ? 'Perfil sincronizado con Supabase.'
-      : 'Podés seguir jugando como invitado.'
+      : 'Nickname y avatar bloqueados mientras jugás como guest.'
   accountFeedback.classList.toggle('is-error', Boolean(account.error))
+
+  if (!editable) {
+    playerNickname.value = GUEST_PROFILE_NICKNAME
+    avatarFeedback.textContent = 'Perfil guest fijo · vinculá Google para personalizarlo.'
+    avatarFeedback.classList.remove('is-error')
+  }
 }
 
 async function syncRemoteProfile () {
   const account = await accountService.getAccountState()
   renderAccountState(account)
+  if (!canEditProfile(account)) {
+    setGuestProfile()
+    return
+  }
   if (!accountService.isOnline()) return
 
   const remoteProfile = await accountService.loadProfile()
@@ -934,6 +979,10 @@ avatarInput.addEventListener('change', handleAvatarSelection)
 avatarRemoveButton.addEventListener('click', removeAvatar)
 googleSignInButton.addEventListener('click', connectGoogle)
 playerNickname.addEventListener('input', () => {
+  if (!profileEditingEnabled) {
+    playerNickname.value = GUEST_PROFILE_NICKNAME
+    return
+  }
   avatarInitials.textContent = getInitials(playerNickname.value)
 })
 startSettingsButton.addEventListener('click', openSettings)

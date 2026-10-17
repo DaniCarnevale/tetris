@@ -49,8 +49,8 @@
           </div>
 
           <label class="field-label" for="playerNickname">Nickname</label>
-          <input class="text-input" id="playerNickname" type="text" maxlength="16" autocomplete="nickname" placeholder="Tu nombre en el ranking" aria-describedby="playerNicknameHint" />
-          <p class="field-hint" id="playerNicknameHint">Jugás como invitado. Podés cambiarlo cuando quieras.</p>
+          <input class="text-input" id="playerNickname" type="text" maxlength="16" autocomplete="nickname" placeholder="Vinculá Google para elegirlo" aria-describedby="playerNicknameHint" disabled />
+          <p class="field-hint" id="playerNicknameHint">Modo guest: vinculá Google para personalizar tu nickname.</p>
 
           <div class="avatar-setting">
             <div class="avatar-preview" id="avatarPreview" aria-hidden="true">
@@ -61,26 +61,26 @@
               <span class="field-label">Avatar</span>
               <p>Una imagen chiquita para reconocerte en el ranking.</p>
               <div class="avatar-actions">
-                <label class="button button-secondary avatar-upload-button" for="avatarInput">Elegir imagen</label>
-                <input id="avatarInput" type="file" accept="image/jpeg,image/png,image/webp" hidden />
-                <button class="avatar-remove-button" id="avatarRemoveButton" type="button" hidden>Quitar</button>
+                <label class="button button-secondary avatar-upload-button is-disabled" id="avatarUploadButton" for="avatarInput" aria-disabled="true">Elegir imagen</label>
+                <input id="avatarInput" type="file" accept="image/jpeg,image/png,image/webp" hidden disabled />
+                <button class="avatar-remove-button" id="avatarRemoveButton" type="button" hidden disabled>Quitar</button>
               </div>
             </div>
           </div>
-          <p class="field-hint avatar-feedback" id="avatarFeedback" aria-live="polite">JPG, PNG o WebP · hasta 2 MB.</p>
+          <p class="field-hint avatar-feedback" id="avatarFeedback" aria-live="polite">Perfil guest fijo · vinculá Google para personalizarlo.</p>
 
           <div class="account-setting">
             <div class="account-copy">
               <span class="account-eyebrow">CUENTA</span>
-              <strong id="accountStatus">Modo invitado</strong>
-              <p id="accountHint">Vinculá Google para conservar tu ranking, nickname y avatar.</p>
+              <strong id="accountStatus">Guest</strong>
+              <p id="accountHint">Modo guest: vinculá Google para personalizar tu nickname y avatar.</p>
             </div>
             <button class="google-button" id="googleSignInButton" type="button">
               <span class="google-mark" aria-hidden="true">G</span>
               <span id="googleSignInLabel">Vincular Google</span>
             </button>
           </div>
-          <p class="field-hint account-feedback" id="accountFeedback" aria-live="polite">Podés seguir jugando como invitado.</p>
+          <p class="field-hint account-feedback" id="accountFeedback" aria-live="polite">Nickname y avatar bloqueados mientras jugás como guest.</p>
 
           <label class="field-label" for="startLevel">Comenzar desde el nivel</label>
           <div class="select-wrap">

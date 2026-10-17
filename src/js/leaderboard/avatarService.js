@@ -82,6 +82,7 @@ async function uploadAvatar ({ client, online, file, storage, profileStorage, no
 
   try {
     const user = await ensureAnonymousUser(client)
+    if (user.is_anonymous) return createResult('blocked', profile, 'Vinculá Google para usar un avatar.')
     const avatarPath = buildAvatarPath(user.id)
     if (!avatarPath) throw new Error('La sesión no tiene un identificador válido.')
 
@@ -122,6 +123,8 @@ async function removeAvatar ({ client, online, profileStorage }) {
   if (!online) return createResult('local', profile, 'Supabase todavía no está configurado.')
 
   try {
+    const user = await ensureAnonymousUser(client)
+    if (user.is_anonymous) return createResult('blocked', profile, 'Vinculá Google para usar un avatar.')
     const { error } = await client.storage.from(AVATAR_BUCKET).remove([profile.avatarPath])
     if (error) throw error
     saveGuestProfile(profile.nickname, profileStorage, profile.id, null)

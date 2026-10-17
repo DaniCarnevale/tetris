@@ -259,6 +259,13 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(156, 245, 91, 0.1);
 }
 
+.text-input:disabled {
+  border-color: rgba(148, 163, 184, 0.1);
+  color: #8793a8;
+  cursor: not-allowed;
+  opacity: 0.78;
+}
+
 .field-hint {
   margin: 7px 0 21px;
   color: #6f7d96;
@@ -328,6 +335,12 @@ select:focus {
   font-size: 0.65rem;
 }
 
+.avatar-upload-button.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+  pointer-events: none;
+}
+
 .avatar-remove-button {
   padding: 0;
   border: 0;
@@ -337,6 +350,11 @@ select:focus {
   font: inherit;
   font-size: 0.64rem;
   font-weight: 800;
+}
+
+.avatar-remove-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 
 .avatar-feedback {

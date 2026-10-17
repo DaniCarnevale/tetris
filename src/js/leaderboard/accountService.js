@@ -4,6 +4,11 @@ import { normalizeNickname } from './leaderboardModel.js'
 import { createSupabaseClient, ensureAnonymousUser, getEnvironmentValue } from './supabaseClient.js'
 
 export const PLAYER_PROFILE_TABLE = 'player_profiles'
+export const GUEST_PROFILE_NICKNAME = 'Guest'
+
+export function canEditProfile (account) {
+  return account?.status === 'signed-in' && account.isAnonymous === false
+}
 
 export function createAccountService ({
   supabaseClient,
@@ -62,6 +67,7 @@ async function loadProfile ({ client, online }) {
 
   try {
     const user = await ensureAnonymousUser(client)
+    if (user.is_anonymous) return createGuestProfileResult()
     const { data, error } = await client
       .from(PLAYER_PROFILE_TABLE)
       .select('nickname, avatar_path')
@@ -86,6 +92,7 @@ async function saveProfile ({ client, online, profile }) {
 
   try {
     const user = await ensureAnonymousUser(client)
+    if (user.is_anonymous) return createGuestProfileResult()
     const payload = {
       player_id: user.id,
       nickname: normalizeNickname(profile?.nickname),
@@ -99,6 +106,14 @@ async function saveProfile ({ client, online, profile }) {
     return { source: 'online', profile: { nickname: payload.nickname, avatarPath: payload.avatar_path }, error: null }
   } catch (error) {
     return { source: 'offline', error: getErrorMessage(error) }
+  }
+}
+
+function createGuestProfileResult () {
+  return {
+    source: 'guest',
+    profile: { nickname: GUEST_PROFILE_NICKNAME, avatarPath: null },
+    error: null
   }
 }
 

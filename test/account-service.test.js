@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { createAccountService } from '../src/js/leaderboard/accountService.js'
+import { canEditProfile, createAccountService } from '../src/js/leaderboard/accountService.js'
 
 function createAccountClient ({ session = null, anonymousUser = { id: 'anonymous-1', is_anonymous: true }, profile = null } = {}) {
   const calls = {}
@@ -68,6 +68,32 @@ test('exposes the signed-in Google account state', async () => {
     isAnonymous: false,
     error: null
   })
+})
+
+test('only a signed-in Google account can edit nickname and avatar', () => {
+  assert.equal(canEditProfile({ status: 'guest', isAnonymous: true }), false)
+  assert.equal(canEditProfile({ status: 'offline', isAnonymous: true }), false)
+  assert.equal(canEditProfile({ status: 'signed-in', isAnonymous: false }), true)
+})
+
+test('does not persist a custom profile for an anonymous guest', async () => {
+  const { client, calls } = createAccountClient({
+    anonymousUser: { id: 'anonymous-1', is_anonymous: true }
+  })
+  const service = createAccountService({
+    supabaseClient: client,
+    supabaseUrl: 'https://example.supabase.co',
+    supabaseKey: 'public-key'
+  })
+
+  const result = await service.saveProfile({ nickname: 'Dani', avatarPath: 'anonymous-1/avatar.webp' })
+
+  assert.deepEqual(result, {
+    source: 'guest',
+    profile: { nickname: 'Guest', avatarPath: null },
+    error: null
+  })
+  assert.equal(calls.upsert, undefined)
 })
 
 test('loads and persists the chosen nickname and avatar path remotely', async () => {
