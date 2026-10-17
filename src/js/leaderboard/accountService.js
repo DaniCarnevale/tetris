@@ -6,6 +6,7 @@ import { createUserSettings } from '../settings/settingsModel.js'
 
 export const PLAYER_PROFILE_TABLE = 'player_profiles'
 export const PLAYER_SETTINGS_TABLE = 'player_settings'
+export const PROFILE_SCORE_SYNC_RPC = 'sync_profile_score_identity'
 export const GUEST_PROFILE_NICKNAME = 'Guest'
 
 export function canEditProfile (account) {
@@ -119,6 +120,14 @@ async function saveProfile ({ client, online, profile }) {
       .from(PLAYER_PROFILE_TABLE)
       .upsert(payload, { onConflict: 'player_id' })
     if (error) throw error
+
+    if (typeof client.rpc === 'function') {
+      const { error: syncError } = await client.rpc(PROFILE_SCORE_SYNC_RPC, {
+        new_nickname: payload.nickname,
+        new_avatar_path: payload.avatar_path
+      })
+      if (syncError) throw syncError
+    }
 
     return { source: 'online', profile: { nickname: payload.nickname, avatarPath: payload.avatar_path }, error: null }
   } catch (error) {

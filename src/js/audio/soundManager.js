@@ -8,14 +8,20 @@ const LINE_CLEAR_SEQUENCES = {
 }
 
 const MUSIC_SEQUENCE = Object.freeze([
-  { frequency: 659.25, duration: 0.22 },
-  { frequency: 783.99, duration: 0.22 },
-  { frequency: 987.77, duration: 0.22 },
-  { frequency: 783.99, duration: 0.22 },
-  { frequency: 659.25, duration: 0.22 },
-  { frequency: 523.25, duration: 0.22 },
-  { frequency: 587.33, duration: 0.22 },
-  { frequency: 659.25, duration: 0.42 }
+  { frequency: 523.25, duration: 0.28 },
+  { frequency: 659.25, duration: 0.28 },
+  { frequency: 783.99, duration: 0.32 },
+  { frequency: 659.25, duration: 0.28 },
+  { frequency: 587.33, duration: 0.28 },
+  { frequency: 698.46, duration: 0.28 },
+  { frequency: 880, duration: 0.32 },
+  { frequency: 698.46, duration: 0.28 },
+  { frequency: 659.25, duration: 0.28 },
+  { frequency: 587.33, duration: 0.28 },
+  { frequency: 523.25, duration: 0.36 },
+  { frequency: 587.33, duration: 0.28 },
+  { frequency: 659.25, duration: 0.28 },
+  { frequency: 783.99, duration: 0.46 }
 ])
 
 export function getLineClearSequence (lines) {
@@ -76,7 +82,7 @@ export function createSoundManager () {
     const startTime = audioContext.currentTime + 0.03
     let offset = 0
     MUSIC_SEQUENCE.forEach((note) => {
-      scheduleTone(audioContext, note.frequency, startTime + offset, note.duration, 'square', 0.035 * musicVolume)
+      scheduleTone(audioContext, note.frequency, startTime + offset, note.duration, 'triangle', 0.025 * musicVolume)
       offset += note.duration
     })
     musicTimer = window.setTimeout(scheduleMusicLoop, (offset + 0.05) * 1000)

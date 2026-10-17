@@ -717,6 +717,7 @@ async function saveProfileChanges () {
   if (result.source === 'online') {
     persistedProfile = { ...profile }
     accountFeedback.textContent = 'Cambios guardados.'
+    refreshLeaderboardIfOpen()
   } else {
     accountFeedback.classList.add('is-error')
     accountFeedback.textContent = result.error ?? 'No se pudieron guardar los cambios.'
@@ -847,6 +848,7 @@ async function handleAvatarSelection () {
     if (saveResult.source === 'online') {
       persistedProfile = { ...profile }
       showAvatarFeedback('Avatar guardado. Se reemplazó el anterior.')
+      refreshLeaderboardIfOpen()
     } else {
       showAvatarFeedback(saveResult.error ?? 'Avatar cargado, pero no se pudo sincronizar el perfil.', true)
     }
@@ -884,6 +886,7 @@ async function removeAvatar () {
     if (saveResult.source === 'online') {
       persistedProfile = { ...profile }
       showAvatarFeedback('Avatar eliminado.')
+      refreshLeaderboardIfOpen()
     } else {
       showAvatarFeedback(saveResult.error ?? 'Avatar eliminado, pero no se pudo sincronizar el perfil.', true)
     }
@@ -1135,6 +1138,10 @@ async function refreshLeaderboard () {
   leaderboardStatus.textContent = leaderboardService.isOnline()
     ? `${context.label} · sin conexión, usando este dispositivo`
     : `${context.label} · modo invitado`
+}
+
+function refreshLeaderboardIfOpen () {
+  if (!leaderboardPanel.hidden) refreshLeaderboard()
 }
 
 function openLeaderboard () {
