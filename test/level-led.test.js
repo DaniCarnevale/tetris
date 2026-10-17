@@ -42,3 +42,8 @@ test('level LED feedback is shared by the board and score marker', () => {
   assert.match(stylesheet, /\.stats-card\.is-level-led-pulse[\s\S]*animation: level-led-pulse/)
   assert.match(stylesheet, /@media \(prefers-reduced-motion: reduce\)[\s\S]*is-level-led-pulse/)
 })
+
+test('level ten uses a stronger steady red glow than the transient LED states', () => {
+  assert.match(stylesheet, /#board\.is-level-led-steady[\s\S]*0 0 56px rgba\(var\(--level-led-color\), 0\.62\)/)
+  assert.match(stylesheet, /\.stats-card\.is-level-led-steady[\s\S]*0 0 56px rgba\(var\(--level-led-color\), 0\.62\)/)
+})
