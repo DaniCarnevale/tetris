@@ -4,19 +4,172 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/tetris.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tetris</title>
+    <meta name="theme-color" content="#080b14" />
+    <title>Tetris — Neon Stack</title>
   </head>
   <body>
-    <div id="app">
-      <canvas class="saved" aria-label="Pieza guardada"></canvas>
-      <canvas id="board" aria-label="Tablero de Tetris"></canvas>
-      <canvas class="next" aria-label="Próxima pieza"></canvas>
-    </div>
-    <div class="hud" aria-live="polite">
-      <strong>Score: <span id="score">0</span></strong>
-      <strong>Level: <span id="level">1</span></strong>
-      <span id="status">Arrows move · Up rotates · S holds</span>
-    </div>
+    <main class="game-shell">
+      <header class="game-header">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true">✦</div>
+          <div>
+            <p class="eyebrow">ARCADE / CLÁSICO</p>
+            <h1>TETRIS</h1>
+            <p class="brand-subtitle">Ordena el caos, una línea a la vez.</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="game-badge" aria-live="polite">
+            <span class="status-dot" id="stateDot" aria-hidden="true"></span>
+            <span id="stateLabel">En partida</span>
+          </div>
+          <button class="button button-secondary" id="settingsToggle" type="button" aria-controls="settingsPanel" aria-expanded="false">
+            <span class="button-icon" aria-hidden="true">⚙</span>
+            <span>Configuración</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="game-layout" aria-label="Partida de Tetris">
+        <aside class="side-column" aria-label="Ficha reservada y estadísticas">
+          <section class="info-card preview-card">
+            <div class="card-heading">
+              <div>
+                <p class="card-kicker">RESERVA</p>
+                <h2>Ficha guardada</h2>
+              </div>
+              <kbd class="key-chip" id="holdKey">S</kbd>
+            </div>
+            <div class="preview-stage">
+              <canvas class="saved" aria-label="Ficha guardada"></canvas>
+              <span class="empty-preview" id="heldEmpty">Todavía no guardaste una ficha</span>
+            </div>
+            <p class="card-note">Guardá una pieza para usarla más tarde.</p>
+          </section>
+
+          <section class="info-card stats-card" aria-label="Estadísticas de la partida">
+            <div class="card-heading">
+              <div>
+                <p class="card-kicker">MARCADOR</p>
+                <h2>Tu partida</h2>
+              </div>
+              <span class="stat-symbol" aria-hidden="true">↗</span>
+            </div>
+            <div class="stat-grid">
+              <div class="stat-item">
+                <span>Puntuación</span>
+                <strong id="score">0</strong>
+              </div>
+              <div class="stat-item">
+                <span>Nivel</span>
+                <strong id="level">1</strong>
+              </div>
+            </div>
+            <div class="level-progress" aria-label="Progreso del nivel">
+              <span id="levelProgress"></span>
+            </div>
+          </section>
+        </aside>
+
+        <section class="board-card" aria-label="Tablero principal">
+          <div class="board-toolbar">
+            <div>
+              <p class="card-kicker">PARTIDA ACTUAL</p>
+              <p class="board-status" id="status" aria-live="polite">En juego · prepará tu próxima jugada</p>
+            </div>
+            <button class="button button-ghost" id="restartButton" type="button">
+              <span>Nueva partida</span>
+              <kbd class="key-chip key-chip-small" id="restartKey">Enter</kbd>
+            </button>
+          </div>
+          <div class="board-stage">
+            <canvas id="board" aria-label="Tablero de Tetris"></canvas>
+          </div>
+          <div class="board-footer">
+            <span><span class="legend-dot" aria-hidden="true"></span> La pieza translúcida muestra dónde caerá.</span>
+            <span id="controlHint">↑ rotar · ↓ bajar</span>
+          </div>
+        </section>
+
+        <aside class="side-column" aria-label="Próxima ficha y controles">
+          <section class="info-card preview-card next-card">
+            <div class="card-heading">
+              <div>
+                <p class="card-kicker">PRÓXIMA</p>
+                <h2>Próxima ficha</h2>
+              </div>
+              <span class="next-indicator" aria-hidden="true">01</span>
+            </div>
+            <div class="preview-stage">
+              <canvas class="next" aria-label="Próxima ficha"></canvas>
+            </div>
+            <p class="card-note">Mirá la siguiente para anticipar tu jugada.</p>
+          </section>
+
+          <section class="info-card controls-card" aria-label="Controles actuales">
+            <div class="card-heading">
+              <div>
+                <p class="card-kicker">CONTROLES</p>
+                <h2>Atajos rápidos</h2>
+              </div>
+              <button class="text-button" id="openSettingsLink" type="button">Editar</button>
+            </div>
+            <div class="control-list">
+              <div class="control-row"><span>Mover</span><span><kbd class="key-chip key-chip-small control-key" data-control-label="moveLeft">←</kbd><kbd class="key-chip key-chip-small control-key" data-control-label="moveRight">→</kbd></span></div>
+              <div class="control-row"><span>Rotar</span><kbd class="key-chip key-chip-small control-key" data-control-label="rotate">↑</kbd></div>
+              <div class="control-row"><span>Bajar rápido</span><kbd class="key-chip key-chip-small control-key" data-control-label="softDrop">↓</kbd></div>
+              <div class="control-row"><span>Guardar</span><kbd class="key-chip key-chip-small control-key" data-control-label="hold">S</kbd></div>
+            </div>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <button class="settings-backdrop" id="settingsBackdrop" type="button" aria-label="Cerrar configuración" hidden></button>
+    <aside class="settings-panel" id="settingsPanel" aria-labelledby="settingsTitle" aria-hidden="true" hidden>
+      <div class="settings-panel-inner">
+        <div class="settings-header">
+          <div>
+            <p class="card-kicker">PERSONALIZÁ TU PARTIDA</p>
+            <h2 id="settingsTitle">Configuración</h2>
+          </div>
+          <button class="close-button" id="settingsClose" type="button" aria-label="Cerrar configuración">×</button>
+        </div>
+        <p class="settings-intro">Elegí una acción y presioná la tecla que querés usar. Los cambios se guardan en este navegador.</p>
+
+        <div class="bindings-list">
+          <div class="binding-row">
+            <div><strong>Mover a la izquierda</strong><span>Desplazá la ficha</span></div>
+            <button class="binding-button" type="button" data-binding="moveLeft"><kbd class="control-key" data-control-label="moveLeft">←</kbd><span>Editar</span></button>
+          </div>
+          <div class="binding-row">
+            <div><strong>Mover a la derecha</strong><span>Desplazá la ficha</span></div>
+            <button class="binding-button" type="button" data-binding="moveRight"><kbd class="control-key" data-control-label="moveRight">→</kbd><span>Editar</span></button>
+          </div>
+          <div class="binding-row">
+            <div><strong>Bajar rápido</strong><span>Acelerá la caída</span></div>
+            <button class="binding-button" type="button" data-binding="softDrop"><kbd class="control-key" data-control-label="softDrop">↓</kbd><span>Editar</span></button>
+          </div>
+          <div class="binding-row">
+            <div><strong>Rotar ficha</strong><span>Girarla en sentido horario</span></div>
+            <button class="binding-button" type="button" data-binding="rotate"><kbd class="control-key" data-control-label="rotate">↑</kbd><span>Editar</span></button>
+          </div>
+          <div class="binding-row">
+            <div><strong>Guardar ficha</strong><span>Mandala a la reserva</span></div>
+            <button class="binding-button" type="button" data-binding="hold"><kbd class="control-key" data-control-label="hold">S</kbd><span>Editar</span></button>
+          </div>
+          <div class="binding-row">
+            <div><strong>Reiniciar partida</strong><span>Disponible al perder</span></div>
+            <button class="binding-button" type="button" data-binding="restart"><kbd class="control-key" data-control-label="restart">Enter</kbd><span>Editar</span></button>
+          </div>
+        </div>
+
+        <p class="settings-feedback" id="settingsFeedback" aria-live="polite">Podés usar Escape para cancelar.</p>
+        <button class="button button-secondary reset-controls" id="resetControls" type="button">Restaurar controles originales</button>
+      </div>
+    </aside>
+
     <script type="module" src="./js/main.js"></script>
   </body>
 </html>
