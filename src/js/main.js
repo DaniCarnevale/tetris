@@ -642,7 +642,7 @@ function renderPieceStats () {
     const item = document.createElement('div')
     const heading = document.createElement('div')
     const label = document.createElement('span')
-    const dot = document.createElement('span')
+    const thumbnail = document.createElement('span')
     const count = document.createElement('strong')
     const track = document.createElement('div')
     const fill = document.createElement('span')
@@ -650,11 +650,12 @@ function renderPieceStats () {
     item.className = 'piece-stat-row'
     heading.className = 'piece-stat-heading'
     label.className = 'piece-stat-label'
-    dot.className = 'piece-stat-dot'
+    thumbnail.className = 'piece-stat-thumbnail'
     count.className = 'piece-stat-count'
     track.className = 'piece-stat-track'
     fill.className = 'piece-stat-fill'
-    dot.style.backgroundColor = row.color
+    thumbnail.style.setProperty('--piece-columns', String(row.shape[0].length))
+    thumbnail.style.setProperty('--piece-color', row.color)
     fill.style.width = `${row.width}%`
     fill.style.backgroundColor = row.color
     label.textContent = row.shortLabel
@@ -665,7 +666,16 @@ function renderPieceStats () {
     track.setAttribute('aria-valuemax', String(view.max))
     track.setAttribute('aria-valuenow', String(row.count))
 
-    label.prepend(dot)
+    row.shape.forEach((shapeRow) => {
+      shapeRow.forEach((cellValue) => {
+        const cell = document.createElement('span')
+        cell.className = 'piece-stat-cell'
+        if (cellValue) cell.classList.add('is-filled')
+        thumbnail.append(cell)
+      })
+    })
+
+    label.prepend(thumbnail)
     heading.append(label, count)
     track.append(fill)
     item.append(heading, track)

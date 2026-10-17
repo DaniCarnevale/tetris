@@ -16,6 +16,15 @@ test('piece stats start with one counter per tetromino', () => {
   assert.ok(view.rows.every((row) => row.count === 0 && row.width === 0))
 })
 
+test('piece stats expose the tetromino shape for a visual thumbnail', () => {
+  const view = getPieceStatsView(createPieceStats())
+  const square = view.rows.find((row) => row.id === 'o')
+  const line = view.rows.find((row) => row.id === 'i')
+
+  assert.deepEqual(square.shape, [[1, 1], [1, 1]])
+  assert.deepEqual(line.shape, [[1, 1, 1, 1]])
+})
+
 test('piece stats count locked pieces and scale bars against the most used type', () => {
   let stats = createPieceStats()
   stats = recordPieceDrop(stats, 'o')
