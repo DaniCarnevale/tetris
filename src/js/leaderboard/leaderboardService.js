@@ -2,6 +2,7 @@
 
 import { createLeaderboardEntry, sortLeaderboard } from './leaderboardModel.js'
 import { loadGuestProfile, saveGuestProfile } from './playerProfile.js'
+import { getAvatarUrl } from './avatarService.js'
 import { createSupabaseClient, ensureAnonymousUser, getEnvironmentValue } from './supabaseClient.js'
 
 export const LEADERBOARD_STORAGE_KEY = 'tetris.leaderboard.local'
@@ -32,6 +33,7 @@ export function createLeaderboardService ({
       const currentProfile = loadGuestProfile(profileStorage)
       return saveGuestProfile(nickname, profileStorage, currentProfile.id, currentProfile.avatarPath)
     },
+    getAvatarUrl: (avatarPath) => getAvatarUrl(client, online, avatarPath),
     getLeaderboard: (limit = 10) => getLeaderboard({ client, online, limit, storage }),
     submitScore: (details) => submitScore({ client, online, details, profileStorage, storage }),
     subscribeToLeaderboard: (onInsert) => subscribeToLeaderboard({ client, online, onInsert })

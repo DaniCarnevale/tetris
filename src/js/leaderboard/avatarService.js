@@ -143,7 +143,7 @@ function createResult (source, profile, error) {
   }
 }
 
-function getAvatarUrl (client, online, avatarPath) {
+export function getAvatarUrl (client, online, avatarPath) {
   if (!online || typeof avatarPath !== 'string' || avatarPath.length === 0) return null
 
   try {
