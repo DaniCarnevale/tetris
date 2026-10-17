@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Rosario nocturna</title>
+  <desc id="desc">El Monumento a la Bandera junto al río Paraná bajo un cielo azul eléctrico.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#112d5e"/><stop offset=".58" stop-color="#263a79"/><stop offset="1" stop-color="#081321"/></linearGradient>
+    <linearGradient id="river" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#244f88"/><stop offset=".5" stop-color="#63d7db" stop-opacity=".58"/><stop offset="1" stop-color="#132442"/></linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="1230" cy="185" r="115" fill="#f7c75b" opacity=".18"/>
+  <path d="M0 610h1600v290H0z" fill="#07101d"/>
+  <path d="M0 628c280-36 490-35 740 8s475 54 860-22v220H0z" fill="url(#river)" opacity=".7"/>
+  <g fill="#080e1b"><path d="M0 625V470h90v155zm90 0V420h110v205zm110 0V500h88v125zm88 0V450h122v175zm122 0V380h95v245zm95 0V485h150v140zm150 0V430h96v195zm96 0V500h114v125zm114 0V455h120v170zm120 0V505h80v120zm80 0V420h145v205zm145 0V470h110v155z"/></g>
+  <path d="M795 625 730 900h130l-52-275z" fill="#121d35"/><path d="M800 625 805 310 810 625z" fill="#f7c75b" opacity=".8"/><path d="M790 315h30l-15-52z" fill="#fff1ad" opacity=".8"/>
+  <path d="M0 790c300-35 540-20 800 24s510 42 800-20" fill="none" stroke="#9cf55b" stroke-opacity=".3" stroke-width="4"/>
+  <g fill="#9cf55b" opacity=".5"><circle cx="260" cy="180" r="3"/><circle cx="430" cy="260" r="2"/><circle cx="710" cy="130" r="3"/><circle cx="1030" cy="250" r="2"/><circle cx="1390" cy="140" r="3"/></g>
+</svg>

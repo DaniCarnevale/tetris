@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Córdoba serrana</title>
+  <desc id="desc">Sierras, cúpulas y luces de la ciudad de Córdoba en una noche violeta.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#171d55"/><stop offset=".55" stop-color="#473578"/><stop offset="1" stop-color="#0b1222"/></linearGradient>
+    <linearGradient id="hills" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#213a63"/><stop offset=".5" stop-color="#315d75"/><stop offset="1" stop-color="#121b35"/></linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/><circle cx="1240" cy="160" r="90" fill="#71b7ff" opacity=".2"/>
+  <path d="M0 640 180 480l180 120 220-260 180 240 220-190 180 190 220-240 220 250v310H0z" fill="url(#hills)"/>
+  <path d="M0 760c280-72 520-40 760 20s520 65 840-30v150H0z" fill="#08101e"/>
+  <g fill="#0b1221"><path d="M0 730h160V610h105v120h72V570h114v160h70V640h102v90h95V550h130v180h100V620h112v110h120V580h118v150h90V640h122v90h220v170H0z"/></g>
+  <path d="M755 720V565h90v155zM742 565h116l-58-72z" fill="#cf83ff" opacity=".6"/><path d="M0 800c300-60 540-42 800 18s510 55 800-20" fill="none" stroke="#9cf55b" stroke-opacity=".25" stroke-width="4"/>
+  <g fill="#9cf55b" opacity=".55"><circle cx="240" cy="210" r="3"/><circle cx="500" cy="120" r="2"/><circle cx="820" cy="220" r="3"/><circle cx="1040" cy="110" r="2"/><circle cx="1430" cy="250" r="3"/></g>
+</svg>

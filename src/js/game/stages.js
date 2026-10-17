@@ -41,9 +41,15 @@ export const STAGES = Object.freeze([
 
 const BACKDROP_PROGRESS = [
   { level: 1, id: 'buenos-aires' },
+  { level: 2, id: 'rosario' },
   { level: 3, id: 'humahuaca' },
+  { level: 4, id: 'salta' },
+  { level: 5, id: 'cordoba' },
   { level: 6, id: 'iguazu' },
-  { level: 9, id: 'patagonia' }
+  { level: 7, id: 'mendoza' },
+  { level: 8, id: 'mar-del-plata' },
+  { level: 9, id: 'patagonia' },
+  { level: 10, id: 'perito-moreno' }
 ]
 
 export function getStage (stageId) {

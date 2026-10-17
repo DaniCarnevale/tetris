@@ -26,9 +26,15 @@ import {
   updateControl
 } from './input/controls.js'
 import buenosAiresArt from '../assets/backgrounds/buenos-aires.svg'
+import rosarioArt from '../assets/backgrounds/rosario.svg'
 import humahuacaArt from '../assets/backgrounds/humahuaca.svg'
+import saltaArt from '../assets/backgrounds/salta.svg'
+import cordobaArt from '../assets/backgrounds/cordoba.svg'
 import iguazuArt from '../assets/backgrounds/iguazu.svg'
+import mendozaArt from '../assets/backgrounds/mendoza.svg'
+import marDelPlataArt from '../assets/backgrounds/mar-del-plata.svg'
 import patagoniaArt from '../assets/backgrounds/patagonia.svg'
+import peritoMorenoArt from '../assets/backgrounds/perito-moreno.svg'
 import '../styles/style.css'
 
 const CONTROLS_STORAGE_KEY = 'tetris.controls'
@@ -45,26 +51,56 @@ const ACTION_LABELS = {
 }
 const BACKGROUND_ART = {
   'buenos-aires': buenosAiresArt,
+  rosario: rosarioArt,
   humahuaca: humahuacaArt,
+  salta: saltaArt,
+  cordoba: cordobaArt,
   iguazu: iguazuArt,
-  patagonia: patagoniaArt
+  mendoza: mendozaArt,
+  'mar-del-plata': marDelPlataArt,
+  patagonia: patagoniaArt,
+  'perito-moreno': peritoMorenoArt
 }
 const SCENE_COPY = {
   'buenos-aires': {
     label: 'Buenos Aires',
     description: 'Velocidad baja.'
   },
+  rosario: {
+    label: 'Rosario',
+    description: 'Ritmo urbano.'
+  },
   humahuaca: {
     label: 'Quebrada de Humahuaca',
-    description: 'Velocidad media.'
+    description: 'Color de montaña.'
+  },
+  salta: {
+    label: 'Salta',
+    description: 'Atardecer dorado.'
+  },
+  cordoba: {
+    label: 'Córdoba serrana',
+    description: 'Pulso serrano.'
   },
   iguazu: {
     label: 'Cataratas del Iguazú',
-    description: 'Velocidad alta.'
+    description: 'Energía tropical.'
+  },
+  mendoza: {
+    label: 'Mendoza y los Andes',
+    description: 'Aire de cordillera.'
+  },
+  'mar-del-plata': {
+    label: 'Mar del Plata',
+    description: 'Marea rápida.'
   },
   patagonia: {
     label: 'Patagonia nocturna',
-    description: 'Máxima velocidad.'
+    description: 'Horizonte extremo.'
+  },
+  'perito-moreno': {
+    label: 'Glaciar Perito Moreno',
+    description: 'Desafío final.'
   }
 }
 
