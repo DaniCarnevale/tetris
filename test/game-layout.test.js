@@ -38,38 +38,38 @@ test('the game locks document scrolling only while a game is active', () => {
 
 test('piece stats use a compact visual model in the game cockpit', () => {
   assert.deepEqual(getPieceStatsLayout({ width: 1440 }), {
-    orientation: 'horizontal',
+    orientation: 'sidebar',
     showLongLabels: false
   })
   assert.deepEqual(getPieceStatsLayout({ width: 390 }), {
-    orientation: 'horizontal',
+    orientation: 'sidebar',
     showLongLabels: false
   })
 })
 
-test('piece stats use vertical fills beside each silhouette', () => {
-  assert.match(mainSource, /fill\.style\.height = `\$\{row\.width\}%`/)
-  assert.doesNotMatch(mainSource, /fill\.style\.width = `\$\{row\.width\}%`/)
-  assert.match(stylesheet, /\.piece-stat-track \{[\s\S]*width: 6px;[\s\S]*height: 24px;/)
-  assert.match(stylesheet, /\.piece-stat-track \{[\s\S]*align-items: flex-end;/)
+test('piece stats use horizontal meters above each silhouette', () => {
+  assert.match(mainSource, /fill\.style\.width = `\$\{row\.width\}%`/)
+  assert.doesNotMatch(mainSource, /fill\.style\.height = `\$\{row\.width\}%`/)
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-track \{[\s\S]*width: auto;[\s\S]*height: 4px;/)
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-fill \{[\s\S]*transition: width 260ms ease;/)
 })
 
-test('piece stats render each tetromino as a unified silhouette beside its fill', () => {
+test('piece stats render each tetromino as a unified silhouette below its fill', () => {
   assert.match(mainSource, /piece-stat-thumbnail/)
   assert.match(mainSource, /createElementNS/)
   assert.match(mainSource, /piece-stat-glyph/)
-  assert.match(mainSource, /item\.append\(thumbnail, track, count\)/)
+  assert.match(mainSource, /item\.append\(meter, thumbnail\)/)
   assert.doesNotMatch(mainSource, /label\.textContent = row\.shortLabel/)
-  assert.match(stylesheet, /body\.is-game-active \.piece-stat-row \{[\s\S]*display: flex;/)
+  assert.match(stylesheet, /body\.is-game-active \.game-side-rail \.piece-stat-row \{[\s\S]*display: grid;/)
 })
 
-test('piece stat spacing keeps the silhouette group compact and intentional', () => {
-  assert.match(stylesheet, /\.piece-stat-row \{[\s\S]*display: flex;/)
-  assert.match(stylesheet, /\.piece-stat-track \{[\s\S]*margin-left: 8px;/)
-  assert.match(stylesheet, /\.piece-stat-count \{[\s\S]*margin-left: 4px;[\s\S]*text-align: left;/)
+test('piece stat spacing keeps the meter and number compact', () => {
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-meter \{[\s\S]*display: flex;[\s\S]*gap: 6px;/)
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-track \{[\s\S]*margin: 0;/)
+  assert.match(stylesheet, /body\.is-game-active \.piece-stat-count \{[\s\S]*margin: 0;[\s\S]*text-align: left;/)
 })
 
-test('piece stat cards wrap their contents without trailing empty space', () => {
-  assert.match(stylesheet, /body\.is-game-active \.piece-stats-list \{[\s\S]*grid-template-columns: repeat\(7, max-content\);[\s\S]*justify-content: space-between;/)
-  assert.match(stylesheet, /body\.is-game-active \.piece-stat-row \{[\s\S]*width: max-content;/)
+test('piece stat cards use a readable two-column side rail', () => {
+  assert.match(stylesheet, /body\.is-game-active \.game-side-rail \.piece-stats-list \{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/)
+  assert.match(stylesheet, /body\.is-game-active \.game-side-rail \.piece-stat-row \{[\s\S]*grid-template-rows: auto 23px;/)
 })

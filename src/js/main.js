@@ -172,15 +172,10 @@ const levelProgressElement = document.querySelector('#levelProgress')
 const statsCard = document.querySelector('.stats-card')
 const levelLedTargets = [boardCanvas, statsCard]
 const statusElement = document.querySelector('#status')
-const stateLabel = document.querySelector('#stateLabel')
 const stateDot = document.querySelector('#stateDot')
 const heldEmpty = document.querySelector('#heldEmpty')
 const controlHint = document.querySelector('#controlHint')
 const holdKey = document.querySelector('#holdKey')
-const restartKey = document.querySelector('#restartKey')
-const pauseKey = document.querySelector('#pauseKey')
-const pauseButton = document.querySelector('#pauseButton')
-const pauseButtonLabel = document.querySelector('#pauseButtonLabel')
 const pauseOverlay = document.querySelector('#pauseOverlay')
 const resumeButton = document.querySelector('#resumeButton')
 const gameOverOverlay = document.querySelector('#gameOverOverlay')
@@ -205,7 +200,6 @@ const settingsBackdrop = document.querySelector('#settingsBackdrop')
 const settingsPanel = document.querySelector('#settingsPanel')
 const settingsFeedback = document.querySelector('#settingsFeedback')
 const resetControlsButton = document.querySelector('#resetControls')
-const restartButton = document.querySelector('#restartButton')
 const soundToggle = document.querySelector('#soundToggle')
 const soundToggleLabel = document.querySelector('#soundToggleLabel')
 const musicToggle = document.querySelector('#musicToggle')
@@ -218,6 +212,10 @@ const gameProfileAvatarImage = document.querySelector('#gameProfileAvatarImage')
 const gameProfileInitials = document.querySelector('#gameProfileInitials')
 const gameProfileNickname = document.querySelector('#gameProfileNickname')
 const gameProfileAccount = document.querySelector('#gameProfileAccount')
+const gameProfileMenu = document.querySelector('#gameProfileMenu')
+const profileMenuProfile = document.querySelector('#profileMenuProfile')
+const recordScoreElement = document.querySelector('#recordScore')
+const recordStageLabel = document.querySelector('#recordStageLabel')
 const pieceStatsTotal = document.querySelector('#pieceStatsTotal')
 const pieceStatsList = document.querySelector('#pieceStatsList')
 const profileBackdrop = document.querySelector('#profileBackdrop')
@@ -265,6 +263,7 @@ let gameOverTimer = null
 let lineClearAnimation = null
 let leaderboardSaveRequest = 0
 let leaderboardRefreshRequest = 0
+let stageRecordRequest = 0
 let leaderboardUnsubscribe = () => {}
 let temporaryAvatarPreviewUrl = null
 let profileEditingEnabled = false
@@ -599,6 +598,7 @@ function selectStage (stageId) {
     button.setAttribute('aria-pressed', String(button.dataset.stageId === selectedStage))
   })
   updateStartScene()
+  refreshStageRecord(selectedStage)
 }
 
 function updateStageArt (level) {
@@ -622,6 +622,23 @@ function updateStartScene () {
   const stage = getStage(selectedStage)
   startSceneLabel.textContent = `${scene.label} · Nivel ${level}`
   startSceneDescription.textContent = `${scene.description} ${stage.name}.`
+}
+
+async function refreshStageRecord (stageId = selectedStage) {
+  const requestId = ++stageRecordRequest
+  const stage = getStage(stageId)
+  recordStageLabel.textContent = `Récord · ${stage.name}`
+  recordScoreElement.textContent = '—'
+
+  try {
+    const result = await leaderboardService.getLeaderboard({ stageId, limit: 1 })
+    if (requestId !== stageRecordRequest || stageId !== selectedStage) return
+
+    const bestScore = result.entries[0]?.score
+    recordScoreElement.textContent = bestScore === undefined ? '—' : SCORE_FORMATTER.format(bestScore)
+  } catch {
+    if (requestId === stageRecordRequest) recordScoreElement.textContent = '—'
+  }
 }
 
 function getEffectiveScore (score, startLevel) {
@@ -670,21 +687,12 @@ function updateHud () {
   const isPaused = game.paused && !game.gameOver
   scoreElement.textContent = game.score
   levelElement.textContent = currentLevel.level
-  stateLabel.textContent = game.gameOver ? 'Partida terminada' : isPaused ? 'En pausa' : 'En partida'
   stateDot.classList.toggle('game-over', game.gameOver)
   stateDot.classList.toggle('is-paused', isPaused)
-  statusElement.textContent = game.gameOver
-    ? `Fin de partida · pulsá ${getKeyLabel(controls.restart)} para volver a jugar`
-    : isPaused
-      ? `Juego en pausa · pulsá ${getKeyLabel(controls.pause)} para continuar`
-      : 'En juego · prepará tu próxima jugada'
+  const stateCopy = game.gameOver ? 'Partida terminada' : isPaused ? 'En pausa' : 'En partida'
+  statusElement.textContent = stateCopy
   controlHint.textContent = `${getKeyLabel(controls.rotate)} rotar · ${getKeyLabel(controls.softDrop)} bajar · ${getKeyLabel(controls.pause)} pausar`
   holdKey.textContent = getKeyLabel(controls.hold)
-  restartKey.textContent = getKeyLabel(controls.restart)
-  pauseKey.textContent = getKeyLabel(controls.pause)
-  pauseButtonLabel.textContent = isPaused ? 'Reanudar' : 'Pausar'
-  pauseButton.setAttribute('aria-pressed', String(isPaused))
-  pauseButton.disabled = game.gameOver
   pauseOverlay.hidden = !isPaused
   heldEmpty.hidden = Boolean(game.heldPiece)
   updateLevelProgress()
@@ -713,6 +721,7 @@ function renderPieceStats () {
     const count = document.createElement('strong')
     const track = document.createElement('div')
     const fill = document.createElement('span')
+    const meter = document.createElement('div')
     const glyph = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     const glyphPath = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 
@@ -721,6 +730,7 @@ function renderPieceStats () {
     count.className = 'piece-stat-count'
     track.className = 'piece-stat-track'
     fill.className = 'piece-stat-fill'
+    meter.className = 'piece-stat-meter'
     glyph.classList.add('piece-stat-glyph')
     glyphPath.classList.add('piece-stat-glyph-path')
     glyph.setAttribute('viewBox', `0 0 ${row.shape[0].length} ${row.shape.length}`)
@@ -729,7 +739,7 @@ function renderPieceStats () {
     glyphPath.setAttribute('fill', row.color)
     thumbnail.setAttribute('role', 'img')
     thumbnail.setAttribute('aria-label', row.label)
-    fill.style.height = `${row.width}%`
+    fill.style.width = `${row.width}%`
     fill.style.backgroundColor = row.color
     count.textContent = String(row.count)
     track.setAttribute('role', 'progressbar')
@@ -741,7 +751,8 @@ function renderPieceStats () {
     glyph.append(glyphPath)
     thumbnail.append(glyph)
     track.append(fill)
-    item.append(thumbnail, track, count)
+    meter.append(count, track)
+    item.append(meter, thumbnail)
     pieceStatsList.append(item)
   })
 }
@@ -864,7 +875,20 @@ function renderGameProfile (profile = leaderboardService.getProfile(), accountLa
   gameProfileInitials.textContent = model.initials
   gameProfileNickname.textContent = model.nickname
   gameProfileAccount.textContent = model.accountLabel
-  gameProfile.setAttribute('aria-label', `Perfil del jugador: ${model.nickname}`)
+  gameProfile.setAttribute('aria-label', `Abrir menú del jugador: ${model.nickname}`)
+}
+
+function closeGameProfileMenu ({ restoreFocus = false } = {}) {
+  gameProfileMenu.hidden = true
+  gameProfile.setAttribute('aria-expanded', 'false')
+  if (restoreFocus) gameProfile.focus()
+}
+
+function toggleGameProfileMenu () {
+  const willOpen = gameProfileMenu.hidden
+  gameProfileMenu.hidden = !willOpen
+  gameProfile.setAttribute('aria-expanded', String(willOpen))
+  if (willOpen) profileMenuProfile.focus()
 }
 
 function renderStartProfileAccess (profile = leaderboardService.getProfile(), account = currentAccount) {
@@ -1030,6 +1054,7 @@ function renderAccountState (account) {
 }
 
 function openProfilePanel () {
+  closeGameProfileMenu()
   profilePanel.hidden = false
   profileBackdrop.hidden = false
   profilePanel.setAttribute('aria-hidden', 'false')
@@ -1042,6 +1067,7 @@ function closeProfilePanel () {
   profileBackdrop.hidden = true
   profilePanel.setAttribute('aria-hidden', 'true')
   profileAccessButton.setAttribute('aria-expanded', 'false')
+  closeGameProfileMenu()
   if (gameScreen.hidden) profileAccessButton.focus()
   else gameProfile.focus()
 }
@@ -1232,6 +1258,7 @@ function refreshLeaderboardIfOpen () {
 }
 
 function openLeaderboard () {
+  closeGameProfileMenu()
   syncLeaderboardFilters()
   leaderboardPanel.hidden = false
   leaderboardBackdrop.hidden = false
@@ -1253,7 +1280,7 @@ function closeLeaderboard () {
 
   if (!gameOverOverlay.hidden) gameOverLeaderboardButton.focus()
   else if (gameScreen.hidden) leaderboardButton.focus()
-  else gameLeaderboardButton.focus()
+  else gameProfile.focus()
 }
 
 async function submitGameScore () {
@@ -1277,6 +1304,7 @@ async function submitGameScore () {
   if (result.source === 'online') {
     gameOverSaveStatus.classList.add('is-success')
     gameOverSaveStatus.textContent = 'Puntuación guardada en el ranking histórico.'
+    refreshStageRecord(game.stageId)
     return
   }
 
@@ -1290,6 +1318,7 @@ function openSettings () {
   settingsPanel.hidden = false
   settingsBackdrop.hidden = false
   settingsPanel.setAttribute('aria-hidden', 'false')
+  closeGameProfileMenu()
   settingsToggle.setAttribute('aria-expanded', 'true')
   showSettingsFeedback('Elegí una acción para cambiar su tecla.')
   settingsClose.focus()
@@ -1303,7 +1332,7 @@ function closeSettings () {
   settingsToggle.setAttribute('aria-expanded', 'false')
   renderControlLabels()
   if (gameScreen.hidden) startSettingsButton.focus()
-  else settingsToggle.focus()
+  else gameProfile.focus()
 }
 
 function resetControls () {
@@ -1367,19 +1396,12 @@ function returnToStartScreen (keyCode) {
   gameStarted = false
   gameScreen.hidden = true
   startScreen.hidden = false
+  window.scrollTo({ top: 0, left: 0 })
   syncGameViewport()
   startHint.textContent = 'Listo para jugar.'
   updateStartScene()
   startGameButton.focus()
   return true
-}
-
-function restartGame () {
-  hideGameOverOverlay()
-  gameStarted = false
-  activeRun = null
-  runActions = []
-  startGame()
 }
 
 function togglePauseGame () {
@@ -1524,6 +1546,7 @@ async function startGame () {
     lastRenderedLevel = 0
     startScreen.hidden = true
     gameScreen.hidden = false
+    window.scrollTo({ top: 0, left: 0 })
     soundManager.unlock()
     soundManager.playMusic()
     updateStageArt(startLevel)
@@ -1577,20 +1600,19 @@ profileClose.addEventListener('click', closeProfilePanel)
 profileBackdrop.addEventListener('click', closeProfilePanel)
 gameLeaderboardButton.addEventListener('click', openLeaderboard)
 gameOverLeaderboardButton.addEventListener('click', openLeaderboard)
-gameProfile.addEventListener('click', openProfilePanel)
+gameProfile.addEventListener('click', toggleGameProfileMenu)
+profileMenuProfile.addEventListener('click', openProfilePanel)
 leaderboardClose.addEventListener('click', closeLeaderboard)
 leaderboardBackdrop.addEventListener('click', closeLeaderboard)
 leaderboardRefresh.addEventListener('click', refreshLeaderboard)
 leaderboardStage.addEventListener('change', refreshLeaderboard)
 leaderboardStartLevel.addEventListener('change', refreshLeaderboard)
-pauseButton.addEventListener('click', togglePauseGame)
 resumeButton.addEventListener('click', togglePauseGame)
 settingsToggle.addEventListener('click', openSettings)
 openSettingsLink.addEventListener('click', openSettings)
 settingsClose.addEventListener('click', closeSettings)
 settingsBackdrop.addEventListener('click', closeSettings)
 resetControlsButton.addEventListener('click', resetControls)
-restartButton.addEventListener('click', restartGame)
 soundToggle.addEventListener('click', () => {
   soundManager.setEnabled(!soundManager.isEnabled())
   if (soundManager.isEnabled()) soundManager.unlock()
@@ -1617,6 +1639,12 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) pauseOnFocusLoss()
 })
 window.addEventListener('blur', pauseOnFocusLoss)
+
+document.addEventListener('click', (event) => {
+  if (gameProfileMenu.hidden) return
+  if (gameProfile.contains(event.target) || gameProfileMenu.contains(event.target)) return
+  closeGameProfileMenu()
+})
 
 document.querySelectorAll('[data-binding]').forEach((button) => {
   button.addEventListener('click', () => startListening(button.dataset.binding))
@@ -1649,6 +1677,11 @@ document.addEventListener('keydown', (event) => {
 
   if (!settingsPanel.hidden) {
     if (event.code === 'Escape') closeSettings()
+    return
+  }
+
+  if (!gameProfileMenu.hidden) {
+    if (event.code === 'Escape') closeGameProfileMenu({ restoreFocus: true })
     return
   }
 

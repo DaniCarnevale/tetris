@@ -13,7 +13,7 @@ export function getGameViewportState (isGameActive) {
 
 export function getPieceStatsLayout () {
   return {
-    orientation: 'horizontal',
+    orientation: 'sidebar',
     showLongLabels: false
   }
 }
