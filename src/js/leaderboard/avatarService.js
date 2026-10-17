@@ -154,7 +154,14 @@ function getAvatarUrl (client, online, avatarPath) {
 }
 
 function getErrorMessage (error) {
-  return error instanceof Error ? error.message : String(error?.message ?? error ?? 'Error desconocido')
+  const message = error instanceof Error ? error.message : String(error?.message ?? error ?? 'Error desconocido')
+  if (message.includes('avatar_upload_rate_limited')) {
+    return 'Esperá 30 segundos antes de cambiar el avatar nuevamente.'
+  }
+  if (message.includes('row-level security policy')) {
+    return 'No se pudo guardar el avatar. Verificá que tu cuenta de Google siga conectada.'
+  }
+  return message
 }
 
 function getStorage () {

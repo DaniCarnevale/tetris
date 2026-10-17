@@ -18,11 +18,11 @@ function createStorage () {
   }
 }
 
-function createSupabaseClient (calls, user = { id: 'user-1' }) {
+function createSupabaseClient (calls, user = { id: 'user-1' }, uploadError = null) {
   const bucket = {
     upload: async (path, file, options) => {
       calls.upload = { path, file, options }
-      return { error: null }
+      return { error: uploadError }
     },
     remove: async (paths) => {
       calls.remove = paths
@@ -124,4 +124,40 @@ test('blocks avatar uploads for anonymous guests', async () => {
   assert.equal(result.source, 'blocked')
   assert.equal(result.error, 'Vinculá Google para usar un avatar.')
   assert.equal(calls.upload, undefined)
+})
+
+test('translates storage policy and cooldown errors into useful avatar feedback', async () => {
+  const policyClient = createSupabaseClient(
+    {},
+    { id: 'user-1', is_anonymous: false },
+    new Error('new row violates row-level security policy for table "objects"')
+  )
+  const policyService = createAvatarService({
+    storage: createStorage(),
+    profileStorage: createStorage(),
+    supabaseClient: policyClient,
+    supabaseUrl: 'https://example.supabase.co',
+    supabaseKey: 'public-key',
+    now: () => 1000
+  })
+
+  const policyResult = await policyService.uploadAvatar({ type: 'image/webp', size: 100 })
+  assert.equal(policyResult.error, 'No se pudo guardar el avatar. Verificá que tu cuenta de Google siga conectada.')
+
+  const cooldownClient = createSupabaseClient(
+    {},
+    { id: 'user-1', is_anonymous: false },
+    new Error('avatar_upload_rate_limited')
+  )
+  const cooldownService = createAvatarService({
+    storage: createStorage(),
+    profileStorage: createStorage(),
+    supabaseClient: cooldownClient,
+    supabaseUrl: 'https://example.supabase.co',
+    supabaseKey: 'public-key',
+    now: () => 1000
+  })
+
+  const cooldownResult = await cooldownService.uploadAvatar({ type: 'image/webp', size: 100 })
+  assert.equal(cooldownResult.error, 'Esperá 30 segundos antes de cambiar el avatar nuevamente.')
 })

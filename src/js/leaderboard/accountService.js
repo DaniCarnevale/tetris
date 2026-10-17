@@ -23,6 +23,7 @@ export function createAccountService ({
     isOnline: () => online,
     getAccountState: () => getAccountState({ client, online }),
     connectGoogle: () => connectGoogle({ client, online, redirectTo }),
+    signOut: () => signOut({ client, online }),
     loadProfile: () => loadProfile({ client, online }),
     saveProfile: (profile) => saveProfile({ client, online, profile })
   }
@@ -59,6 +60,18 @@ async function connectGoogle ({ client, online, redirectTo }) {
     return { source: 'redirect', url: data?.url ?? null, error: null }
   } catch (error) {
     return { source: 'offline', url: null, error: getErrorMessage(error) }
+  }
+}
+
+async function signOut ({ client, online }) {
+  if (!online) return { source: 'offline', error: 'Supabase todavía no está configurado.' }
+
+  try {
+    const { error } = await client.auth.signOut({ scope: 'local' })
+    if (error) throw error
+    return { source: 'online', error: null }
+  } catch (error) {
+    return { source: 'offline', error: getErrorMessage(error) }
   }
 }
 

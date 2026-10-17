@@ -537,6 +537,24 @@ select:focus {
   font-weight: 900;
 }
 
+.signout-button {
+  border-color: rgba(255, 157, 174, 0.25);
+  color: #ffd8df;
+  background: rgba(255, 125, 148, 0.08);
+}
+
+.signout-button:hover,
+.signout-button:focus-visible {
+  border-color: rgba(255, 157, 174, 0.55);
+  background: rgba(255, 125, 148, 0.14);
+}
+
+.signout-mark {
+  color: #ff9cad;
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .account-feedback {
   min-height: 17px;
   margin-bottom: 18px;
